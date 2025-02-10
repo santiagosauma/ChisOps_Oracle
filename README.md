@@ -1,12 +1,12 @@
-# ChipsOps: Oracle Java Bot
+# ChisOps: Oracle Java Bot
 
-¡Bienvenidos al repositorio oficial del equipo **ChipsOps**! Aquí encontrarás todo lo relacionado con nuestro proyecto para el desafío **Oracle Java Bot**. Somos un equipo apasionado por la tecnología, la innovación y, por supuesto, los chips (¡de silicio y de papas!). Nuestra misión es combinar la precisión de la ingeniería con la creatividad para resolver problemas de manera eficiente y divertida.
+¡Bienvenidos al repositorio oficial del equipo **ChisOps**! Aquí encontrarás todo lo relacionado con nuestro proyecto para la situación problema **Oracle Java Bot** del bloque 3004b (Gpo306). Somos un equipo apasionado por la tecnología, la innovación y, por supuesto, los chips (¡de silicio y de papas!). Nuestra misión es combinar la precisión de la ingeniería con la creatividad para resolver problemas de manera eficiente y divertida.
 
 ---
 
 ## Slogan del Equipo
 
-**"ChipsOps: Donde los bits se encuentran con los bites."**
+**"ChisOps: Donde los bits se encuentran con los bites."**
 
 ---
 
