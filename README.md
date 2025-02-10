@@ -21,5 +21,5 @@ El objetivo principal es aumentar la productividad y visibilidad de las activida
 
 - **Luis Santiago Sauma Peñaloza**
 - **Isaac Rojas Sosa**
-- **Nombre 3**
+- **Héctor Eduardo Garza Fraga**
 - **Nombre 4**
