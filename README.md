@@ -6,7 +6,7 @@
 
 ## Slogan del Equipo
 
-**"ChisOps: Donde los bits se encuentran con los bites."**
+**"ChisOps: Donde los bugs se convierten en features."**
 
 ---
 
