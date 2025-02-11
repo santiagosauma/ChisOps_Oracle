@@ -17,6 +17,10 @@ El reto consiste en desarrollar un **Oracle Java Bot** que automatice las tareas
 El objetivo principal es aumentar la productividad y visibilidad de las actividades del equipo en un 20%, automatizando tareas como la gestión de To-do's y proporcionando acceso a la información en tiempo real, tanto para desarrolladores como para el manager.
 ---
 
+## Bosquejo Modelo ER
+![ChisOps](https://github.com/user-attachments/assets/8c1127d6-05bb-4097-82a1-7236bdb43b92)
+
+
 ## Equipo
 
 - **Luis Santiago Sauma Peñaloza**
