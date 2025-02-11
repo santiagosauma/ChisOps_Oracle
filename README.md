@@ -18,8 +18,7 @@ El objetivo principal es aumentar la productividad y visibilidad de las activida
 ---
 
 ## Bosquejo Modelo ER
-![ChisOps](https://github.com/user-attachments/assets/8c1127d6-05bb-4097-82a1-7236bdb43b92)
-
+![ChisOps (1)](https://github.com/user-attachments/assets/6606c588-7503-49e3-b926-1b90bf497d4e)
 
 ## Equipo
 
