@@ -1,6 +1,6 @@
 # ChisOps: Oracle Java Bot
 
-¡Bienvenidos al repositorio oficial del equipo ChisOps! Aquí encontrarás todo lo relacionado con nuestro proyecto para la situación problema Oracle Java Bot del bloque 3004b (Gpo306). Somos un equipo apasionado por la tecnología, la innovación y, por supuesto, el café (¡combustible para nuestras el mejor código!). Nuestra misión es combinar la precisión de la ingeniería con la creatividad para resolver problemas de manera eficiente y divertida.
+¡Bienvenidos al repositorio oficial del equipo ChisOps! Aquí encontrarás todo lo relacionado con nuestro proyecto para la situación problema Oracle Java Bot del bloque 3004b (Gpo306). Somos un equipo apasionado por la tecnología, la innovación y, por supuesto, el café (¡combustible para el desarrollo del mejor código!). Nuestra misión es combinar la precisión de la ingeniería con la creatividad para resolver problemas de manera eficiente y divertida.
 
 ---
 
