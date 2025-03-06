@@ -48,3 +48,8 @@ frontend/package-lock.json
 frontend/npm-debug.log*
 frontend/yarn-debug.log*
 frontend/yarn-error.log*
+MtdrSpring/backend/src/main/frontend/node_modules/.bin/autoprefixer.ps1
+MtdrSpring/backend/wallet
+MtdrSpring/backend/src/main/frontend/node_modules
+MtdrSpring/backend/target/node/node_modules
+MtdrSpring/backend/src/main/frontend/build
