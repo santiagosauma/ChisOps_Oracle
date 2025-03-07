@@ -1,6 +1,10 @@
 package com.springboot.MyTodoList.model;
 
 import javax.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import java.util.Date;
 import java.util.List;
 
@@ -12,7 +16,7 @@ import java.util.List;
  * incluyendo nombre, fechas de inicio y fin, estado y relación con el proyecto.
  */
 @Entity
-@Table(name = "SPRINT", schema = "ADMIN")
+@Table(name = "SPRINT")
 public class Sprint {
     
     @Id
@@ -36,13 +40,16 @@ public class Sprint {
     
     @ManyToOne
     @JoinColumn(name = "PROJECT_ID", nullable = false)
+    @JsonBackReference
     private Proyecto proyecto;
     
     @Column(name = "DELETED", nullable = false)
     private int deleted;
     
     @OneToMany(mappedBy = "sprint", cascade = CascadeType.ALL)
+    @JsonManagedReference("sprint-tarea")  // Añadir esta anotación con un identificador
     private List<Tarea> tareas;
+
     
     /**
      * Constructor vacío requerido por JPA

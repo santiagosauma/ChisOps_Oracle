@@ -1,5 +1,3 @@
-/wallet
-/MtdrSpring/backend/wallet
 .env
 MtdrSpring/backend/src/main/frontend/build
 MtdrSpring/backend/src/main/frontend/node_modules

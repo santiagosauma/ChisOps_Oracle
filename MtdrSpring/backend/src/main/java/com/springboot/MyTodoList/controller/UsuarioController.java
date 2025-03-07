@@ -30,7 +30,7 @@ public class UsuarioController {
      * Endpoint: GET /users
      */
     //@CrossOrigin
-    @GetMapping(value = "/users")
+    @GetMapping(value = "/usuarios")
     public List<Usuario> getAllUsuarios() {
         return usuarioService.findAll();
     }
@@ -43,7 +43,7 @@ public class UsuarioController {
      * Endpoint: GET /users/{id}
      */
     //@CrossOrigin
-    @GetMapping(value = "/users/{id}")
+    @GetMapping(value = "/usuarios/{id}")
     public ResponseEntity<Usuario> getUsuarioById(@PathVariable int id) {
         try {
             ResponseEntity<Usuario> responseEntity = usuarioService.getUserById(id);
@@ -61,7 +61,7 @@ public class UsuarioController {
      * Endpoint: POST /users
      */
     //@CrossOrigin
-    @PostMapping(value = "/users")
+    @PostMapping(value = "/usuarios")
     public ResponseEntity addUsuario(@RequestBody Usuario usuario) throws Exception {
         Usuario newUser = usuarioService.addUsuario(usuario);
         HttpHeaders responseHeaders = new HttpHeaders();
@@ -80,7 +80,7 @@ public class UsuarioController {
      * Endpoint: PUT /users/{id}
      */
     //@CrossOrigin
-    @PutMapping(value = "users/{id}")
+    @PutMapping(value = "usuarios/{id}")
     public ResponseEntity updateUsuario(@RequestBody Usuario usuario, @PathVariable int id) {
         try {
             Usuario updatedUser = usuarioService.updateUsuario(id, usuario);
@@ -98,7 +98,7 @@ public class UsuarioController {
      * Endpoint: DELETE /users/{id}
      */
     //@CrossOrigin
-    @DeleteMapping(value = "users/{id}")
+    @DeleteMapping(value = "usuarios/{id}")
     public ResponseEntity<Boolean> deleteUsuario(@PathVariable("id") int id) {
         Boolean flag = false;
         try {
@@ -117,7 +117,7 @@ public class UsuarioController {
      * Endpoint: POST /users/login
      */
     //@CrossOrigin
-    @PostMapping(value = "/users/login")
+    @PostMapping(value = "/usuarios/login")
     public ResponseEntity<?> authenticateUsuario(@RequestBody Map<String, String> credentials) {
         String email = credentials.get("email");
         String password = credentials.get("password");
@@ -143,7 +143,7 @@ public class UsuarioController {
      * Endpoint: GET /users/email/{email}
      */
     //@CrossOrigin
-    @GetMapping(value = "/users/email/{email}")
+    @GetMapping(value = "/usuarios/email/{email}")
     public ResponseEntity<?> getUsuarioByEmail(@PathVariable String email) {
         Usuario usuario = usuarioService.findByEmail(email);
         
@@ -162,7 +162,7 @@ public class UsuarioController {
      * Endpoint: GET /users/search?term={searchTerm}
      */
     //@CrossOrigin
-    @GetMapping(value = "/users/search")
+    @GetMapping(value = "/usuarios/search")
     public List<Usuario> searchUsuarios(@RequestParam("term") String searchTerm) {
         return usuarioService.searchUsuarios(searchTerm);
     }

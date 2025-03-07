@@ -10,7 +10,7 @@ import javax.persistence.*;
  * de cada usuario, así como su rol y estado.
  */
 @Entity
-@Table(name = "USUARIO", schema = "ADMIN")
+@Table(name = "USUARIO")
 public class Usuario {
     
     @Id

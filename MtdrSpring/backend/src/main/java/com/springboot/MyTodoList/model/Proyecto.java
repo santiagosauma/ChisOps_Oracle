@@ -1,5 +1,6 @@
 package com.springboot.MyTodoList.model;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import javax.persistence.*;
 import java.util.Date;
 import java.util.List;
@@ -12,7 +13,7 @@ import java.util.List;
  * incluyendo nombre, descripción, fechas de inicio y fin, estado y el usuario responsable.
  */
 @Entity
-@Table(name = "PROYECTO", schema = "ADMIN")
+@Table(name = "PROYECTO")
 public class Proyecto {
     
     @Id
@@ -45,6 +46,7 @@ public class Proyecto {
     private int deleted;
     
     @OneToMany(mappedBy = "proyecto", cascade = CascadeType.ALL)
+    @JsonManagedReference
     private List<Sprint> sprints;
     
     /**

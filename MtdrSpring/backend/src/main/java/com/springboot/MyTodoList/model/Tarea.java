@@ -1,6 +1,9 @@
 package com.springboot.MyTodoList.model;
 
 import javax.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import java.util.Date;
 
 /**
@@ -11,7 +14,7 @@ import java.util.Date;
  * incluyendo su descripción, estado, prioridad, fechas y relaciones con sprint y usuario.
  */
 @Entity
-@Table(name = "TAREA", schema = "ADMIN")
+@Table(name = "TAREA")
 public class Tarea {
     
     @Id
@@ -47,6 +50,7 @@ public class Tarea {
     
     @ManyToOne
     @JoinColumn(name = "SPRINT_ID", nullable = false)
+    @JsonBackReference("sprint-tarea")  // Añadir esta anotación con el mismo identificador
     private Sprint sprint;
     
     @ManyToOne
