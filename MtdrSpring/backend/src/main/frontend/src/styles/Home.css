@@ -1,11 +1,11 @@
 * {
     margin: 0;
     padding: 0;
+    box-sizing: border-box;
   }
   .home-wrapper {
-    box-sizing: border-box;
     width: 95.8vw;
-    height: 99.4vh;
+    height: 99.5vh;
     background-color: #EBECEE;
     display: flex;
     flex-direction: column;
@@ -24,48 +24,80 @@
     overflow: hidden;
   }
   .grid-container {
-    margin: 20px;
-    width: calc(100% - 40px);
-    height: calc(100% - 40px);
-    display: grid;
-    gap: 20px;
-    grid-template-columns: 2fr 1fr 1fr;
-    grid-template-rows: 2fr 2fr 2fr;
-    grid-template-areas:
-      "active tickets overdue"
-      "active tickets pending"
-      "general progress completed";
+    width: 100%;
+    display: flex;
+    height: 100%;
   }
-  .grid-item {
+  .left-col {
+    width: 50%;
+    display: grid;
+    grid-template-rows: 40% 25% 35%;
+    gap: 20px;
+    padding: 20px;
+    padding-right: 10px;
+  }
+  .right-col {
+    width: 50%;
+    display: grid;
+    grid-template-rows: 50% 50%;
+    gap: 20px;
+    padding: 20px;
+    padding-left: 10px;
+  }
+  .top-right {
+    display: grid;
+    grid-template-columns: 60% 40%;
+    gap: 20px;
+    height: 100%;
+  }
+  .priority-col {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    padding: 20px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+  }
+  .overdue-pending {
+    display: grid;
+    grid-template-rows: 50% 50%;
+    gap: 20px;
+    height: 95%;
+    width: 94%
+  }
+  .overdue-tasks,
+  .pending-tasks {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 20px;
+  }
+  .grid-item,
+  .active-projects,
+  .general-overview,
+  .completed-projects,
+  .tasks-in-progress {
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.15);
     padding: 20px;
   }
-  .grid-item h2 {
+  .grid-item h2,
+  .active-projects h2,
+  .general-overview h2,
+  .completed-projects h2,
+  .tasks-in-progress h2,
+  .priority-col h2,
+  .overdue-tasks h2,
+  .pending-tasks h2 {
     font-size: 14px;
-    margin: 0 0 8px 0;
-    padding: 0 0 8px 0;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
     border-bottom: 1px solid #000;
   }
-  .grid-container .grid-item:nth-child(1) {
-    grid-area: active;
-  }
-  .grid-container .grid-item:nth-child(2) {
-    grid-area: tickets;
-  }
-  .grid-container .grid-item:nth-child(3) {
-    grid-area: overdue;
-  }
-  .grid-container .grid-item:nth-child(4) {
-    grid-area: pending;
-  }
-  .grid-container .grid-item:nth-child(5) {
-    grid-area: general;
-  }
-  .grid-container .grid-item:nth-child(6) {
-    grid-area: progress;
-  }
-  .grid-container .grid-item:nth-child(7) {
-    grid-area: completed;
-  }  

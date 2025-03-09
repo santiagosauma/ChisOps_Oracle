@@ -177,7 +177,8 @@ public class ProyectoService {
      * @return Lista de proyectos en curso a la fecha actual
      */
     public List<Proyecto> getActiveProyectos() {
-        return proyectoRepository.findActiveProyectosByDate(new Date());
+        return proyectoRepository.findActiveProyectos(); 
+        // return proyectoRepository.findActiveProyectosByDate(new Date());
     }
     
     /**
