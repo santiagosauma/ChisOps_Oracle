@@ -1,214 +1,158 @@
 import React, { useState, useEffect } from 'react'
-import NewItem from './NewItem'
-import API_LIST from './API'
-import DeleteIcon from '@mui/icons-material/Delete'
-import { Button, TableBody, CircularProgress } from '@mui/material'
-import Moment from 'react-moment'
 
 function DefaultContent() {
-  const [isLoading, setLoading] = useState(false)
-  const [isInserting, setInserting] = useState(false)
-  const [items, setItems] = useState([])
-  const [error, setError] = useState()
-
-  function deleteItem(deleteId) {
-    fetch(API_LIST + '/' + deleteId, { method: 'DELETE' })
-      .then(response => {
-        if (response.ok) {
-          return response
-        } else {
-          throw new Error('Something went wrong')
-        }
-      })
-      .then(
-        () => {
-          const remainingItems = items.filter(item => item.id !== deleteId)
-          setItems(remainingItems)
-        },
-        error => {
-          setError(error)
-        }
-      )
-  }
-
-  function toggleDone(event, id, description, done) {
-    event.preventDefault()
-    modifyItem(id, description, done).then(
-      () => {
-        reloadOneIteam(id)
-      },
-      error => {
-        setError(error)
-      }
-    )
-  }
-
-  function reloadOneIteam(id) {
-    fetch(API_LIST + '/' + id)
-      .then(response => {
-        if (response.ok) {
-          return response.json()
-        } else {
-          throw new Error('Something went wrong')
-        }
-      })
-      .then(
-        result => {
-          const items2 = items.map(x =>
-            x.id === id
-              ? { ...x, description: result.description, done: result.done }
-              : x
-          )
-          setItems(items2)
-        },
-        error => {
-          setError(error)
-        }
-      )
-  }
-
-  function modifyItem(id, description, done) {
-    const data = { description, done }
-    return fetch(API_LIST + '/' + id, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    }).then(response => {
-      if (response.ok) {
-        return response
-      } else {
-        throw new Error('Something went wrong')
-      }
-    })
-  }
+  const [projects, setProjects] = useState([])
+  const [selectedProject, setSelectedProject] = useState('')
+  const [sprints, setSprints] = useState([])
+  const [selectedSprint, setSelectedSprint] = useState('')
+  const [tasks, setTasks] = useState([])
+  const [error, setError] = useState('')
+  const [loadingProjects, setLoadingProjects] = useState(false)
+  const [loadingSprints, setLoadingSprints] = useState(false)
+  const [loadingTasks, setLoadingTasks] = useState(false)
 
   useEffect(() => {
-    setLoading(true)
-    fetch(API_LIST)
-      .then(response => {
-        if (response.ok) {
-          return response.json()
-        } else {
-          throw new Error('Something went wrong')
-        }
+    setLoadingProjects(true)
+    fetch('/proyectos')
+      .then(res => {
+        if (!res.ok) throw new Error('Error fetching projects')
+        return res.json()
       })
-      .then(
-        result => {
-          setLoading(false)
-          setItems(result)
-        },
-        error => {
-          setLoading(false)
-          setError(error)
-        }
-      )
+      .then(data => {
+        setProjects(data)
+        setLoadingProjects(false)
+      })
+      .catch(err => {
+        setError(err.message)
+        setLoadingProjects(false)
+      })
   }, [])
 
-  function addItem(text) {
-    setInserting(true)
-    const data = { description: text }
-    fetch(API_LIST, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    })
-      .then(response => {
-        if (response.ok) {
-          return response
-        } else {
-          throw new Error('Something went wrong')
-        }
+  useEffect(() => {
+    if (!selectedProject) return
+    setLoadingSprints(true)
+    fetch(`/sprints/proyecto/${selectedProject}`)
+      .then(res => {
+        if (!res.ok) throw new Error('Error fetching sprints')
+        return res.json()
       })
-      .then(
-        result => {
-          const id = result.headers.get('location')
-          const newItem = { id, description: text }
-          setItems([newItem, ...items])
-          setInserting(false)
-        },
-        error => {
-          setInserting(false)
-          setError(error)
-        }
-      )
-  }
+      .then(data => {
+        const uniqueSprints = []
+        const seenIds = new Set()
+        data.forEach(sprint => {
+          if (!seenIds.has(sprint.sprintId)) {
+            seenIds.add(sprint.sprintId)
+            uniqueSprints.push(sprint)
+          }
+        })
+        setSprints(uniqueSprints)
+        setLoadingSprints(false)
+      })
+      .catch(err => {
+        setError(err.message)
+        setLoadingSprints(false)
+      })
+  }, [selectedProject])
+
+  useEffect(() => {
+    if (!selectedSprint) return
+    setLoadingTasks(true)
+    fetch(`/tareas/sprint/${selectedSprint}`)
+      .then(res => {
+        if (!res.ok) throw new Error('Error fetching tasks')
+        return res.json()
+      })
+      .then(data => {
+        setTasks(data)
+        setLoadingTasks(false)
+      })
+      .catch(err => {
+        setError(err.message)
+        setLoadingTasks(false)
+      })
+  }, [selectedSprint])
 
   return (
     <div>
-      <h1>MY TODO LIST</h1>
-      <NewItem addItem={addItem} isInserting={isInserting} />
-      {error && <p>Error: {error.message}</p>}
-      {isLoading && <CircularProgress />}
-      {!isLoading && (
-        <div id="maincontent">
-          <table id="itemlistNotDone" className="itemlist">
-            <TableBody>
-              {items.map(
-                item =>
-                  !item.done && (
-                    <tr key={item.id}>
-                      <td className="description">{item.description}</td>
-                      <td className="date">
-                        <Moment format="MMM Do hh:mm:ss">{item.createdAt}</Moment>
-                      </td>
-                      <td>
-                        <Button
-                          variant="contained"
-                          className="DoneButton"
-                          onClick={event =>
-                            toggleDone(event, item.id, item.description, !item.done)
-                          }
-                          size="small"
-                        >
-                          Done
-                        </Button>
-                      </td>
-                    </tr>
-                  )
-              )}
-            </TableBody>
+      <h1>Filter Tasks by Project & Sprint</h1>
+      {error && <p style={{ color: 'red' }}>Error: {error}</p>}
+
+      <div style={{ marginBottom: '20px' }}>
+        <label>Project: </label>
+        {loadingProjects && <span>Loading projects...</span>}
+        {!loadingProjects && (
+          <select
+            value={selectedProject}
+            onChange={e => {
+              setSelectedProject(e.target.value)
+              setSelectedSprint('')
+              setTasks([])
+            }}
+          >
+            <option value="">-- Select Project --</option>
+            {projects.map(p => (
+              <option key={p.projectId} value={p.projectId}>
+                {p.name}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
+
+      <div style={{ marginBottom: '20px' }}>
+        <label>Sprint: </label>
+        {loadingSprints && <span>Loading sprints...</span>}
+        {!loadingSprints && (
+          <select
+            value={selectedSprint}
+            onChange={e => setSelectedSprint(e.target.value)}
+            disabled={!selectedProject}
+          >
+            <option value="">-- Select Sprint --</option>
+            {sprints.map(s => (
+              <option key={s.sprintId} value={s.sprintId}>
+                {s.name}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
+
+      <div>
+        <h2>Tasks</h2>
+        {loadingTasks && <p>Loading tasks...</p>}
+        {!loadingTasks && tasks.length === 0 && selectedSprint && (
+          <p>No tasks found for this sprint</p>
+        )}
+        {!loadingTasks && tasks.length > 0 && (
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead>
+              <tr style={{ backgroundColor: '#f2f2f2', textAlign: 'left' }}>
+                <th style={{ padding: '8px' }}>Task</th>
+                <th style={{ padding: '8px' }}>Status</th>
+                <th style={{ padding: '8px' }}>Priority</th>
+                <th style={{ padding: '8px' }}>End Date</th>
+                <th style={{ padding: '8px' }}>User</th>
+              </tr>
+            </thead>
+            <tbody>
+              {tasks.map(t => (
+                <tr key={t.taskId}>
+                  <td style={{ padding: '8px' }}>{t.title}</td>
+                  <td style={{ padding: '8px' }}>{t.status}</td>
+                  <td style={{ padding: '8px' }}>{t.priority}</td>
+                  <td style={{ padding: '8px' }}>
+                    {new Date(t.endDate).toLocaleDateString()}
+                  </td>
+                  <td style={{ padding: '8px' }}>
+                    {t.usuario ? `${t.usuario.firstName} ${t.usuario.lastName}` : ''}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
           </table>
-          <h2 id="donelist">Done items</h2>
-          <table id="itemlistDone" className="itemlist">
-            <TableBody>
-              {items.map(
-                item =>
-                  item.done && (
-                    <tr key={item.id}>
-                      <td className="description">{item.description}</td>
-                      <td className="date">
-                        <Moment format="MMM Do hh:mm:ss">{item.createdAt}</Moment>
-                      </td>
-                      <td>
-                        <Button
-                          variant="contained"
-                          className="DoneButton"
-                          onClick={event =>
-                            toggleDone(event, item.id, item.description, !item.done)
-                          }
-                          size="small"
-                        >
-                          Undo
-                        </Button>
-                      </td>
-                      <td>
-                        <Button
-                          startIcon={<DeleteIcon />}
-                          variant="contained"
-                          className="DeleteButton"
-                          onClick={() => deleteItem(item.id)}
-                          size="small"
-                        >
-                          Delete
-                        </Button>
-                      </td>
-                    </tr>
-                  )
-              )}
-            </TableBody>
-          </table>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
