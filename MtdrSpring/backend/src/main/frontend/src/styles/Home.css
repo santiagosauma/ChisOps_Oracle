@@ -1,0 +1,71 @@
+* {
+    margin: 0;
+    padding: 0;
+  }
+  .home-wrapper {
+    box-sizing: border-box;
+    width: 95.8vw;
+    height: 99.4vh;
+    background-color: #EBECEE;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .home-header {
+    background-color: #fff;
+    height: 50px;
+    padding-left: 20px;
+    display: flex;
+    align-items: center;
+  }
+  .home-container {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+  }
+  .grid-container {
+    margin: 20px;
+    width: calc(100% - 40px);
+    height: calc(100% - 40px);
+    display: grid;
+    gap: 20px;
+    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-rows: 2fr 2fr 2fr;
+    grid-template-areas:
+      "active tickets overdue"
+      "active tickets pending"
+      "general progress completed";
+  }
+  .grid-item {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    padding: 20px;
+  }
+  .grid-item h2 {
+    font-size: 14px;
+    margin: 0 0 8px 0;
+    padding: 0 0 8px 0;
+    border-bottom: 1px solid #000;
+  }
+  .grid-container .grid-item:nth-child(1) {
+    grid-area: active;
+  }
+  .grid-container .grid-item:nth-child(2) {
+    grid-area: tickets;
+  }
+  .grid-container .grid-item:nth-child(3) {
+    grid-area: overdue;
+  }
+  .grid-container .grid-item:nth-child(4) {
+    grid-area: pending;
+  }
+  .grid-container .grid-item:nth-child(5) {
+    grid-area: general;
+  }
+  .grid-container .grid-item:nth-child(6) {
+    grid-area: progress;
+  }
+  .grid-container .grid-item:nth-child(7) {
+    grid-area: completed;
+  }  

@@ -45,9 +45,29 @@
   .sidebar-item {
     display: flex;
     align-items: center;
+    text-decoration: none;
     color: #fff;
     margin: 0 10px 10px 10px;
     cursor: pointer;
+    border-radius: 8px;
+    padding: 8px;
+    padding-top: 2px;
+    padding-bottom: 2px;
+    transition: background-color 0.2s;
+  }
+  
+  .sidebar-item:hover {
+    background-color: rgba(255,255,255,0.1);
+  }
+  
+  .sidebar-item.active {
+    background-color: #0C7FDA;
+    color: #fff;
+  }
+  
+  .sidebar.expanded .sidebar-item.active {
+    background-color: #fff;
+    color: #0C7FDA;
   }
   
   .icon-container {
@@ -58,14 +78,6 @@
     justify-content: center;
     align-items: center;
     border-radius: 8px;
-  }
-  
-  .sidebar-item.active .icon-container {
-    background-color: #0C7FDA;
-  }
-  
-  .sidebar.expanded .sidebar-item.active .icon-container {
-    background-color: #fff;
   }
   
   .item-icon {

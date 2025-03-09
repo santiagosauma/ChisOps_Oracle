@@ -7,13 +7,14 @@ import folderBlue from './resources/folder_blue.png'
 import folderWhite from './resources/folder_white.png'
 import logoutIcon from './resources/logout.png'
 
-function Sidebar() {
+function Sidebar({ currentPage, onNav }) {
   const [expand, setExpand] = useState(false)
-  const [activeItem, setActiveItem] = useState('Home')
+
   const items = [
     { name: 'Home', iconExpanded: homeBlue, iconCollapsed: homeWhite },
     { name: 'Projects', iconExpanded: folderBlue, iconCollapsed: folderWhite }
   ]
+
   return (
     <div
       className={expand ? 'sidebar expanded' : 'sidebar collapsed'}
@@ -25,12 +26,12 @@ function Sidebar() {
       </div>
       <div className="sidebar-content">
         {items.map(item => {
-          const isActive = item.name === activeItem
+          const isActive = item.name === currentPage
           return (
             <div
               key={item.name}
               className={`sidebar-item ${isActive ? 'active' : ''}`}
-              onClick={() => setActiveItem(item.name)}
+              onClick={() => onNav(item.name)}
             >
               <div className="icon-container">
                 <img
