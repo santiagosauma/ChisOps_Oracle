@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react'
 function TicketsByPriority() {
   const [isLoading, setLoading] = useState(false)
   const [error, setError] = useState()
-  const [counts, setCounts] = useState({High: 0, Medium: 0, Low: 0})
+  const [counts, setCounts] = useState({ High: 0, Medium: 0, Low: 0 })
 
   useEffect(() => {
     setLoading(true)
@@ -43,10 +43,10 @@ function TicketsByPriority() {
       {error && <p>Error: {error.message}</p>}
       {isLoading && <p>Loading...</p>}
       {!isLoading && (
-        <div style={{ display: 'flex', alignItems: 'center' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
           <div
             style={{
-              width: '50px',
+              width: '100px',
               height: '200px',
               backgroundColor: '#ccc',
               position: 'relative',
@@ -86,7 +86,7 @@ function TicketsByPriority() {
               }}
             />
           </div>
-          <div style={{ marginLeft: '20px' }}>
+          <div style={{ marginLeft: '40px' }}>
             <p style={{ color: 'red' }}>{counts.High} High</p>
             <p style={{ color: '#999900' }}>{counts.Medium} Medium</p>
             <p style={{ color: 'green' }}>{counts.Low} Low</p>

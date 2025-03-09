@@ -1,5 +1,6 @@
 package com.springboot.MyTodoList.model;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import javax.persistence.*;
 import java.util.Date;
@@ -46,7 +47,7 @@ public class Proyecto {
     private int deleted;
     
     @OneToMany(mappedBy = "proyecto", cascade = CascadeType.ALL)
-    @JsonManagedReference
+    @JsonBackReference("project-sprint")
     private List<Sprint> sprints;
     
     /**

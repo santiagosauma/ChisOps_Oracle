@@ -14,22 +14,35 @@ function ActiveProjects() {
         }
         return response.json()
       })
-      .then(
-        data => {
-          setProjects(data)
-          setLoading(false)
-        },
-        err => {
-          setError(err)
-          setLoading(false)
-        }
-      )
+      .then(data => {
+        setProjects(data)
+        setLoading(false)
+      })
+      .catch(err => {
+        setError(err)
+        setLoading(false)
+      })
   }, [])
 
-  function getProgressValue(status) {
-    if (status === 'En Progreso') return 50
-    if (status === 'Completado') return 100
-    return 0
+  function getProjectProgress(proyecto) {
+    let totalTasks = 0
+    let completedTasks = 0
+    if (proyecto.sprints) {
+      proyecto.sprints.forEach(sprint => {
+        if (sprint.tareas) {
+          sprint.tareas.forEach(t => {
+            totalTasks++
+            if (t.status === 'Completado') {
+              completedTasks++
+            }
+          })
+        }
+      })
+    }
+    if (totalTasks === 0) {
+      return 0
+    }
+    return (completedTasks / totalTasks) * 100
   }
 
   return (
@@ -50,7 +63,7 @@ function ActiveProjects() {
           <tbody>
             {projects.map(project => {
               const sprintCount = project.sprints ? project.sprints.length : 0
-              const progressValue = getProgressValue(project.status)
+              const progressValue = getProjectProgress(project)
               return (
                 <tr key={project.projectId}>
                   <td style={{ padding: '8px' }}>{project.name}</td>

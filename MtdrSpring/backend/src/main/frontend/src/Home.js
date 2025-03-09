@@ -2,6 +2,11 @@ import React from 'react'
 import './styles/Home.css'
 import ActiveProjects from './ActiveProjects'
 import TicketsByPriority from './TicketsbyPriority'
+import GeneralOverview from './GeneralOverview'
+import OverdueTasks from './OverdueTasks'
+import PendingTasks from './PendingTasks'
+import CompletedTasksProject from './CompletedTasksProject'
+import TasksInProgress from './TasksInProgress'
 
 function Home() {
   return (
@@ -16,9 +21,10 @@ function Home() {
               <ActiveProjects />
             </div>
             <div className="general-overview">
+                <GeneralOverview />
             </div>
             <div className="completed-projects">
-              <h2>Completed Tasks (Project)</h2>
+              <CompletedTasksProject />
             </div>
           </div>
           <div className="right-col">
@@ -29,16 +35,16 @@ function Home() {
               <div className="overdue-pending">
                 <div className="overdue-tasks">
                   <h2>Overdue Tasks</h2>
-                  <div style={{ fontSize: '48px', textAlign: 'center' }}>3</div>
+                  <OverdueTasks />
                 </div>
                 <div className="pending-tasks">
                   <h2>Pending Tasks</h2>
-                  <div style={{ fontSize: '48px', textAlign: 'center' }}>32</div>
+                  <PendingTasks />
                 </div>
               </div>
             </div>
             <div className="bottom-right tasks-in-progress">
-              <h2>Tasks in progress</h2>
+              <TasksInProgress />
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@ package com.springboot.MyTodoList.model;
 import javax.persistence.*;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 
 import java.util.Date;
 
@@ -50,7 +51,7 @@ public class Tarea {
     
     @ManyToOne
     @JoinColumn(name = "SPRINT_ID", nullable = false)
-    @JsonBackReference("sprint-tarea")  // Añadir esta anotación con el mismo identificador
+    @JsonManagedReference("sprint-tarea") // Añadir esta anotación con el mismo identificador
     private Sprint sprint;
     
     @ManyToOne
