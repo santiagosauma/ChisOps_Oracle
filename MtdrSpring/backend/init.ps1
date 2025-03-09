@@ -76,7 +76,7 @@ function Build {
     $mavenIcon = "🜨"
     $dockerIcon = "🐳"
 
-    Show-Spinner "Compilando con Maven ($mavenIcon)" { .\mvnw verify }
+    Show-Spinner "Compilando con Maven ($mavenIcon)" { mvn verify }
     Show-Spinner "Construyendo imagen Docker ($dockerIcon)" { docker build -f Dockerfile --platform linux/amd64 -t "arel-bot" . }
 }
 
