@@ -51,7 +51,7 @@ public class Tarea {
     
     @ManyToOne
     @JoinColumn(name = "SPRINT_ID", nullable = false)
-    @JsonManagedReference("sprint-tarea") // Añadir esta anotación con el mismo identificador
+    @JsonBackReference("sprint-tarea") // Cambiado a @JsonBackReference
     private Sprint sprint;
     
     @ManyToOne

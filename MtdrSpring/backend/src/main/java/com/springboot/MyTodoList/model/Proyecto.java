@@ -47,7 +47,7 @@ public class Proyecto {
     private int deleted;
     
     @OneToMany(mappedBy = "proyecto", cascade = CascadeType.ALL)
-    @JsonBackReference("project-sprint")
+    @JsonManagedReference("project-sprint")  // Cambiar a @JsonManagedReference
     private List<Sprint> sprints;
     
     /**
