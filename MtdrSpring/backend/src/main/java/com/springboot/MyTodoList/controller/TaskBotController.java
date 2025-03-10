@@ -397,22 +397,149 @@ public class TaskBotController extends TelegramLongPollingBot {
     private void sendTaskConfirmation(long chatId, Tarea tarea) {
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
         
+        // 1. Determinar emojis dinámicos basados en tipo y prioridad
+        String priorityEmoji = getPriorityEmoji(tarea.getPriority());
+        String typeEmoji = getTypeEmoji(tarea.getType());
+        
+        // 2. Crear encabezado impactante con información de éxito
         StringBuilder message = new StringBuilder();
-        message.append("✅ ¡Tarea creada correctamente!\n\n");
-        message.append("📌 *Título:* ").append(tarea.getTitle()).append("\n");
-        message.append("📝 *Descripción:* ").append(tarea.getDescription()).append("\n");
-        message.append("⚠️ *Prioridad:* ").append(tarea.getPriority()).append("\n");
-        message.append("🏷️ *Tipo:* ").append(tarea.getType()).append("\n");
-        message.append("📊 *Puntos:* ").append(tarea.getStoryPoints()).append("\n");
-        message.append("👤 *Asignado:* ").append(tarea.getUsuario().getFirstName()).append(" ").append(tarea.getUsuario().getLastName()).append("\n");
-        message.append("🏃 *Sprint:* ").append(tarea.getSprint().getName()).append("\n");
-        message.append("📅 *Fecha inicio:* ").append(dateFormat.format(tarea.getStartDate())).append("\n");
-        message.append("📅 *Fecha fin:* ").append(dateFormat.format(tarea.getEndDate())).append("\n");
-        message.append("📌 *ID:* ").append(tarea.getTaskId());
+        message.append("✅ *TAREA CREADA CON ÉXITO* ✅\n\n");
+        
+        // 3. Información esencial destacada al inicio
+        message.append("🆔 `#").append(tarea.getTaskId()).append("` ");
+        message.append(priorityEmoji).append(" ");
+        message.append(typeEmoji).append("\n\n");
+        
+        // 4. Título y descripción con formato especial
+        message.append("📌 *").append(tarea.getTitle().toUpperCase()).append("*\n");
+        message.append("━━━━━━━━━━━━━━━━━━━━━━\n");
+        message.append("_").append(tarea.getDescription()).append("_\n\n");
+        
+        // 5. Información organizada en secciones visualmente separadas
+        // 5.1. Sección: Detalles de planificación
+        message.append("📊 *DETALLES DE PLANIFICACIÓN*\n");
+        message.append("• *Sprint:* ").append(tarea.getSprint().getName()).append("\n");
+        message.append("• *Puntos:* ").append(getStoryPointsVisual(tarea.getStoryPoints())).append("\n");
+        message.append("• *Estado:* ").append(getStatusWithEmoji(tarea.getStatus())).append("\n\n");
+        
+        // 5.2. Sección: Asignación
+        message.append("👤 *ASIGNACIÓN*\n");
+        message.append("• *Responsable:* ").append(tarea.getUsuario().getFirstName()).append(" ").append(tarea.getUsuario().getLastName()).append("\n\n");
+        
+        // 5.3. Sección: Fechas importantes
+        message.append("📅 *PERIODO DE DESARROLLO*\n");
+        message.append("• *Inicio:* ").append(dateFormat.format(tarea.getStartDate())).append("\n");
+        message.append("• *Entrega:* ").append(dateFormat.format(tarea.getEndDate())).append(" ");
+        
+        // Añadir indicador de tiempo restante
+        message.append(getRemainingTimeIndicator(tarea.getEndDate())).append("\n\n");
+        
+        // 6. Mensaje de cierre y recomendación personalizada
+        message.append("━━━━━━━━━━━━━━━━━━━━━━\n");
+        message.append(getMotivationalMessage(tarea.getPriority(), tarea.getType()));
         
         sendMessage(chatId, message.toString());
+        
+        // 7. Enviar teclado con acciones rápidas relevantes para la nueva tarea
+        sendTaskActionKeyboard(chatId, tarea.getTaskId());
     }
     
+    // Métodos auxiliares para la UI dinámica
+    
+    private String getPriorityEmoji(String priority) {
+        switch (priority.toUpperCase()) {
+            case "ALTA": return "�"; 
+            case "MEDIA": return "🟠";
+            case "BAJA": return "🟢";
+            default: return "⚪";
+        }
+    }
+    
+    private String getTypeEmoji(String type) {
+        switch (type.toUpperCase()) {
+            case "FEATURE": return "✨";
+            case "BUG": return "🐞";
+            case "MEJORA": return "📈";
+            case "DOCUMENTACION": return "📝";
+            default: return "🔄";
+        }
+    }
+    
+    private String getStoryPointsVisual(int points) {
+        StringBuilder visual = new StringBuilder();
+        visual.append(points);
+        
+        // Añadir representación visual de puntos
+        if (points <= 3) visual.append(" (Tarea pequeña 🐣)");
+        else if (points <= 8) visual.append(" (Tarea mediana 🦊)");
+        else visual.append(" (Tarea grande 🐘)");
+        
+        return visual.toString();
+    }
+    
+    private String getStatusWithEmoji(String status) {
+        switch (status.toUpperCase()) {
+            case "PENDIENTE": return "⏳ Pendiente";
+            case "EN PROGRESO": return "⚙️ En progreso";
+            case "COMPLETADO": return "✅ Completado";
+            default: return "❓ " + status;
+        }
+    }
+    
+    private String getRemainingTimeIndicator(Date endDate) {
+        long daysRemaining = (endDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
+        
+        if (daysRemaining < 0) return "⚠️ *¡VENCIDA!*";
+        else if (daysRemaining == 0) return "🔔 *¡HOY!*";
+        else if (daysRemaining <= 2) return "⏰ *¡URGENTE!*";
+        else if (daysRemaining <= 5) return "🕙 próximamente";
+        else return "📆 en plazo";
+    }
+    
+    private String getMotivationalMessage(String priority, String type) {
+        if ("ALTA".equals(priority.toUpperCase())) {
+            return "💪 *¡Esta tarea es prioritaria!* Organiza tu tiempo para abordarla cuanto antes.";
+        } else if ("BUG".equals(type.toUpperCase())) {
+            return "🔍 *Recuerda validar bien la solución* para asegurar que el bug queda resuelto.";
+        } else if ("FEATURE".equals(type.toUpperCase())) {
+            return "🌟 *¡Nueva funcionalidad en camino!* Tu contribución será un gran avance para el proyecto.";
+        } else if ("DOCUMENTACION".equals(type.toUpperCase())) {
+            return "📚 *La buena documentación es clave* para el mantenimiento futuro del proyecto.";
+        } else {
+            return "� *¡Tu trabajo es importante para el equipo!* Gracias por tu dedicación.";
+        }
+    }
+    
+    private void sendTaskActionKeyboard(long chatId, int taskId) {
+        // Implementar un teclado con botones de acciones rápidas para la tarea
+        List<KeyboardRow> keyboard = new ArrayList<>();
+        
+        KeyboardRow row1 = new KeyboardRow();
+        row1.add("▶️ Iniciar tarea #" + taskId);
+        row1.add("📊 Ver detalles");
+        keyboard.add(row1);
+        
+        KeyboardRow row2 = new KeyboardRow();
+        row2.add("📋 Volver a la lista");
+        row2.add(BotLabels.SHOW_MAIN_SCREEN.getLabel());
+        keyboard.add(row2);
+        
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId);
+        message.setText("¿Qué deseas hacer con esta tarea?");
+        
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+        keyboardMarkup.setKeyboard(keyboard);
+        keyboardMarkup.setResizeKeyboard(true);
+        keyboardMarkup.setOneTimeKeyboard(true);
+        message.setReplyMarkup(keyboardMarkup);
+        
+        try {
+            execute(message);
+        } catch (TelegramApiException e) {
+            logger.error("Error al enviar teclado de acciones de tarea", e);
+        }
+    }
     private void showTaskList(long chatId, List<Tarea> tareas) {
         if (tareas.isEmpty()) {
             sendMessage(chatId, "No hay tareas registradas.");
