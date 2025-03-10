@@ -40,14 +40,14 @@ public class Sprint {
     
     @ManyToOne
     @JoinColumn(name = "PROJECT_ID", nullable = false)
-    @JsonManagedReference("project-sprint")
+    @JsonBackReference("project-sprint")  // Esto está bien, dejarlo como @JsonBackReference
     private Proyecto proyecto;
     
     @Column(name = "DELETED", nullable = false)
     private int deleted;
     
-    @OneToMany(mappedBy = "sprint", cascade = CascadeType.ALL)
-    @JsonBackReference("sprint-tarea")  // Añadir esta anotación con un identificador
+    @OneToMany(mappedBy = "sprint")
+    @JsonManagedReference("sprint-tarea") // Cambiado a @JsonManagedReference
     private List<Tarea> tareas;
 
     
