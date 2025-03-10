@@ -65,7 +65,7 @@ public class TaskBotController extends TelegramLongPollingBot {
             cal.add(Calendar.DAY_OF_MONTH, 7);
             currentTask.setEndDate(cal.getTime());
             // Estado predeterminado
-            currentTask.setStatus("PENDIENTE");
+            currentTask.setStatus("Pendiente");
         }
     }
 
@@ -202,6 +202,13 @@ public class TaskBotController extends TelegramLongPollingBot {
                             session.state = UserTaskSession.CreationState.NONE;
                             session.currentTask = new Tarea();
                             session.currentTask.setDeleted(0);
+
+                            // Establecer echas para la siguiente tarea 
+                            Calendar cal = Calendar.getInstance();
+                            session.currentTask.setStartDate(cal.getTime());
+                            cal.add(Calendar.DAY_OF_MONTH, 7);
+                            session.currentTask.setEndDate(cal.getTime());
+                            session.currentTask.setStatus("Pendiente");
                             
                             // Mostrar el menú principal
                             showMainMenu(chatId);
