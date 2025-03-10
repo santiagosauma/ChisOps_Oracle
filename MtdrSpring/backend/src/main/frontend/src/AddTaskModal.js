@@ -2,11 +2,15 @@ import React, { useState, useEffect } from 'react'
 import './styles/AddTaskModal.css'
 
 function AddTaskModal({ isOpen, onClose, onAdd }) {
+  // Only ask the user for these fields
   const [title, setTitle] = useState('')
+  const [description, setDescription] = useState('')
   const [priority, setPriority] = useState('')
+  const [type, setType] = useState('')
   const [dueDate, setDueDate] = useState('')
   const [estimatedHours, setEstimatedHours] = useState('')
   const [user, setUser] = useState('')
+
   const [usersList, setUsersList] = useState([])
   const [error, setError] = useState('')
 
@@ -29,9 +33,14 @@ function AddTaskModal({ isOpen, onClose, onAdd }) {
 
   function handleSubmit(e) {
     e.preventDefault()
+    // We only gather these fields from the user. 
+    // The rest (status, storyPoints, actualHours, etc.)
+    // will be set automatically in the parent component's POST.
     onAdd({
       title,
+      description,
       priority,
+      type,
       dueDate,
       estimatedHours,
       user
@@ -53,6 +62,14 @@ function AddTaskModal({ isOpen, onClose, onAdd }) {
             onChange={e => setTitle(e.target.value)}
           />
 
+          <label>Description</label>
+          <input
+            type="text"
+            placeholder="Brief task description..."
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+          />
+
           <label>Priority</label>
           <select
             value={priority}
@@ -62,6 +79,17 @@ function AddTaskModal({ isOpen, onClose, onAdd }) {
             <option value="Alta">High</option>
             <option value="Media">Medium</option>
             <option value="Baja">Low</option>
+          </select>
+
+          <label>Type</label>
+          <select
+            value={type}
+            onChange={e => setType(e.target.value)}
+          >
+            <option value="">Choose...</option>
+            <option value="Desarrollo">Desarrollo</option>
+            <option value="Diseño">Diseño</option>
+            <option value="Arquitectura">Arquitectura</option>
           </select>
 
           <label>Due Date</label>
