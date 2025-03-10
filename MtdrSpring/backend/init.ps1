@@ -58,8 +58,8 @@ function Show-Spinner {
 
 # Función para limpiar contenedores e imágenes Docker
 function Cleanup {
-    $containerName = "arel-container"
-    $imageName = "arel-bot"
+    $containerName = "chisops-container"
+    $imageName = "chisops-bot"
 
     Write-Host "Limpiando contenedor '$containerName'..." -ForegroundColor Yellow
     docker stop $containerName *>$null
@@ -77,13 +77,13 @@ function Build {
     $dockerIcon = "🐳"
 
     Show-Spinner "Compilando con Maven ($mavenIcon)" { mvn verify }
-    Show-Spinner "Construyendo imagen Docker ($dockerIcon)" { docker build -f Dockerfile --platform linux/amd64 -t "arel-bot" . }
+    Show-Spinner "Construyendo imagen Docker ($dockerIcon)" { docker build -f Dockerfile --platform linux/amd64 -t "chisops-bot" . }
 }
 
 # Función para desplegar el contenedor Docker
 function Deploy {
-    $containerName = "arel-container"
-    $imageName = "arel-bot"
+    $containerName = "chisops-container"
+    $imageName = "chisops-bot"
 
     Show-Spinner "Desplegando contenedor Docker" { docker run --name $containerName -p 8080:8080 --env-file .env -d $imageName }
 }
