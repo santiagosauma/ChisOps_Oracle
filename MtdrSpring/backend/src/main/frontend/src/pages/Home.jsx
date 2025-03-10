@@ -1,12 +1,12 @@
 import React from 'react'
 import './styles/Home.css'
 import ActiveProjects from './ActiveProjects'
-import TicketsByPriority from './TicketsbyPriority'
-import GeneralOverview from './GeneralOverview'
-import OverdueTasks from './OverdueTasks'
-import PendingTasks from './PendingTasks'
-import CompletedTasksProject from './CompletedTasksProject'
-import TasksInProgress from './TasksInProgress'
+import TicketsByPriority from '../components/Home/TicketsbyPriority'
+import GeneralOverview from '../components/Home/GeneralOverview'
+import OverdueTasks from '../components/Home/OverdueTasks'
+import PendingTasks from '../components/Home/PendingTasks'
+import CompletedTasksProject from '../components/Home/CompletedTasksProject'
+import TasksInProgress from '../components/Home/TasksInProgress'
 
 function Home() {
   return (
