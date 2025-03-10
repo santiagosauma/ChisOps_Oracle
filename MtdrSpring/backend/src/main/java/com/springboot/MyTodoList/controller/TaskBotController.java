@@ -55,6 +55,8 @@ public class TaskBotController extends TelegramLongPollingBot {
         private Tarea currentTask = new Tarea();
         private List<Usuario> availableUsers;
         private List<Sprint> availableSprints;
+        private int currentPage = 0;
+        private List<Tarea> currentTaskList = new ArrayList<>();
         
         public UserTaskSession() {
             // Inicializar la tarea con valores predeterminados
@@ -158,7 +160,67 @@ public class TaskBotController extends TelegramLongPollingBot {
                     sendMessageWithKeyboardRemove(chatId, "Por favor, ingresa un número válido entre 1 y 13:");
                 }
                 
-            } else if (session.state == UserTaskSession.CreationState.WAITING_USER) {
+            }
+            else if (messageText.equals("⬅️ Anterior")) {
+                // Get session and access stored pagination data
+                if (session.currentPage > 0) {
+                    showTaskList(chatId, session.currentTaskList, session.currentPage - 1);
+                } else {
+                    sendMessage(chatId, "Ya estás en la primera página.");
+                }
+            }
+            else if (messageText.equals("➡️ Siguiente")) {
+                int totalPages = (int) Math.ceil(session.currentTaskList.size() / 5.0);
+                if (session.currentPage < totalPages - 1) {
+                    showTaskList(chatId, session.currentTaskList, session.currentPage + 1);
+                } else {
+                    sendMessage(chatId, "Ya estás en la última página.");
+                }
+            }
+            else if (messageText.equals("🔴 Alta prioridad")) {
+                session.state = UserTaskSession.CreationState.NONE;
+                
+                // Filtrar tareas con prioridad ALTA
+                List<Tarea> todasLasTareas = tareaService.findAll();
+                List<Tarea> tareasAltaPrioridad = new ArrayList<>();
+                
+                for (Tarea tarea : todasLasTareas) {
+                    if (tarea.getPriority() != null && tarea.getPriority().equalsIgnoreCase("ALTA")) {
+                        tareasAltaPrioridad.add(tarea);
+                    }
+                }
+                
+                if (tareasAltaPrioridad.isEmpty()) {
+                    sendMessage(chatId, "No se encontraron tareas de alta prioridad.");
+                    showTaskListOptions(chatId);  // Mantener en el contexto de las tareas
+                } else {
+                    sendMessage(chatId, "Mostrando " + tareasAltaPrioridad.size() + " tareas de alta prioridad:");
+                    showTaskList(chatId, tareasAltaPrioridad);
+                }
+            }
+            else if (messageText.equals("🟠 Media prioridad")) {
+                session.state = UserTaskSession.CreationState.NONE;
+                
+                // Filtrar tareas con prioridad MEDIA
+                List<Tarea> todasLasTareas = tareaService.findAll();
+                List<Tarea> tareasPrioridadMedia = new ArrayList<>();
+                
+                for (Tarea tarea : todasLasTareas) {
+                    if (tarea.getPriority() != null && tarea.getPriority().equalsIgnoreCase("MEDIA")) {
+                        tareasPrioridadMedia.add(tarea);
+                    }
+                }
+                
+                if (tareasPrioridadMedia.isEmpty()) {
+                    sendMessage(chatId, "No se encontraron tareas de prioridad media.");
+                    showTaskListOptions(chatId);
+                } else {
+                    sendMessage(chatId, "Mostrando " + tareasPrioridadMedia.size() + " tareas de prioridad media:");
+                    showTaskList(chatId, tareasPrioridadMedia);
+                }
+            }
+            
+            else if (session.state == UserTaskSession.CreationState.WAITING_USER) {
                 
                 // Buscar el usuario seleccionado por su nombre
                 for (Usuario user : session.availableUsers) {
@@ -232,7 +294,12 @@ public class TaskBotController extends TelegramLongPollingBot {
                 session.state = UserTaskSession.CreationState.NONE;
                 // Mostrar lista de tareas
                 List<Tarea> tareas = tareaService.findAll();
-                showTaskList(chatId, tareas);
+                if (tareas.isEmpty()) {
+                    sendMessage(chatId, "No hay tareas registradas.");
+                    showMainMenu(chatId);
+                } else {
+                    showTaskList(chatId, tareas);
+            }
                 
             } else if (messageText.equals(BotLabels.HIDE_MAIN_SCREEN.getLabel())) {
                 
@@ -540,30 +607,252 @@ public class TaskBotController extends TelegramLongPollingBot {
             logger.error("Error al enviar teclado de acciones de tarea", e);
         }
     }
+
     private void showTaskList(long chatId, List<Tarea> tareas) {
+        // Call the existing method with page 0 (first page)
+        showTaskList(chatId, tareas, 0);
+    }
+
+    private void showTaskList(long chatId, List<Tarea> tareas, int page) {
+        final int TASKS_PER_PAGE = 5;
+        int totalPages = (int) Math.ceil(tareas.size() / (double) TASKS_PER_PAGE);
+        
+        // Store current page and full task list in user session
+        UserTaskSession session = userSessions.getOrDefault(chatId, new UserTaskSession());
+        session.currentPage = page;
+        session.currentTaskList = new ArrayList<>(tareas); // Make a copy to avoid reference issues
+        userSessions.put(chatId, session);
+        
         if (tareas.isEmpty()) {
             sendMessage(chatId, "No hay tareas registradas.");
             showMainMenu(chatId);
             return;
         }
         
+        // Calculate start and end indices for current page
+        int startIndex = page * TASKS_PER_PAGE;
+        int endIndex = Math.min(startIndex + TASKS_PER_PAGE, tareas.size());
+        
+        // Reduce scope to only show tasks for the current page
+        List<Tarea> pagedTasks = tareas.subList(startIndex, endIndex);
+        
         StringBuilder message = new StringBuilder();
-        message.append("📋 *LISTA DE TAREAS*\n\n");
+        message.append("📋 *LISTA DE TAREAS* (Página ").append(page + 1).append(" de ").append(totalPages).append(")\n\n");
         
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
         
-        for (Tarea tarea : tareas) {
+        for (Tarea tarea : pagedTasks) {
             message.append("🔹 *ID:* ").append(tarea.getTaskId()).append("\n");
             message.append("  *Título:* ").append(tarea.getTitle()).append("\n");
-            message.append("  *Estado:* ").append(tarea.getStatus()).append("\n");
-            message.append("  *Prioridad:* ").append(tarea.getPriority()).append("\n");
+            message.append("  *Estado:* ").append(getStatusWithEmoji(tarea.getStatus())).append("\n");
+            message.append("  *Prioridad:* ").append(getPriorityEmoji(tarea.getPriority())).append(" ").append(tarea.getPriority()).append("\n");
             message.append("  *Asignado:* ").append(tarea.getUsuario().getFirstName()).append(" ").append(tarea.getUsuario().getLastName()).append("\n");
             message.append("  *Sprint:* ").append(tarea.getSprint().getName()).append("\n");
-            message.append("  *Fecha fin:* ").append(dateFormat.format(tarea.getEndDate())).append("\n\n");
+            message.append("  *Fecha fin:* ").append(dateFormat.format(tarea.getEndDate())).append(" ");
+            message.append(getRemainingTimeIndicator(tarea.getEndDate())).append("\n");
+            message.append("  ─────────────────────\n\n");
         }
         
-        sendMessage(chatId, message.toString());
-        showMainMenu(chatId);
+        // Add summary of total tasks
+        message.append("Mostrando ").append(pagedTasks.size()).append(" de ").append(tareas.size()).append(" tareas totales");
+        
+        // Send the message with the task list
+        SendMessage taskListMessage = new SendMessage();
+        taskListMessage.setChatId(chatId);
+        taskListMessage.setText(message.toString());
+        taskListMessage.enableMarkdown(true);
+        
+        try {
+            execute(taskListMessage);
+            
+            // Show navigation options with a short delay
+            try {
+                Thread.sleep(300);
+            } catch (InterruptedException ie) {
+                Thread.currentThread().interrupt();
+            }
+            
+            showPaginationOptions(chatId, page, totalPages);
+        } catch (TelegramApiException e) {
+            logger.error("Error al enviar lista de tareas", e);
+            
+            // If the message is still too long, try with even fewer tasks
+            if (e.getMessage() != null && e.getMessage().contains("message is too long")) {
+                if (TASKS_PER_PAGE > 1) {
+                    sendMessage(chatId, "Reduciendo el número de tareas por página debido a límites de mensaje.");
+                    showReducedTaskList(chatId, tareas, page);
+                } else {
+                    sendMessage(chatId, "No se pueden mostrar las tareas debido a limitaciones de tamaño de mensaje. Por favor, use filtros para reducir el número de tareas.");
+                    showTaskListOptions(chatId);
+                }
+            } else {
+                showMainMenu(chatId);
+            }
+        }
+    }
+    
+    // New method to show a more reduced task list when even 5 tasks are too much
+    private void showReducedTaskList(long chatId, List<Tarea> tareas, int page) {
+        final int REDUCED_TASKS_PER_PAGE = 3;
+        int totalPages = (int) Math.ceil(tareas.size() / (double) REDUCED_TASKS_PER_PAGE);
+        
+        // Update the session with the new page size
+        UserTaskSession session = userSessions.get(chatId);
+        if (session != null) {
+            session.currentPage = Math.min(page, totalPages - 1); // Ensure valid page
+        }
+        
+        // Calculate start and end indices for current page
+        int startIndex = page * REDUCED_TASKS_PER_PAGE;
+        int endIndex = Math.min(startIndex + REDUCED_TASKS_PER_PAGE, tareas.size());
+        
+        // Reduce scope to only show tasks for the current page
+        List<Tarea> pagedTasks = tareas.subList(startIndex, endIndex);
+        
+        StringBuilder message = new StringBuilder();
+        message.append("📋 *LISTA DE TAREAS* (Vista reducida)\n");
+        message.append("Página ").append(page + 1).append(" de ").append(totalPages).append("\n\n");
+        
+        // Use a more compact format
+        for (Tarea tarea : pagedTasks) {
+            message.append("🔹 *#").append(tarea.getTaskId()).append("* - ");
+            message.append(tarea.getTitle()).append("\n");
+            message.append("  ").append(getPriorityEmoji(tarea.getPriority())).append(" ");
+            message.append(getStatusWithEmoji(tarea.getStatus())).append(" • ");
+            message.append("Asignado: ").append(tarea.getUsuario().getFirstName()).append("\n");
+            message.append("  ─────────────────\n");
+        }
+        
+        message.append("\nMostrando ").append(pagedTasks.size()).append(" de ").append(tareas.size()).append(" tareas");
+        
+        // Send the message with the reduced task list
+        SendMessage taskListMessage = new SendMessage();
+        taskListMessage.setChatId(chatId);
+        taskListMessage.setText(message.toString());
+        taskListMessage.enableMarkdown(true);
+        
+        try {
+            execute(taskListMessage);
+            showPaginationOptions(chatId, page, totalPages);
+        } catch (TelegramApiException e) {
+            logger.error("Error al enviar lista reducida de tareas", e);
+            sendMessage(chatId, "No se pueden mostrar las tareas debido a limitaciones de tamaño. Por favor, use filtros específicos.");
+            showTaskListOptions(chatId);
+        }
+    }
+    
+    // Updated to simplify the pagination options method
+    private void showPaginationOptions(long chatId, int currentPage, int totalPages) {
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId);
+        
+        StringBuilder statusText = new StringBuilder();
+        statusText.append("Navegación: Página ").append(currentPage + 1).append(" de ").append(totalPages);
+        
+        // Add pagination tips
+        if (totalPages > 1) {
+            statusText.append("\nUse los botones para navegar entre páginas.");
+        }
+        
+        message.setText(statusText.toString());
+        
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+        List<KeyboardRow> keyboard = new ArrayList<>();
+        
+        // Navigation row
+        KeyboardRow navigationRow = new KeyboardRow();
+        if (currentPage > 0) {
+            navigationRow.add("⬅️ Anterior");
+        }
+        if (currentPage < totalPages - 1) {
+            navigationRow.add("➡️ Siguiente");
+        }
+        
+        // Only add this row if it has buttons
+        if (!navigationRow.isEmpty()) {
+            keyboard.add(navigationRow);
+        }
+        
+        // Filtering options row
+        KeyboardRow filterRow = new KeyboardRow();
+        filterRow.add("🔴 Alta prioridad");
+        filterRow.add("🟠 Media prioridad");
+        keyboard.add(filterRow);
+        
+        // Return to main menu row
+        KeyboardRow menuRow = new KeyboardRow();
+        menuRow.add(BotLabels.SHOW_MAIN_SCREEN.getLabel());
+        keyboard.add(menuRow);
+        
+        keyboardMarkup.setKeyboard(keyboard);
+        keyboardMarkup.setResizeKeyboard(true);
+        message.setReplyMarkup(keyboardMarkup);
+        
+        try {
+            execute(message);
+        } catch (TelegramApiException e) {
+            logger.error("Error al enviar opciones de paginación", e);
+            // Fallback to a simpler keyboard if there's an error
+            sendSimpleNavigationKeyboard(chatId);
+        }
+    }
+    
+    // Simple fallback method for navigation
+    private void sendSimpleNavigationKeyboard(long chatId) {
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId);
+        message.setText("¿Qué deseas hacer?");
+        
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+        List<KeyboardRow> keyboard = new ArrayList<>();
+        
+        KeyboardRow row = new KeyboardRow();
+        row.add(BotLabels.SHOW_MAIN_SCREEN.getLabel());
+        keyboard.add(row);
+        
+        keyboardMarkup.setKeyboard(keyboard);
+        keyboardMarkup.setResizeKeyboard(true);
+        message.setReplyMarkup(keyboardMarkup);
+        
+        try {
+            execute(message);
+        } catch (TelegramApiException e) {
+            logger.error("Error al enviar teclado de navegación simple", e);
+        }
+    }
+
+    // Nuevo método para mostrar opciones después de listar tareas
+    private void showTaskListOptions(long chatId) {
+        SendMessage message = new SendMessage();
+        message.setChatId(chatId);
+        message.setText("¿Qué deseas hacer ahora?");
+        
+        ReplyKeyboardMarkup keyboardMarkup = new ReplyKeyboardMarkup();
+        List<KeyboardRow> keyboard = new ArrayList<>();
+        
+        // Primera fila
+        KeyboardRow row1 = new KeyboardRow();
+        row1.add("🔴 Alta prioridad");
+        row1.add("🟠 Media prioridad");
+        keyboard.add(row1);
+        
+        // Segunda fila
+        KeyboardRow row2 = new KeyboardRow();
+        row2.add("🔍 Buscar por ID");
+        row2.add(BotLabels.SHOW_MAIN_SCREEN.getLabel());
+        keyboard.add(row2);
+        
+        keyboardMarkup.setKeyboard(keyboard);
+        keyboardMarkup.setResizeKeyboard(true);
+        message.setReplyMarkup(keyboardMarkup);
+        
+        try {
+            execute(message);
+        } catch (TelegramApiException e) {
+            logger.error("Error al enviar opciones de lista de tareas", e);
+            // Si falla, mostrar el menú principal como fallback
+            showMainMenu(chatId);
+        }
     }
     
     private void sendMessage(long chatId, String text) {
