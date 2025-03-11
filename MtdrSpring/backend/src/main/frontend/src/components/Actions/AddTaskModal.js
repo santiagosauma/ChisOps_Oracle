@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import './styles/AddTaskModal.css'
+import '../../styles/AddTaskModal.css'
 
 function AddTaskModal({ isOpen, onClose, onAdd }) {
   // Only ask the user for these fields
