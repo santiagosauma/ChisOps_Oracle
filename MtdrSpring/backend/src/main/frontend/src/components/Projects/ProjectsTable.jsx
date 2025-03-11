@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import '../../styles/Projects.css';
-
+ 
 // Dummy data for projects
 const projectsData = [
   { id: '01', name: 'Proyecto 1', startDate: 'Jan 1, 2020', finishDate: 'Jan 1, 2020', status: 'Cancelled', users: 10, progress: 45 },
