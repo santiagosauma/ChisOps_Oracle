@@ -4,16 +4,16 @@
     box-sizing: border-box;
   }
 
-  .home-wrapper {
+  .home_wrapper {
     width: 95.8vw;
-    height: 99.5vh;
-    background-color: #EBECEE;
+    height: 100vh;
+   
     display: flex;
     flex-direction: column;
-    overflow: hidden;
+
   }
 
-  .home-header {
+  .home_header {
     background-color: #fff;
     height: 50px;
     padding-left: 20px;
@@ -21,19 +21,19 @@
     align-items: center;
   }
 
-  .home-container {
+  .home_container {
     flex: 1;
     display: flex;
-    overflow: hidden;
+    padding: 0 0px 40px 0px; 
   }
 
-  .grid-container {
+  .grid_container {
     width: 100%;
     display: flex;
     height: 100%;
   }
 
-  .left-col {
+  .left_col {
     width: 50%;
     display: grid;
     grid-template-rows: 40% 25% 35%;
@@ -42,23 +42,23 @@
     padding-right: 10px;
   }
 
-  .right-col {
+  .right_col {
     width: 50%;
     display: grid;
     grid-template-rows: 50% 50%;
-    gap: 20px;
+    gap: 40px;
     padding: 20px;
     padding-left: 10px;
   }
 
-  .top-right {
+  .top_right {
     display: grid;
-    grid-template-columns: 60% 40%;
+    grid-template-columns: 50% 50%;
     gap: 20px;
     height: 100%;
   }
 
-  .priority-col {
+  .priority_col {
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.15);
@@ -70,7 +70,7 @@
     height: 95%;
   }
 
-  .overdue-pending {
+  .overdue_pending {
     display: grid;
     grid-template-rows: 50% 50%;
     gap: 20px;
@@ -78,8 +78,8 @@
     width: 94%
   }
 
-  .overdue-tasks,
-  .pending-tasks {
+  .overdue_tasks,
+  .pending_tasks {
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.15);
@@ -90,25 +90,25 @@
     padding: 20px;
   }
 
-  .grid-item,
-  .active-projects,
-  .general-overview,
-  .completed-projects,
-  .tasks-in-progress {
+  .grid_item,
+  .active_project,
+  .general_overview,
+  .completed_projects,
+  .tasks_in_progress {
     background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 2px 5px rgba(0,0,0,0.15);
     padding: 20px;
   }
 
-  .grid-item h2,
-  .active-projects h2,
-  .general-overview h2,
-  .completed-projects h2,
-  .tasks-in-progress h2,
-  .priority-col h2,
-  .overdue-tasks h2,
-  .pending-tasks h2 {
+  .grid_item h2,
+  .active_project h2,
+  .general_overview h2,
+  .completed_projects h2,
+  .tasks_in_progress h2,
+  .priority_col h2,
+  .overdue_tasks h2,
+  .pending_tasks h2 {
     font-size: 14px;
     margin-bottom: 8px;
     padding-bottom: 8px;

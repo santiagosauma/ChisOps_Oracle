@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import AddTaskModal from './AddTaskModal'
+import AddTaskModal from './components/Actions/AddTaskModal'
 
 function ManageTasks() {
   const [projects, setProjects] = useState([])
