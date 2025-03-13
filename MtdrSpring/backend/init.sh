@@ -15,8 +15,8 @@ CROSS="✘"
 DOCKER_ICON="🐳"
 MAVEN_ICON="🜨"
 
-CONTAINER_NAME="arel-container"
-IMAGE_NAME="arel-bot"
+CONTAINER_NAME="ChisOps-container"
+IMAGE_NAME="ChisOps-bot"
 
 # Dibujar encabezado
 header() {
