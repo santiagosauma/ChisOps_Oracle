@@ -1,78 +1,118 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../../styles/Projects.css';
- 
-// Dummy data for projects
-const projectsData = [
-  { id: '01', name: 'Proyecto 1', startDate: 'Jan 1, 2020', finishDate: 'Jan 1, 2020', status: 'Cancelled', users: 10, progress: 45 },
-  { id: '02', name: 'Proyecto 2', startDate: 'Jan 2, 2020', finishDate: 'Jan 2, 2020', status: 'On Hold', users: 20, progress: 60 },
-  { id: '03', name: 'Proyecto 3', startDate: 'Jan 3, 2020', finishDate: 'Jan 3, 2020', status: 'Completed', users: 20, progress: 100 },
-  { id: '04', name: 'Proyecto 4', startDate: 'Jan 3, 2020', finishDate: 'Jan 3, 2020', status: 'In Review', users: 20, progress: 80 },
-  { id: '05', name: 'Proyecto 5', startDate: 'Jan 3, 2020', finishDate: 'Jan 3, 2020', status: 'In Progress', users: 20, progress: 65 },
-  { id: '06', name: 'Proyecto 6', startDate: 'Jan 1, 2020', finishDate: 'Jan 1, 2020', status: 'Completed', users: 20, progress: 100 },
-  { id: '07', name: 'Proyecto 7', startDate: 'Jan 2, 2020', finishDate: 'Jan 2, 2020', status: 'In Progress', users: 20, progress: 30 },
-  { id: '08', name: 'Proyecto 8', startDate: 'Jan 3, 2020', finishDate: 'Jan 3, 2020', status: 'Cancelled', users: 20, progress: 50 },
-  { id: '09', name: 'Proyecto 9', startDate: 'Jan 3, 2020', finishDate: 'Jan 3, 2020', status: 'On Hold', users: 20, progress: 75 },
-  { id: '10', name: 'Proyecto 10', startDate: 'Jan 3, 2020', finishDate: 'Jan 3, 2020', status: 'Completed', users: 20, progress: 100 },
-  { id: '11', name: 'Proyecto 11', startDate: 'Jan 1, 2020', finishDate: 'Jan 1, 2020', status: 'In Review', users: 20, progress: 75 },
-  { id: '12', name: 'Proyecto 12', startDate: 'Jan 2, 2020', finishDate: 'Jan 2, 2020', status: 'In Progress', users: 20, progress: 85 },
-  { id: '13', name: 'Proyecto 13', startDate: 'Jan 3, 2020', finishDate: 'Jan 3, 2020', status: 'Completed', users: 20, progress: 100 },
-  { id: '14', name: 'Proyecto 14', startDate: 'Jan 3, 2020', finishDate: 'Jan 3, 2020', status: 'Cancelled', users: 20, progress: 50 },
-  { id: '15', name: 'Proyecto 15', startDate: 'Jan 3, 2020', finishDate: 'Jan 3, 2020', status: 'Cancelled', users: 20, progress: 80 },
-];
+import dropdownIcon from '../../resources/dropdown.png';
+import dropupIcon from '../../resources/dropup.png';
 
 function ProjectsTable() {
-  const [projects, setProjects] = useState(projectsData);
-  const [sortField, setSortField] = useState('id');
+  const [projects, setProjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [sortField, setSortField] = useState('projectId');
   const [sortDirection, setSortDirection] = useState('asc');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterActive, setFilterActive] = useState(false);
+  const [error, setError] = useState(null);
+  const [filterOptions, setFilterOptions] = useState({
+    status: 'All'
+  });
 
-  // Sort projects based on sortField and sortDirection
+  useEffect(() => {
+    setLoading(true);
+    fetch('/proyectos')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch projects');
+        }
+        return response.json();
+      })
+      .then(data => {
+        setProjects(data);
+        setLoading(false);
+      })
+      .catch(err => {
+        console.error('Error fetching projects:', err);
+        setError(err.message);
+        setProjects([]);
+        setLoading(false);
+      });
+  }, []);
+
+  function getProjectProgress(proyecto) {
+    let totalTasks = 0;
+    let completedTasks = 0;
+    if (proyecto.sprints) {
+      proyecto.sprints.forEach(sprint => {
+        if (sprint.tareas) {
+          sprint.tareas.forEach(t => {
+            totalTasks++;
+            if (t.status === 'Completado') {
+              completedTasks++;
+            }
+          });
+        }
+      });
+    }
+    if (totalTasks === 0) {
+      return 0;
+    }
+    return (completedTasks / totalTasks) * 100;
+  }
+
   const handleSort = (field) => {
     const newDirection = sortField === field && sortDirection === 'asc' ? 'desc' : 'asc';
     setSortField(field);
     setSortDirection(newDirection);
   };
 
-  // Filter projects based on search term
   const handleSearch = (e) => {
     setSearchTerm(e.target.value);
   };
 
-  // Filter toggle
   const toggleFilter = () => {
     setFilterActive(!filterActive);
   };
 
-  // Create new project
+  const handleFilterChange = (field, value) => {
+    setFilterOptions({
+      ...filterOptions,
+      [field]: value
+    });
+  };
+
   const handleNewProject = () => {
     alert('Create new project functionality would go here');
   };
 
-  // Get status class for styling
   const getStatusClass = (status) => {
-    switch (status) {
-      case 'Cancelled':
-        return 'status-cancelled';
-      case 'On Hold':
-        return 'status-onhold';
-      case 'Completed':
-        return 'status-completed';
-      case 'In Review':
-        return 'status-review';
-      case 'In Progress':
-        return 'status-progress';
+    if (!status) return 'status-tag';
+    
+    switch (status.toLowerCase()) {
+      case 'cancelled':
+        return 'status-tag status-cancelled';
+      case 'on hold':
+        return 'status-tag status-on-hold';
+      case 'completed':
+        return 'status-tag status-completed';
+      case 'in review':
+        return 'status-tag status-in-review';
+      case 'in progress':
+        return 'status-tag status-in-progress';
       default:
-        return '';
+        return 'status-tag';
     }
   };
 
-  // Filter and sort projects
   const filteredProjects = projects
-    .filter(project => 
-      project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      project.id.includes(searchTerm)
-    )
+    .filter(project => {
+      const matchesSearch = 
+        project.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        project.projectId?.toString().includes(searchTerm);
+      
+      const matchesStatus = 
+        filterOptions.status === 'All' || 
+        project.status?.toLowerCase() === filterOptions.status.toLowerCase();
+      
+      return matchesSearch && matchesStatus;
+    })
     .sort((a, b) => {
       if (sortDirection === 'asc') {
         return a[sortField] > b[sortField] ? 1 : -1;
@@ -81,19 +121,24 @@ function ProjectsTable() {
       }
     });
 
+  const statusOptions = ['All', ...new Set(projects.map(p => p.status).filter(Boolean))];
+
   return (
     <div className="home-wrapper">
-
       <div className="projects-container">
         <div className="toolbar">
-          <div className="search-container">
-            <button className="icon-button">
-              <i className="fas fa-link"></i>
+          <div>
+            <button className="new-button" onClick={handleNewProject}>
+              <i className="fas fa-plus"></i>
+              New Project
             </button>
+          </div>
+          
+          <div className="actions">
             <div className="search-box">
               <input 
                 type="text" 
-                placeholder="Search" 
+                placeholder="Search projects..." 
                 value={searchTerm}
                 onChange={handleSearch}
               />
@@ -101,9 +146,7 @@ function ProjectsTable() {
                 <i className="fas fa-search"></i>
               </button>
             </div>
-          </div>
-          
-          <div className="actions">
+            
             <button 
               className={`filter-button ${filterActive ? 'active' : ''}`}
               onClick={toggleFilter}
@@ -111,100 +154,181 @@ function ProjectsTable() {
               <i className="fas fa-filter"></i>
               Filter
             </button>
-            
-            <button className="new-button" onClick={handleNewProject}>
-              New
-              <i className="fas fa-plus"></i>
-            </button>
           </div>
         </div>
         
+        {filterActive && (
+          <div className="filter-panel">
+            <div className="filter-option">
+              <label>Status:</label>
+              <select 
+                value={filterOptions.status} 
+                onChange={(e) => handleFilterChange('status', e.target.value)}
+              >
+                {statusOptions.map(status => (
+                  <option key={status} value={status}>{status}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+        )}
+        
         <div className="table-container">
-          <table className="projects-table">
-            <thead>
-              <tr>
-                <th 
-                  className={sortField === 'id' ? `sort-${sortDirection}` : ''}
-                  onClick={() => handleSort('id')}
-                >
-                  ID
-                  <i className="fas fa-sort"></i>
-                </th>
-                <th 
-                  className={sortField === 'name' ? `sort-${sortDirection}` : ''}
-                  onClick={() => handleSort('name')}
-                >
-                  Name
-                  <i className="fas fa-sort"></i>
-                </th>
-                <th 
-                  className={sortField === 'startDate' ? `sort-${sortDirection}` : ''}
-                  onClick={() => handleSort('startDate')}
-                >
-                  Start Date
-                  <i className="fas fa-sort"></i>
-                </th>
-                <th 
-                  className={sortField === 'finishDate' ? `sort-${sortDirection}` : ''}
-                  onClick={() => handleSort('finishDate')}
-                >
-                  Finish Date
-                  <i className="fas fa-sort"></i>
-                </th>
-                <th 
-                  className={sortField === 'status' ? `sort-${sortDirection}` : ''}
-                  onClick={() => handleSort('status')}
-                >
-                  Status
-                  <i className="fas fa-sort"></i>
-                </th>
-                <th 
-                  className={sortField === 'users' ? `sort-${sortDirection}` : ''}
-                  onClick={() => handleSort('users')}
-                >
-                  Num. of Users
-                  <i className="fas fa-sort"></i>
-                </th>
-                <th 
-                  className={sortField === 'progress' ? `sort-${sortDirection}` : ''}
-                  onClick={() => handleSort('progress')}
-                >
-                  Progress
-                  <i className="fas fa-sort"></i>
-                </th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredProjects.map((project) => (
-                <tr key={project.id}>
-                  <td>{project.id}</td>
-                  <td>{project.name}</td>
-                  <td>{project.startDate}</td>
-                  <td>{project.finishDate}</td>
-                  <td>
-                    <span className={`status-badge ${getStatusClass(project.status)}`}>
-                      {project.status}
-                    </span>
-                  </td>
-                  <td>{project.users}</td>
-                  <td>
-                    <div className="progress-bar">
-                      <div 
-                        className={`progress-fill ${project.status === 'Cancelled' ? 'cancelled' : ''}`}
-                        style={{ width: `${project.progress}%` }}
-                      ></div>
-                    </div>
-                  </td>
-                  <td>
-                    <button className="action-button">
-                      <i className="fas fa-pencil-alt"></i>
-                    </button>
-                  </td>
+          {loading ? (
+            <div className="loading-indicator">Loading projects...</div>
+          ) : error ? (
+            <div className="error-message">Error loading projects: {error}</div>
+          ) : projects.length === 0 ? (
+            <div className="no-projects">No projects found</div>
+          ) : (
+            <table className="projects-table">
+              <thead>
+                <tr>
+                  <th 
+                    className={sortField === 'projectId' ? `sort-${sortDirection}` : ''}
+                    onClick={() => handleSort('projectId')}
+                  >
+                    ID
+                    {sortField === 'projectId' ? (
+                      <img 
+                        src={sortDirection === 'asc' ? dropdownIcon : dropupIcon} 
+                        alt={sortDirection === 'asc' ? 'Sort ascending' : 'Sort descending'} 
+                        className="sort-icon" 
+                      />
+                    ) : (
+                      <i className="fas fa-sort"></i>
+                    )}
+                  </th>
+                  <th 
+                    className={sortField === 'name' ? `sort-${sortDirection}` : ''}
+                    onClick={() => handleSort('name')}
+                  >
+                    Name
+                    {sortField === 'name' ? (
+                      <img 
+                        src={sortDirection === 'asc' ? dropdownIcon : dropupIcon} 
+                        alt={sortDirection === 'asc' ? 'Sort ascending' : 'Sort descending'} 
+                        className="sort-icon" 
+                      />
+                    ) : (
+                      <i className="fas fa-sort"></i>
+                    )}
+                  </th>
+                  <th 
+                    className={sortField === 'startDate' ? `sort-${sortDirection}` : ''}
+                    onClick={() => handleSort('startDate')}
+                  >
+                    Start Date
+                    {sortField === 'startDate' ? (
+                      <img 
+                        src={sortDirection === 'asc' ? dropdownIcon : dropupIcon} 
+                        alt={sortDirection === 'asc' ? 'Sort ascending' : 'Sort descending'} 
+                        className="sort-icon" 
+                      />
+                    ) : (
+                      <i className="fas fa-sort"></i>
+                    )}
+                  </th>
+                  <th 
+                    className={sortField === 'endDate' ? `sort-${sortDirection}` : ''}
+                    onClick={() => handleSort('endDate')}
+                  >
+                    Finish Date
+                    {sortField === 'endDate' ? (
+                      <img 
+                        src={sortDirection === 'asc' ? dropdownIcon : dropupIcon} 
+                        alt={sortDirection === 'asc' ? 'Sort ascending' : 'Sort descending'} 
+                        className="sort-icon" 
+                      />
+                    ) : (
+                      <i className="fas fa-sort"></i>
+                    )}
+                  </th>
+                  <th 
+                    className={sortField === 'status' ? `sort-${sortDirection}` : ''}
+                    onClick={() => handleSort('status')}
+                  >
+                    Status
+                    {sortField === 'status' ? (
+                      <img 
+                        src={sortDirection === 'asc' ? dropdownIcon : dropupIcon} 
+                        alt={sortDirection === 'asc' ? 'Sort ascending' : 'Sort descending'} 
+                        className="sort-icon" 
+                      />
+                    ) : (
+                      <i className="fas fa-sort"></i>
+                    )}
+                  </th>
+                  <th 
+                    className={sortField === 'users' ? `sort-${sortDirection}` : ''}
+                    onClick={() => handleSort('users')}
+                  >
+                    Num. of Users
+                    {sortField === 'users' ? (
+                      <img 
+                        src={sortDirection === 'asc' ? dropdownIcon : dropupIcon} 
+                        alt={sortDirection === 'asc' ? 'Sort ascending' : 'Sort descending'} 
+                        className="sort-icon" 
+                      />
+                    ) : (
+                      <i className="fas fa-sort"></i>
+                    )}
+                  </th>
+                  <th 
+                    className={sortField === 'progress' ? `sort-${sortDirection}` : ''}
+                    onClick={() => handleSort('progress')}
+                  >
+                    Progress
+                    {sortField === 'progress' ? (
+                      <img 
+                        src={sortDirection === 'asc' ? dropdownIcon : dropupIcon} 
+                        alt={sortDirection === 'asc' ? 'Sort ascending' : 'Sort descending'} 
+                        className="sort-icon" 
+                      />
+                    ) : (
+                      <i className="fas fa-sort"></i>
+                    )}
+                  </th>
+                  <th>Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {filteredProjects.map((project) => {
+                  const progress = getProjectProgress(project);
+                  const userCount = project.users ? project.users.length : 0;
+                  
+                  return (
+                    <tr key={project.projectId}>
+                      <td>{project.projectId}</td>
+                      <td>{project.name}</td>
+                      <td>{project.startDate ? new Date(project.startDate).toLocaleDateString() : 'N/A'}</td>
+                      <td>{project.endDate ? new Date(project.endDate).toLocaleDateString() : 'N/A'}</td>
+                      <td>
+                        <span className={getStatusClass(project.status)}>
+                          {project.status || 'Unknown'}
+                        </span>
+                      </td>
+                      <td>{userCount}</td>
+                      <td>
+                        <div className="progress-bar">
+                          <div 
+                            className={`progress-fill ${project.status === 'Cancelled' ? 'cancelled' : ''}`}
+                            style={{ width: `${progress}%` }}
+                          ></div>
+                        </div>
+                      </td>
+                      <td>
+                        <button className="action-button" title="Edit Project">
+                          <i className="fas fa-pencil-alt"></i>
+                          Edit
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          )}
         </div>
       </div>
     </div>

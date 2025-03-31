@@ -1,227 +1,325 @@
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-  .home-wrapper {
-    width: 95.8vw;
-    height: 99.5vh;
-    background-color: #EBECEE;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
+.home-wrapper {
+  width: 95.8vw;
+  height: 99.5vh;
+  background-color: #EBECEE;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
 
-  .home-header {
-    background-color: #fff;
-    height: 50px;
-    padding-left: 20px;
-    display: flex;
-    align-items: center;
-  }
-
-
+.home-header {
+  background-color: #fff;
+  height: 50px;
+  padding-left: 20px;
+  display: flex;
+  align-items: center;
+}
 
 .projects-container {
-    flex: 1;
-    padding: 20px;
-    overflow: auto;
-  }
-  
-  /* Toolbar Styles */
-  .toolbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-  }
-  
-  .search-container {
-    display: flex;
-    align-items: center;
-  }
-  
-  .icon-button {
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    width: 36px;
-    height: 36px;
-    margin-right: 10px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .search-box {
-    position: relative;
-    display: flex;
-    align-items: center;
-  }
-  
-  .search-box input {
-    padding: 8px 35px 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    width: 200px;
-    font-size: 14px;
-  }
-  
-  .search-icon {
-    position: absolute;
-    right: 10px;
-    background: none;
-    border: none;
-    cursor: pointer;
-  }
-  
-  .actions {
-    display: flex;
-    gap: 10px;
-  }
-  
-  .filter-button {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background-color: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 500;
-  }
-  
-  .filter-button.active {
-    background-color: #f0f0f0;
-  }
-  
-  .new-button {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background-color: #d25844;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 500;
-  }
-  
-  /* Table Styles */
-  .table-container {
-    background-color: #fff;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  }
-  
-  .projects-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .projects-table th, 
-  .projects-table td {
-    padding: 12px 15px;
-    text-align: left;
-    border-bottom: 1px solid #eaeaea;
-  }
-  
-  .projects-table th {
-    background-color: #f8f9fa;
-    font-weight: 500;
-    color: #666;
-    cursor: pointer;
-    position: relative;
-  }
-  
-  .projects-table th i {
-    margin-left: 5px;
-    font-size: 12px;
-    opacity: 0.5;
-  }
-  
-  .projects-table th.sort-asc i:before {
-    content: "\f0de";
-    opacity: 1;
-  }
-  
-  .projects-table th.sort-desc i:before {
-    content: "\f0dd";
-    opacity: 1;
-  }
-  
-  .projects-table tbody tr:hover {
-    background-color: #f9f9f9;
-  }
-  
-  /* Status Badges */
-  .status-badge {
-    display: inline-block;
-    padding: 5px 10px;
-    border-radius: 4px;
-    font-size: 12px;
-    width: 60%;
-    text-align: center;
-    font-weight: 500;
-  }
-  
-  .status-cancelled {
-    background-color: #ffebe9;
-    color: #d73a49;
-  }
-  
-  .status-onhold {
-    background-color: #e8f1fd;
-    color: #2370cb;
-  }
-  
-  .status-completed {
-    background-color: #dff0d8;
-    color: #3c763d;
-  }
-  
-  .status-review {
-    background-color: #fff8e1;
-    color: #f9a825;
-  }
-  
-  .status-progress {
-    background-color: #f3e5f5;
-    color: #9c27b0;
-  }
-  
-  /* Progress Bar */
-  .progress-bar {
-    height: 8px;
-    background-color: #e9ecef;
-    border-radius: 4px;
-    overflow: hidden;
-  }
-  
-  .progress-fill {
-    height: 100%;
-    background-color: #5cb85c;
-    border-radius: 4px;
-  }
-  
-  .progress-fill.cancelled {
-    background-color: #d9534f;
-  }
-  
-  /* Action Buttons */
-  .action-button {
-    background: none;
-    border: none;
-    color: #666;
-    cursor: pointer;
-    padding: 5px;
-  }
-  
-  .action-button:hover {
-    color: #333;
-  }
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  padding: 20px;
+  margin: 20px;
+}
+
+/* Toolbar styling */
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #eaeaea;
+}
+
+.search-container {
+  display: flex;
+  align-items: center;
+}
+
+.icon-button {
+  background: #f5f5f5;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 10px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.icon-button:hover {
+  background-color: #e0e0e0;
+}
+
+.search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-right: 15px;
+}
+
+.search-box input {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 8px 12px;
+  width: 240px;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-box input:focus {
+  border-color: #2196f3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+}
+
+.search-icon {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #757575;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.filter-button, .new-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 16px;
+  font-size: 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.filter-button {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  color: #555;
+}
+
+.filter-button.active {
+  background-color: #e3f2fd;
+  border-color: #bbdefb;
+  color: #1976d2;
+}
+
+.filter-button:hover {
+  background-color: #f5f5f5;
+}
+
+.new-button {
+  background-color: #f44336;
+  border: none;
+  color: white;
+  gap: 5px;
+}
+
+.new-button:hover {
+  background-color: #d32f2f;
+}
+
+.filter-button i, .new-button i {
+  margin-right: 5px;
+  font-size: 12px;
+}
+
+/* Table styling */
+.table-container {
+  overflow-x: auto;
+}
+
+.projects-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+}
+
+.projects-table th {
+  background-color: #f8f9fa;
+  font-weight: 600;
+  text-align: center;
+  padding: 12px 15px;
+  border-bottom: 2px solid #eaeaea;
+  position: relative;
+  cursor: pointer;
+  color: #555;
+  white-space: nowrap;
+}
+
+.projects-table th:hover {
+  background-color: #eef2f7;
+}
+
+.projects-table th i {
+  margin-left: 5px;
+  opacity: 0.5;
+}
+
+.sort-icon {
+  vertical-align: middle;
+  margin-left: 5px;
+  width: 12px;
+  height: 12px;
+}
+
+.projects-table th.sort-asc i, .projects-table th.sort-desc i {
+  opacity: 1;
+  color: #2196f3;
+}
+
+.projects-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #eaeaea;
+  color: #333;
+  text-align: center;
+}
+
+.projects-table tr:hover {
+  background-color: #f5f7fa;
+}
+
+.projects-table tr:last-child td {
+  border-bottom: none;
+}
+
+.progress-bar {
+  height: 8px;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: #4caf50;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.progress-fill.cancelled {
+  background-color: #f44336;
+}
+
+.action-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #757575;
+  padding: 5px;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.action-button:hover {
+  background-color: #f0f0f0;
+  color: #2196f3;
+}
+
+.status-tag {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  text-align: center;
+  margin: 4px 0;
+  width: 100px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.status-cancelled {
+  background-color: #ffebee;
+  color: #d32f2f;
+  border: 1px solid #ffcdd2;
+}
+
+.status-on-hold {
+  background-color: #e3f2fd;
+  color: #1976d2;
+  border: 1px solid #bbdefb;
+}
+
+.status-completed {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+
+.status-in-review {
+  background-color: #fffde7;
+  color: #f9a825;
+  border: 1px solid #fff9c4;
+}
+
+.status-in-progress {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+  border: 1px solid #e1bee7;
+}
+
+.loading-indicator, .error-message, .no-projects {
+  text-align: center;
+  padding: 30px;
+  color: #666;
+  font-size: 16px;
+}
+
+.error-message {
+  color: #d32f2f;
+}
+
+.filter-panel {
+  background-color: #f8f9fa;
+  border: 1px solid #eaeaea;
+  border-radius: 4px;
+  padding: 15px;
+  margin-bottom: 20px;
+  display: flex;
+  gap: 20px;
+}
+
+.filter-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-option label {
+  font-weight: 500;
+  color: #555;
+}
+
+.filter-option select {
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  outline: none;
+  min-width: 150px;
+}
+
+.filter-option select:focus {
+  border-color: #2196f3;
+  box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+}
