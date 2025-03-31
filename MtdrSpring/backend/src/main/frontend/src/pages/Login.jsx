@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import '../styles/login-styles.css';
 import logo from '../resources/logo.png';
 
-function Login({ onLogin }) {
+function Login({ onLogin, toggleAuthMode }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -13,9 +13,7 @@ function Login({ onLogin }) {
     e.preventDefault();
     setIsLoading(true);
     
-    // Simulate loading
     setTimeout(() => {
-      // Skip authentication and just call onLogin
       onLogin();
       setIsLoading(false);
     }, 800);
@@ -85,7 +83,7 @@ function Login({ onLogin }) {
             </button>
             
             <div className="login-footer">
-              Don't have an account? <a href="#">Sign up!</a>
+              Don't have an account? <a href="#" onClick={toggleAuthMode}>Sign up!</a>
             </div>
           </form>
         </div>

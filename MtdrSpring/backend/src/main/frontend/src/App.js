@@ -5,17 +5,27 @@ import Home from './pages/Home'
 import ManageTasks from './ManageTasks'
 import Projects from './pages/Projects'
 import Login from './pages/Login'
+import Register from './pages/Register'
 
 function App() {
   const [page, setPage] = useState('Home')
   const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [authMode, setAuthMode] = useState('login')
 
   const handleLogin = () => {
     setIsLoggedIn(true)
   }
 
+  const toggleAuthMode = () => {
+    setAuthMode(authMode === 'login' ? 'register' : 'login')
+  }
+
   if (!isLoggedIn) {
-    return <Login onLogin={handleLogin} />
+    if (authMode === 'login') {
+      return <Login onLogin={handleLogin} toggleAuthMode={toggleAuthMode} />
+    } else {
+      return <Register onLogin={handleLogin} toggleAuthMode={toggleAuthMode} />
+    }
   }
 
   return (
