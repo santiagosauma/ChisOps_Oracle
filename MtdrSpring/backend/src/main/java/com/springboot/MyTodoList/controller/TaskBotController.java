@@ -48,7 +48,8 @@ public class TaskBotController extends TelegramLongPollingBot {
     private static class UserTaskSession {
         private enum CreationState {
             NONE, WAITING_TITLE, WAITING_DESCRIPTION, WAITING_PRIORITY, 
-            WAITING_TYPE, WAITING_USER, WAITING_SPRINT, WAITING_POINTS
+            WAITING_TYPE, WAITING_USER, WAITING_SPRINT, WAITING_POINTS,
+            WAITING_ESTIMATED_HOURS, WAITING_ACTUAL_HOURS
         }
         
         private CreationState state = CreationState.NONE;
@@ -142,22 +143,56 @@ public class TaskBotController extends TelegramLongPollingBot {
                 session.state = UserTaskSession.CreationState.WAITING_POINTS;
                 sendMessageWithKeyboardRemove(chatId, BotMessages.ENTER_STORY_POINTS.getMessage());
                 
-            } else if (session.state == UserTaskSession.CreationState.WAITING_POINTS) {
+            }             
+            // In onUpdateReceived method, after handling WAITING_POINTS case
+            else if (session.state == UserTaskSession.CreationState.WAITING_POINTS) {
                 
                 try {
                     int points = Integer.parseInt(messageText);
                     if (points > 0 && points <= 13) {
                         session.currentTask.setStoryPoints(points);
+                        session.state = UserTaskSession.CreationState.WAITING_ESTIMATED_HOURS;
+                        sendMessageWithKeyboardRemove(chatId, "Por favor, ingresa las horas estimadas para completar la tarea:");
+                    } else {
+                        sendMessageWithKeyboardRemove(chatId, "Por favor, ingresa un número válido entre 1 y 13:");
+                    }
+                } catch (NumberFormatException e) {
+                    sendMessageWithKeyboardRemove(chatId, "Por favor, ingresa un número válido entre 1 y 13:");
+                }
+                
+            }
+            else if (session.state == UserTaskSession.CreationState.WAITING_ESTIMATED_HOURS) {
+                
+                try {
+                    double hours = Double.parseDouble(messageText);
+                    if (hours > 0) {
+                        session.currentTask.setEstimatedHours(hours);
+                        session.state = UserTaskSession.CreationState.WAITING_ACTUAL_HOURS;
+                        sendMessageWithKeyboardRemove(chatId, "Por favor, ingresa las horas reales empleadas (0 si aún no se ha trabajado en la tarea):");
+                    } else {
+                        sendMessageWithKeyboardRemove(chatId, "Por favor, ingresa un número válido mayor que 0:");
+                    }
+                } catch (NumberFormatException e) {
+                    sendMessageWithKeyboardRemove(chatId, "Por favor, ingresa un número válido para las horas estimadas:");
+                }
+                
+            }
+            else if (session.state == UserTaskSession.CreationState.WAITING_ACTUAL_HOURS) {
+                
+                try {
+                    double hours = Double.parseDouble(messageText);
+                    if (hours >= 0) {
+                        session.currentTask.setActualHours(hours);
                         session.state = UserTaskSession.CreationState.WAITING_USER;
                         
                         // Cargar usuarios disponibles y mostrar opciones
                         session.availableUsers = usuarioService.findAll();
                         showUserOptions(chatId, session.availableUsers);
                     } else {
-                        sendMessageWithKeyboardRemove(chatId, "Por favor, ingresa un número válido entre 1 y 13:");
+                        sendMessageWithKeyboardRemove(chatId, "Por favor, ingresa un número válido mayor o igual a 0:");
                     }
                 } catch (NumberFormatException e) {
-                    sendMessageWithKeyboardRemove(chatId, "Por favor, ingresa un número válido entre 1 y 13:");
+                    sendMessageWithKeyboardRemove(chatId, "Por favor, ingresa un número válido para las horas actuales:");
                 }
                 
             }
@@ -489,6 +524,33 @@ public class TaskBotController extends TelegramLongPollingBot {
         message.append("• *Puntos:* ").append(getStoryPointsVisual(tarea.getStoryPoints())).append("\n");
         message.append("• *Estado:* ").append(getStatusWithEmoji(tarea.getStatus())).append("\n\n");
         
+        Double estimatedHours = tarea.getEstimatedHours();
+        Double actualHours = tarea.getActualHours();
+        
+        message.append("• *Estimación:* ");
+        if (estimatedHours != null) {
+            message.append(estimatedHours).append("h");
+            
+            if (actualHours != null && actualHours > 0) {
+                message.append(" (").append(actualHours).append("h usadas)");
+                
+                // Ensure estimatedHours is not null and not zero before calculating deviation
+                if (estimatedHours > 0) {
+                    // Añadir indicador de desviación
+                    double deviation = ((actualHours / estimatedHours) - 1) * 100;
+                    if (Math.abs(deviation) > 10) {
+                        if (deviation > 0) {
+                            message.append(" ⚠️ +").append(Math.round(deviation)).append("%");
+                        } else {
+                            message.append(" ✅ ").append(Math.round(deviation)).append("%");
+                        }
+                    }
+                }
+            }
+        } else {
+            message.append("No definida");
+        }
+        message.append("\n\n");
         // 5.2. Sección: Asignación
         message.append("👤 *ASIGNACIÓN*\n");
         message.append("• *Responsable:* ").append(tarea.getUsuario().getFirstName()).append(" ").append(tarea.getUsuario().getLastName()).append("\n\n");
@@ -515,7 +577,7 @@ public class TaskBotController extends TelegramLongPollingBot {
     
     private String getPriorityEmoji(String priority) {
         switch (priority.toUpperCase()) {
-            case "ALTA": return "�"; 
+            case "ALTA": return "🔴"; 
             case "MEDIA": return "🟠";
             case "BAJA": return "🟢";
             default: return "⚪";
@@ -573,7 +635,7 @@ public class TaskBotController extends TelegramLongPollingBot {
         } else if ("DOCUMENTACION".equals(type.toUpperCase())) {
             return "📚 *La buena documentación es clave* para el mantenimiento futuro del proyecto.";
         } else {
-            return "� *¡Tu trabajo es importante para el equipo!* Gracias por tu dedicación.";
+            return "😄 *¡Tu trabajo es importante para el equipo!* Gracias por tu dedicación.";
         }
     }
     
@@ -637,24 +699,35 @@ public class TaskBotController extends TelegramLongPollingBot {
         List<Tarea> pagedTasks = tareas.subList(startIndex, endIndex);
         
         StringBuilder message = new StringBuilder();
-        message.append("📋 *LISTA DE TAREAS* (Página ").append(page + 1).append(" de ").append(totalPages).append(")\n\n");
+        message.append("📋 *LISTA DE TAREAS*\n");
+        message.append("───────────────────\n");
+        message.append("*Página:* ").append(page + 1).append("/").append(totalPages).append("\n\n");
         
         SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
         
         for (Tarea tarea : pagedTasks) {
-            message.append("🔹 *ID:* ").append(tarea.getTaskId()).append("\n");
-            message.append("  *Título:* ").append(tarea.getTitle()).append("\n");
-            message.append("  *Estado:* ").append(getStatusWithEmoji(tarea.getStatus())).append("\n");
-            message.append("  *Prioridad:* ").append(getPriorityEmoji(tarea.getPriority())).append(" ").append(tarea.getPriority()).append("\n");
-            message.append("  *Asignado:* ").append(tarea.getUsuario().getFirstName()).append(" ").append(tarea.getUsuario().getLastName()).append("\n");
-            message.append("  *Sprint:* ").append(tarea.getSprint().getName()).append("\n");
-            message.append("  *Fecha fin:* ").append(dateFormat.format(tarea.getEndDate())).append(" ");
+            message.append("🔹 *").append(tarea.getTaskId()).append(": ").append(tarea.getTitle()).append("*\n");
+            message.append("  • *Estado:* ").append(getStatusWithEmoji(tarea.getStatus())).append("\n");
+            message.append("  • *Prioridad:* ").append(getPriorityEmoji(tarea.getPriority())).append(" ").append(tarea.getPriority()).append("\n");
+            message.append("  • *Asignado:* ").append(tarea.getUsuario().getFirstName()).append(" ").append(tarea.getUsuario().getLastName()).append("\n");
+            message.append("  • *Sprint:* ").append(tarea.getSprint().getName()).append("\n");
+            
+            // Null-safe check for both estimated and actual hours
+            if (tarea.getEstimatedHours() != null && tarea.getEstimatedHours() > 0) {
+                message.append("  • *Horas:* ").append(tarea.getEstimatedHours()).append("h est.");
+                if (tarea.getActualHours() != null && tarea.getActualHours() > 0) {
+                    message.append(" / ").append(tarea.getActualHours()).append("h real");
+                }
+                message.append("\n");
+            }
+            
+            message.append("  • *Fecha fin:* ").append(dateFormat.format(tarea.getEndDate())).append(" ");
             message.append(getRemainingTimeIndicator(tarea.getEndDate())).append("\n");
-            message.append("  ─────────────────────\n\n");
+            message.append("  ───────────────────\n\n");
         }
         
-        // Add summary of total tasks
-        message.append("Mostrando ").append(pagedTasks.size()).append(" de ").append(tareas.size()).append(" tareas totales");
+        // Add summary footer
+        message.append("*Resumen:* ").append(pagedTasks.size()).append(" de ").append(tareas.size()).append(" tareas en total");
         
         // Send the message with the task list
         SendMessage taskListMessage = new SendMessage();
