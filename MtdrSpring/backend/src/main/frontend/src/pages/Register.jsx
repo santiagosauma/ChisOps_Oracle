@@ -42,7 +42,6 @@ function Register({ onLogin, toggleAuthMode }) {
   return (
     <div className="register-container">
       <div className="register-form">
-        <img src={logo} alt="Logo" className="register-logo" />
         <div className="register-card">
           <h2>Create your account</h2>
           {error && <div className="error-message">{error}</div>}
@@ -168,6 +167,7 @@ function Register({ onLogin, toggleAuthMode }) {
       </div>
       
       <div className="register-sidebar">
+        <img src={logo} alt="Logo" className="register-logo" />
         <div className="register-sidebar-content">
           <h1>Innovate. Automate. Elevate.</h1>
           <p>Take your development team to the next level with solutions that automate tasks, improve visibility, and drive results. Let's build the future, together.</p>
