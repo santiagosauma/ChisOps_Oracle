@@ -9,7 +9,7 @@ import logoutIcon from './resources/logout.png'
 import menuIcon from './resources/menu_responsive.png'
 import menuOpenIcon from './resources/menu_90_responsive.png'
 
-function Sidebar({ currentPage, onNav }) {
+function Sidebar({ currentPage, onNav, userRole, onLogout }) {
   const [expand, setExpand] = useState(false);
   const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -30,6 +30,12 @@ function Sidebar({ currentPage, onNav }) {
 
   const toggleMobileMenu = () => {
     setMobileMenuOpen(!mobileMenuOpen);
+  };
+
+  const handleLogout = (e) => {
+    e.preventDefault();
+    console.log('🚪 Iniciando proceso de logout desde Sidebar');
+    onLogout();
   };
 
   const items = [
@@ -83,7 +89,11 @@ function Sidebar({ currentPage, onNav }) {
             )
           })}
         </div>
-        <div className="sidebar-logout">
+        <div 
+          className="sidebar-logout" 
+          onClick={handleLogout}
+          style={{ cursor: 'pointer' }}
+        >
           <div className="icon-container">
             <img src={logoutIcon} alt="Logout" className="item-icon" />
           </div>
