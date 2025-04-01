@@ -166,4 +166,31 @@ public class UsuarioController {
     public List<Usuario> searchUsuarios(@RequestParam("term") String searchTerm) {
         return usuarioService.searchUsuarios(searchTerm);
     }
+
+    @PutMapping(value = "/usuarios/{id}/password-hash")
+    public ResponseEntity<Usuario> updatePasswordHash(@PathVariable int id, @RequestBody Map<String, String> passwordMap) {
+        System.out.println("Recibida petición para actualizar contraseña del usuario ID: " + id);
+        String newPasswordPlain = passwordMap.get("password");
+
+        if (newPasswordPlain == null || newPasswordPlain.trim().isEmpty()) {
+            System.out.println("Error: Contraseña vacía o no proporcionada");
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+
+        try {
+            System.out.println("Llamando al servicio para actualizar contraseña");
+            Usuario updatedUser = usuarioService.updatePasswordHash(id, newPasswordPlain);
+            if (updatedUser != null) {
+                System.out.println("Contraseña actualizada exitosamente para el usuario: " + updatedUser.getEmail());
+                return new ResponseEntity<>(updatedUser, HttpStatus.OK);
+            } else {
+                System.out.println("No se encontró el usuario con ID: " + id);
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            System.out.println("Error al actualizar contraseña: " + e.getMessage());
+            e.printStackTrace();  // Imprime el stack trace completo
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+}
 }

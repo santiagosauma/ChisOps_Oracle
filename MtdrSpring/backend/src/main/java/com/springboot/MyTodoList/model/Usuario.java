@@ -30,14 +30,17 @@ public class Usuario {
     @Column(name = "PHONE", nullable = false)
     private String phone;
     
-    @Column(name = "PASSWORD", nullable = false)
-    private String password;
+    @Column(name = "PASSWORD_HASH", nullable = false, length = 72) // Match DB VARCHAR2(72)
+    private String passwordHash;
     
     @Column(name = "ROL", nullable = false)
     private String rol;
     
     @Column(name = "DELETED", nullable = false)
     private int deleted;
+
+    @Column(name = "TELEGRAM_USERNAME", nullable = false)
+    private String telegramUsername;
     
     /**
      * Constructor vacío requerido por JPA
@@ -49,15 +52,16 @@ public class Usuario {
      * Constructor completo para crear un usuario con todos sus atributos
      */
     public Usuario(int userId, String firstName, String lastName, String email, 
-                  String phone, String password, String rol, int deleted) {
+                  String phone, String passwordHash, String rol, int deleted, String telegramUsername) {
         this.userId = userId;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
         this.phone = phone;
-        this.password = password;
+        this.passwordHash = passwordHash; 
         this.rol = rol;
         this.deleted = deleted;
+        this.telegramUsername = telegramUsername;
     }
     
     // Getters y Setters
@@ -102,12 +106,12 @@ public class Usuario {
         this.phone = phone;
     }
     
-    public String getPassword() {
-        return password;
+    public String getPasswordHash() {
+        return passwordHash;
     }
-    
-    public void setPassword(String password) {
-        this.password = password;
+
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
     }
     
     public String getRol() {
@@ -125,6 +129,14 @@ public class Usuario {
     public void setDeleted(int deleted) {
         this.deleted = deleted;
     }
+
+    public String getTelegramUsername() {
+        return telegramUsername;
+    }
+
+    public void setTelegramUsername(String telegramUsername) {
+        this.telegramUsername = telegramUsername;
+    }
     
     /**
      * Método para obtener una representación en cadena del usuario
@@ -140,6 +152,7 @@ public class Usuario {
                 ", phone='" + phone + '\'' +
                 ", rol='" + rol + '\'' +
                 ", deleted=" + deleted +
+                ", telegramUsername='" + telegramUsername + '\'' +
                 '}';
     }
 }
