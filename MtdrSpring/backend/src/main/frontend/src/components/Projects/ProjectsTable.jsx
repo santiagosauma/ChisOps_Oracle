@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import '../../styles/Projects.css';
 import dropdownIcon from '../../resources/dropdown.png';
 import dropupIcon from '../../resources/dropup.png';
-// Import new icons
 import tableGridIcon from '../../resources/table-grid.png';
 import searchIcon from '../../resources/search.png';
 import settingIcon from '../../resources/setting.png';
@@ -39,6 +38,31 @@ function ProjectsTable() {
         setProjects([]);
         setLoading(false);
       });
+  }, []);
+
+  useEffect(() => {
+    const handleSidebarChange = () => {
+      const sidebarElement = document.querySelector('.sidebar');
+      if (sidebarElement && sidebarElement.classList.contains('expanded')) {
+        document.body.classList.add('sidebar-expanded');
+      } else {
+        document.body.classList.remove('sidebar-expanded');
+      }
+    };
+
+    handleSidebarChange();
+
+    const observer = new MutationObserver(handleSidebarChange);
+    const sidebarElement = document.querySelector('.sidebar');
+    
+    if (sidebarElement) {
+      observer.observe(sidebarElement, { attributes: true, attributeFilter: ['class'] });
+    }
+
+    return () => {
+      observer.disconnect();
+      document.body.classList.remove('sidebar-expanded');
+    };
   }, []);
 
   function getProjectProgress(proyecto) {
