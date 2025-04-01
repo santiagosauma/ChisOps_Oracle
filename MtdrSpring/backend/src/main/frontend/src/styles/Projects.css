@@ -97,6 +97,11 @@
   height: 16px;
 }
 
+.add-icon {
+  width: 10px;
+  height: 10px;
+}
+
 .filter-button {
   background-color: #fff;
   border: 1px solid #ddd;
