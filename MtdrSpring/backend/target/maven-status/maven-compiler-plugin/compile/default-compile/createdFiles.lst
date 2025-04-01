@@ -1,25 +1,70 @@
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+com\springboot\MyTodoList\model\Proyecto.class
+com\springboot\MyTodoList\model\Sprint.class
+com\springboot\MyTodoList\repository\ToDoItemRepository.class
+com\springboot\MyTodoList\controller\TaskBotController$UserTaskSession.class
+=======
+>>>>>>> origin/front-sauma
+>>>>>>> a0f583afd701562715a0b54604f8573960921b52
 com\springboot\MyTodoList\service\UserService.class
 com\springboot\MyTodoList\config\CorsConfig.class
 com\springboot\MyTodoList\MyTodoListApplication.class
 com\springboot\MyTodoList\model\User.class
 com\springboot\MyTodoList\repository\UsuarioRepository.class
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+com\springboot\MyTodoList\repository\UserRepository.class
+>>>>>>> a0f583afd701562715a0b54604f8573960921b52
 com\springboot\MyTodoList\model\Tarea.class
 com\springboot\MyTodoList\repository\ProyectoRepository.class
 com\springboot\MyTodoList\repository\TareaRepository.class
 com\springboot\MyTodoList\controller\UsuarioController.class
 com\springboot\MyTodoList\service\ProyectoService.class
+<<<<<<< HEAD
+=======
+com\springboot\MyTodoList\config\DbSettings.class
+com\springboot\MyTodoList\util\BotLabels.class
+com\springboot\MyTodoList\security\WebSecurityConfiguration.class
+=======
+com\springboot\MyTodoList\model\Tarea.class
+com\springboot\MyTodoList\controller\TaskBotController$UserTaskSession$CreationState.class
+com\springboot\MyTodoList\repository\ProyectoRepository.class
+com\springboot\MyTodoList\repository\TareaRepository.class
+com\springboot\MyTodoList\controller\UsuarioController.class
+com\springboot\MyTodoList\service\ProyectoService.class
+>>>>>>> origin/front-sauma
+>>>>>>> a0f583afd701562715a0b54604f8573960921b52
 com\springboot\MyTodoList\service\ToDoItemService.class
 com\springboot\MyTodoList\controller\UserController.class
 com\springboot\MyTodoList\config\OracleConfiguration.class
 com\springboot\MyTodoList\controller\ProyectoController.class
 com\springboot\MyTodoList\model\Usuario.class
 com\springboot\MyTodoList\controller\SprintController.class
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+com\springboot\MyTodoList\repository\SprintRepository.class
+>>>>>>> a0f583afd701562715a0b54604f8573960921b52
+com\springboot\MyTodoList\controller\TareaController.class
+com\springboot\MyTodoList\service\UsuarioService.class
+com\springboot\MyTodoList\util\BotCommands.class
+<<<<<<< HEAD
+com\springboot\MyTodoList\model\Proyecto.class
+com\springboot\MyTodoList\model\Sprint.class
+com\springboot\MyTodoList\repository\ToDoItemRepository.class
+=======
+=======
 com\springboot\MyTodoList\controller\TareaController.class
 com\springboot\MyTodoList\service\UsuarioService.class
 com\springboot\MyTodoList\util\BotCommands.class
 com\springboot\MyTodoList\model\Proyecto.class
 com\springboot\MyTodoList\model\Sprint.class
 com\springboot\MyTodoList\repository\ToDoItemRepository.class
+com\springboot\MyTodoList\controller\TaskBotController$UserTaskSession.class
+>>>>>>> a0f583afd701562715a0b54604f8573960921b52
 com\springboot\MyTodoList\repository\UserRepository.class
 com\springboot\MyTodoList\service\TareaService.class
 com\springboot\MyTodoList\service\SprintService.class
@@ -30,3 +75,7 @@ com\springboot\MyTodoList\util\BotLabels.class
 com\springboot\MyTodoList\security\WebSecurityConfiguration.class
 com\springboot\MyTodoList\repository\SprintRepository.class
 com\springboot\MyTodoList\controller\TaskBotController.class
+<<<<<<< HEAD
+=======
+>>>>>>> origin/front-sauma
+>>>>>>> a0f583afd701562715a0b54604f8573960921b52
