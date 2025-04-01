@@ -2,6 +2,11 @@ import React, { useState, useEffect } from 'react';
 import '../../styles/Projects.css';
 import dropdownIcon from '../../resources/dropdown.png';
 import dropupIcon from '../../resources/dropup.png';
+// Import new icons
+import tableGridIcon from '../../resources/table-grid.png';
+import searchIcon from '../../resources/search.png';
+import settingIcon from '../../resources/setting.png';
+import plusIcon from '../../resources/plus.png';
 
 function ProjectsTable() {
   const [projects, setProjects] = useState([]);
@@ -127,32 +132,32 @@ function ProjectsTable() {
     <div className="home-wrapper">
       <div className="projects-container">
         <div className="toolbar">
-          <div>
-            <button className="new-button" onClick={handleNewProject}>
-              <i className="fas fa-plus"></i>
-              New Project
-            </button>
+          <div className="toolbar-left">
+            <img src={tableGridIcon} alt="Table" className="table-icon" />
           </div>
           
-          <div className="actions">
+          <div className="toolbar-right">
             <div className="search-box">
+              <img src={searchIcon} alt="Search" className="search-input-icon" />
               <input 
                 type="text" 
-                placeholder="Search projects..." 
+                placeholder="Search by name..." 
                 value={searchTerm}
                 onChange={handleSearch}
               />
-              <button className="search-icon">
-                <i className="fas fa-search"></i>
-              </button>
             </div>
             
             <button 
               className={`filter-button ${filterActive ? 'active' : ''}`}
               onClick={toggleFilter}
             >
-              <i className="fas fa-filter"></i>
               Filter
+              <img src={settingIcon} alt="Filter" className="button-icon" />
+            </button>
+            
+            <button className="new-button" onClick={handleNewProject}>
+              New Project
+              <img src={plusIcon} alt="Add" className="button-icon" />
             </button>
           </div>
         </div>
