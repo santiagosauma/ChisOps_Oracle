@@ -285,9 +285,28 @@ public class TaskBotController extends TelegramLongPollingBot {
                 for (Sprint sprint : session.availableSprints) {
                     if (messageText.equals("Sprint " + sprint.getName())) {
                         session.currentTask.setSprint(sprint);
+                    if (session.currentTask.getStatus() == null) { // Optional: check if already set, though unlikely here
+                        session.currentTask.setStatus("Pendiente"); // Set a default status
+                        logger.debug("Status was null, setting default 'Pendiente'");
+                    }
                         
                         // Crear la tarea
                         try {
+                            if (session.currentTask.getStartDate() == null) {
+                                Calendar cal = Calendar.getInstance();
+                                session.currentTask.setStartDate(cal.getTime());
+                                logger.debug("startDate era null, se asignó un valor predeterminado: " + cal.getTime());
+                                logger.debug("startDate: " + session.currentTask.getStartDate());
+                            }
+
+                            if (session.currentTask.getEndDate() == null) {
+                                Calendar cal = Calendar.getInstance();
+                                cal.add(Calendar.DAY_OF_MONTH, 7); // Hoy + 7 días
+                                session.currentTask.setEndDate(cal.getTime());
+                                logger.debug("endDate era null, se asignó un valor predeterminado: " + cal.getTime());
+                                logger.debug("endDate: " + session.currentTask.getEndDate());
+                            }
+
                             Tarea createdTask = tareaService.addTarea(session.currentTask);
                             sendTaskConfirmation(chatId, createdTask);
                             
@@ -299,8 +318,11 @@ public class TaskBotController extends TelegramLongPollingBot {
                             // Establecer echas para la siguiente tarea 
                             Calendar cal = Calendar.getInstance();
                             session.currentTask.setStartDate(cal.getTime());
+                            logger.debug("Fecha de inicio establecida: " + cal.getTime());
+                            
                             cal.add(Calendar.DAY_OF_MONTH, 7);
                             session.currentTask.setEndDate(cal.getTime());
+                            logger.debug("Fecha de finalización establecida: " + cal.getTime());
                             session.currentTask.setStatus("Pendiente");
                             
                             // Mostrar el menú principal
