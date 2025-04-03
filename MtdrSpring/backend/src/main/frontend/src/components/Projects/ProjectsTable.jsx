@@ -22,6 +22,8 @@ function ProjectsTable() {
   });
   const [allProjects, setAllProjects] = useState([]);
 
+
+
   useEffect(() => {
     setLoading(true);
     let url = '/proyectos';
@@ -372,6 +374,7 @@ function ProjectsTable() {
                   
                   return (
                     <tr key={project.projectId}>
+                      
                       <td>{project.projectId}</td>
                       <td>{project.name}</td>
                       <td>{project.startDate ? new Date(project.startDate).toLocaleDateString() : 'N/A'}</td>

@@ -35,7 +35,9 @@ function Sidebar({ currentPage, onNav }) {
   const items = [
     { name: 'Home', iconExpanded: homeBlue, iconCollapsed: homeWhite },
     { name: 'Projects', iconExpanded: folderBlue, iconCollapsed: folderWhite },
-    { name: 'ProjectsTrue', iconExpanded: folderBlue, iconCollapsed: folderWhite }
+    { name: 'ProjectsTrue', iconExpanded: folderBlue, iconCollapsed: folderWhite },
+    { name: 'TestComp', iconExpanded: folderBlue, iconCollapsed: folderWhite }
+
   ];
 
   const mobileMenuToggle = (

@@ -6,9 +6,19 @@ import ManageTasks from './ManageTasks'
 import Projects from './pages/Projects'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import ProjectDetails from './pages/ProjectDetails'
+import ProjectsTable from './components/Projects/ProjectsTable'
 
 function App() {
   const [page, setPage] = useState('Home')
+  const [selectedProjectId, setSelectedProjectId] = useState(null)
+
+   const handleProjectSelect = (projectId) => {
+    setSelectedProjectId(projectId);
+    setPage('ProjectDetails'); 
+  }
+
+  /*
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [authMode, setAuthMode] = useState('login')
 
@@ -27,6 +37,7 @@ function App() {
       return <Register onLogin={handleLogin} toggleAuthMode={toggleAuthMode} />
     }
   }
+    */
 
   return (
     <div style={{ display: 'flex' }}>
@@ -34,7 +45,10 @@ function App() {
       <div style={{ marginLeft: '60px', flex: 1, padding: '0px' }}>
         {page === 'Home' && <Home />}
         {page === 'Projects' && <ManageTasks />}
-        {page === 'ProjectsTrue' && <Projects/>} 
+        {page === 'ProjectsTrue' && <Projects onProjectSelect={handleProjectSelect} />} 
+        {page === 'TestComp' && <ProjectDetails/>}
+        {page === 'ProjectDetails' && <ProjectDetails projectId={selectedProjectId} />}
+
       </div>
     </div>
   )
