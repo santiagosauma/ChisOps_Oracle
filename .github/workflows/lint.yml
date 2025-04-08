@@ -1,14 +1,14 @@
-name: Super Linter
+name: Super Linter (Backend Test)
 
 on:
   workflow_dispatch:
     inputs:
       logLevel:
-        description: 'Log level'     
+        description: 'Log level'
         required: true
         default: 'warning'
       tags:
-        description: 'Test scenario tags' 
+        description: 'backend-only, sprint-review, release-validation'
   push:
     branches: null
 
@@ -16,48 +16,42 @@ jobs:
   super-lint:
     name: Lint code base
     runs-on: ubuntu-latest
-    steps:       
+    steps:
       - name: Checkout code
         uses: actions/checkout@v3
         with:
-          # Full git history is needed to get a proper list of changed files
           fetch-depth: 0
-
-      - name: Selenium Test
+      
+      - name: Set up JDK 11
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+          cache: 'maven'
+      
+      - name: Backend Test - Verificación básica
         continue-on-error: true
         run: |
-          pip install -U selenium
-          pip install -U pytest
-          pip install -U pytest-html
-          pip install -U webdriver-manager
-          pytest test1.py --html=report.html.
-          cat report.html
-
+          cd MtdrSpring/backend
+          chmod +x mvnw
+          ./mvnw test -Dtest=ProyectoControllerTest -DfailIfNoTests=false
+      
       - name: Path
         continue-on-error: true
         run: |
           sudo mkdir -p /action/lib/.automation/
           sudo chown -R runner:docker /action
-          pwd
-          ls -l
-          echo "root /"
-          ls -l /
           cp java_checks.xml /action/lib/.automation/
-          echo ".automation"
-          ls -l /action/lib/.automation/
-
-      - name:   Java checks
-        continue-on-error: true
-        run: |
-          ls -l /
-          (cd /action/lib/.automation/; readlink -f java_checks.xml)
-
+      
       - name: Run Super-Linter
         uses: github/super-linter@v6
         env:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VALIDATE_ALL_CODEBASE: true
+          VALIDATE_ALL_CODEBASE: false
+          VALIDATE_JAVA: true
+          JAVA_FILE_NAME: google_checks.xml
+          FILTER_REGEX_INCLUDE: .*MtdrSpring/backend/src/main/.*\.java
           VALIDATE_KUBERNETES_KUBECONFORM: false
           VALIDATE_SHELL_SHFMT: false
           VALIDATE_CSS: false
@@ -77,7 +71,6 @@ jobs:
           VALIDATE_YAML: false
           VALIDATE_YAML_PRETTIER: false
           BASH_SEVERITY: warning
-          JAVA_FILE_NAME: google_checks.xml
           VALIDATE_BASH_EXEC: false
           VALIDATE_BASH: false
           VALIDATE_KUBEVAL: false

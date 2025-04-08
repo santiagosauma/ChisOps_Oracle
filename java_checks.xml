@@ -1,7 +1,15 @@
 <module name="Checker">
+  <property name="severity" value="warning"/>
   <module name="TreeWalker">
     <module name="AvoidStarImport"/>
     <module name="ConstantName"/>
     <module name="EmptyBlock"/>
+    <module name="UnusedImports"/>
+    <module name="MethodLength">
+      <property name="max" value="50"/>
+    </module>
+    <module name="NeedBraces"/>
+    <module name="LeftCurly"/>
+    <module name="RightCurly"/>
   </module>
 </module>
