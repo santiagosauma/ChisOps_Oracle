@@ -49,5 +49,8 @@ jobs:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_ALL_CODEBASE: false
+          VALIDATE_JAVA: true
+          VALIDATE_CHECKOV: false
+          VALIDATE_JSCPD: false
           JAVA_FILE_NAME: google_checks.xml
           FILTER_REGEX_INCLUDE: .*MtdrSpring/backend/src/main/.*\.java
