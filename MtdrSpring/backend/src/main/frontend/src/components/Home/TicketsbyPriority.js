@@ -38,8 +38,7 @@ function TicketsByPriority() {
   const lowPercent = total === 0 ? 0 : (counts.Low / total) * 100
 
   return (
-    <div>
-      <h2>Tickets by priority</h2>
+    <div style={{ height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       {error && <p>Error: {error.message}</p>}
       {isLoading && <p>Loading...</p>}
       {!isLoading && (
@@ -47,7 +46,7 @@ function TicketsByPriority() {
           <div
             style={{
               width: '100px',
-              height: '200px',
+              height: '180px',
               backgroundColor: '#ccc',
               position: 'relative',
               borderRadius: '8px'
@@ -61,7 +60,7 @@ function TicketsByPriority() {
                 right: '0',
                 height: lowPercent + '%',
                 backgroundColor: 'green',
-                borderRadius: '8px 8px 0 0'
+                borderRadius: '0 0 8px 8px'
               }}
             />
             <div

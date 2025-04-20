@@ -14,6 +14,10 @@ E:\Semestre6\Reto\ChisOps_Oracle\MtdrSpring\backend\src\main\java\com\springboot
 E:\Semestre6\Reto\ChisOps_Oracle\MtdrSpring\backend\src\main\java\com\springboot\MyTodoList\controller\UsuarioController.java
 E:\Semestre6\Reto\ChisOps_Oracle\MtdrSpring\backend\src\main\java\com\springboot\MyTodoList\service\ProyectoService.java
 E:\Semestre6\Reto\ChisOps_Oracle\MtdrSpring\backend\src\main\java\com\springboot\MyTodoList\service\ToDoItemService.java
+<<<<<<< Updated upstream
+=======
+E:\Semestre6\Reto\ChisOps_Oracle\MtdrSpring\backend\src\main\java\com\springboot\MyTodoList\config\SecurityConfig.java
+>>>>>>> Stashed changes
 E:\Semestre6\Reto\ChisOps_Oracle\MtdrSpring\backend\src\main\java\com\springboot\MyTodoList\service\TareaService.java
 E:\Semestre6\Reto\ChisOps_Oracle\MtdrSpring\backend\src\main\java\com\springboot\MyTodoList\util\BotLabels.java
 E:\Semestre6\Reto\ChisOps_Oracle\MtdrSpring\backend\src\main\java\com\springboot\MyTodoList\config\OracleConfiguration.java

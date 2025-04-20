@@ -44,7 +44,6 @@ function CompletedTasksProject() {
 
   return (
     <div style={{ width: '100%', height: '100%' }}>
-      <h2>Completed Tasks (Project)</h2>
       {error && <p>Error: {error.message}</p>}
       {isLoading && <p>Loading...</p>}
       {!isLoading && counts.length > 0 && (
@@ -53,7 +52,7 @@ function CompletedTasksProject() {
             display: 'flex',
             justifyContent: 'space-around',
             alignItems: 'flex-end',
-            height: '200px',
+            height: '100%',
             width: '100%'
           }}
         >

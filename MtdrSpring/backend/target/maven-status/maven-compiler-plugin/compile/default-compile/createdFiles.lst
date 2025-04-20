@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 com\springboot\MyTodoList\service\UserService.class
 com\springboot\MyTodoList\config\CorsConfig.class
 com\springboot\MyTodoList\MyTodoListApplication.class
@@ -32,3 +33,5 @@ com\springboot\MyTodoList\util\BotLabels.class
 com\springboot\MyTodoList\security\WebSecurityConfiguration.class
 com\springboot\MyTodoList\repository\SprintRepository.class
 com\springboot\MyTodoList\controller\TaskBotController.class
+=======
+>>>>>>> Stashed changes

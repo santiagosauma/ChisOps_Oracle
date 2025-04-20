@@ -19,34 +19,53 @@ function Home() {
         <div className="grid_container">
           <div className="left_col">
             <div className="active_project">
-              <ActiveProjects />
+              <h2>Active Projects</h2>
+              <div className="content_wrapper">
+                <ActiveProjects />
+              </div>
             </div>
             <div className="general_overview">
+              <h2>General Overview</h2>
+              <div className="content_wrapper">
                 <GeneralOverview />
+              </div>
             </div>
             <div className="completed_projects">
-              <CompletedTasksProject />
+              <h2>Completed Tasks (Project)</h2>
+              <div className="content_wrapper">
+                <CompletedTasksProject />
+              </div>
             </div>
           </div>
           <div className="right_col">
             <div className="top_right">
               <div className="priority_col">
-                <TicketsByPriority />
+                <h2>Tickets By Priority</h2>
+                <div className="content_wrapper">
+                  <TicketsByPriority />
+                </div>
               </div>
               <div className="overdue_pending">
                 <div className="overdue_tasks">
-                  <h2>Overdue Tasks</h2>
-                  <OverdueTasks />
+                  <h2 className="overdue_title">Overdue Tasks</h2>
+                  <div className="content_wrapper">
+                    <OverdueTasks />
+                  </div>
                 </div>
                 <div className="pending_tasks">
                   <h2>Pending Tasks</h2>
-                  <PendingTasks />
+                  <div className="content_wrapper">
+                    <PendingTasks />
+                  </div>
                 </div>
               </div>
             </div>
 
-            <div className=" tasks_in_progress">
-              <TasksInProgress />
+            <div className="tasks_in_progress">
+              <h2>Tasks In Progress</h2>
+              <div className="content_wrapper">
+                <TasksInProgress />
+              </div>
             </div>
           </div>
         </div>
