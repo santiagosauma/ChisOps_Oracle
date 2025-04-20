@@ -117,8 +117,8 @@
 }
 
 .icon-container {
-  width: 40px;
-  height: 40px;
+  width: 60px;
+  height: 30px;
   background-color: transparent;
   display: flex;
   justify-content: center;
@@ -146,13 +146,18 @@
 }
 
 .sidebar-logout .icon-container {
-  width: 40px;
-  height: 40px;
-  background-color: #667A8A;
+  width: 60px;
+  height: 30px;
+  background-color: transparent;
   display: flex;
   justify-content: center;
   align-items: center;
   border-radius: 8px;
+}
+
+.sidebar.collapsed .sidebar-logout .icon-container {
+  width: 80px;
+  height: 40px;
 }
 
 .sidebar-logout:hover {

@@ -1,9 +1,5 @@
-<<<<<<< HEAD
-<<<<<<< Updated upstream
-=======
 com\springboot\MyTodoList\controller\TaskBotController$UserSession.class
 com\springboot\MyTodoList\util\BotMessages.class
->>>>>>> b6ca1f14184760cd60e915d0f8c2673f3cf24895
 com\springboot\MyTodoList\service\UserService.class
 com\springboot\MyTodoList\config\CorsConfig.class
 com\springboot\MyTodoList\MyTodoListApplication.class
@@ -39,5 +35,3 @@ com\springboot\MyTodoList\util\BotLabels.class
 com\springboot\MyTodoList\security\WebSecurityConfiguration.class
 com\springboot\MyTodoList\repository\SprintRepository.class
 com\springboot\MyTodoList\controller\TaskBotController.class
-=======
->>>>>>> Stashed changes
