@@ -22,7 +22,7 @@
 .mobile-menu-toggle {
   position: fixed;
   top: 10px;
-  left: 10px;
+  right: 10px;
   width: 40px;
   height: 40px;
   background-color: #312D2A;
@@ -43,16 +43,23 @@
 
 .sidebar.mobile {
   position: fixed;
-  top: 0;
-  left: -280px;
-  width: 280px;
-  height: 100vh;
-  transition: left 0.3s ease;
-  box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+  top: -100vh;
+  right: 0;
+  left: auto;
+  width: 100%;
+  height: auto;
+  max-height: 80vh;
+  transition: top 0.3s ease;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  border-radius: 0 0 15px 15px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar.mobile.mobile-open {
-  left: 0;
+  top: 0;
+  left: auto;
 }
 
 .sidebar-overlay {
@@ -89,6 +96,13 @@
   margin-top: 20px;
 }
 
+.sidebar.mobile .sidebar-content {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 60px 10px 10px 10px;
+}
+
 .sidebar-item {
   display: flex;
   align-items: center;
@@ -99,6 +113,14 @@
   border-radius: 8px;
   padding: 8px;
   transition: background-color 0.2s;
+}
+
+.sidebar.mobile .sidebar-item {
+  flex-direction: row;
+  text-align: left;
+  padding: 15px;
+  margin: 0;
+  border-radius: 10px;
 }
 
 .sidebar-item:hover {
@@ -126,6 +148,11 @@
   border-radius: 8px;
 }
 
+.sidebar.mobile .icon-container {
+  margin-bottom: 0;
+  margin-right: 15px;
+}
+
 .item-icon {
   width: 24px;
   height: 24px;
@@ -133,6 +160,11 @@
 
 .item-text {
   margin-left: 10px;
+}
+
+.sidebar.mobile .item-text {
+  margin-left: 0;
+  font-size: 16px;
 }
 
 .sidebar-logout {
@@ -143,6 +175,13 @@
   cursor: pointer;
   padding: 8px;
   border-radius: 8px;
+}
+
+.sidebar.mobile .sidebar-logout {
+  margin-top: auto;
+  border-top: 1px solid rgba(255,255,255,0.1);
+  padding: 15px;
+  justify-content: center;
 }
 
 .sidebar-logout .icon-container {

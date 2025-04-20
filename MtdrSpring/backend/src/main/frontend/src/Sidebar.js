@@ -80,9 +80,11 @@ function Sidebar({ currentPage, onNav, userRole, onLogout }) {
         onMouseEnter={() => !isMobile && setExpand(true)}
         onMouseLeave={() => !isMobile && setExpand(false)}
       >
-        <div className="sidebar-logo">
-          <img src={logo} alt="Logo" className="logo" />
-        </div>
+        {!isMobile && (
+          <div className="sidebar-logo">
+            <img src={logo} alt="Logo" className="logo" />
+          </div>
+        )}
         <div className="sidebar-content">
           {items.map(item => {
             const isActive = item.name === currentPage
