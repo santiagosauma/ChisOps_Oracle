@@ -1,116 +1,241 @@
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-  }
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
 
-  .home_wrapper {
-    width: 95.8vw;
-    height: 100vh;
-   
-    display: flex;
-    flex-direction: column;
+.home_wrapper {
+  width: 95.8vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 
-  }
+.home_header {
+  background-color: #fff;
+  height: 60px;
+  padding-left: 20px;
+  display: flex;
+  align-items: center;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+  margin-bottom: 10px;
+}
 
-  .home_header {
-    background-color: #fff;
-    height: 50px;
-    padding-left: 20px;
-    display: flex;
-    align-items: center;
-  }
+.home_container {
+  flex: 1;
+  display: flex;
+  padding: 0 0 5px 0;
+  margin-top: 0;
+}
 
-  .home_container {
-    flex: 1;
-    display: flex;
-    padding: 0 0px 40px 0px; 
-  }
+.grid_container {
+  width: 100%;
+  display: flex;
+  height: calc(100% - 5px);
+}
 
+.left_col,
+.right_col {
+  width: 50%;
+  height: 100%;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+}
+
+.left_col {
+  padding-right: 8px;
+}
+
+.right_col {
+  padding-left: 8px;
+}
+
+.active_project {
+  height: 40%;
+  margin-bottom: 16px;
+}
+
+.general_overview {
+  height: 25%;
+  margin-bottom: 16px;
+}
+
+.completed_projects {
+  height: calc(35% - 16px);
+}
+
+.top_right {
+  height: 65%;
+  margin-bottom: 16px;
+  display: flex;
+}
+
+.priority_col {
+  width: 50%;
+  margin-right: 8px;
+}
+
+.overdue_pending {
+  width: 50%;
+  margin-left: 8px;
+  display: flex;
+  flex-direction: column;
+}
+
+.overdue_tasks {
+  height: 50%;
+  margin-bottom: 16px;
+}
+
+.pending_tasks {
+  height: 50%;
+}
+
+.tasks_in_progress {
+  height: 35%;
+}
+
+.priority_col,
+.overdue_tasks,
+.pending_tasks,
+.tasks_in_progress,
+.active_project,
+.general_overview,
+.completed_projects {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  border: 1px solid #eee;
+  height: 100%;
+}
+
+.tasks_in_progress {
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.completed_projects,
+.tasks_in_progress {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  height: 100% !important;
+  max-height: 100%;
+  overflow: hidden;
+}
+
+.completed_projects .content_wrapper,
+.tasks_in_progress .content_wrapper {
+  padding: 16px; 
+  overflow: auto;
+  margin: 0;
+  max-height: calc(100% - 41px);
+  box-sizing: border-box;
+}
+
+.tasks_in_progress .content_wrapper {
+  padding-bottom: 16px !important;
+}
+
+.completed_projects .content_wrapper {
+  padding-bottom: 16px !important;
+}
+
+.overdue_tasks {
+  border: 1px solid #dc3545;
+}
+
+h2,
+.overdue_title {
+  font-size: 14px;
+  font-weight: 600;
+  margin: 0;
+  padding: 12px 16px;
+  border-bottom: 1px solid #eee;
+  color: #333;
+  text-transform: capitalize;
+}
+
+.overdue_title {
+  border-bottom: 1px solid #dc3545;
+  color: #dc3545;
+}
+
+.content_wrapper {
+  padding: 16px;
+  flex: 1;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 41px);
+}
+
+@media (max-width: 1024px) {
   .grid_container {
-    width: 100%;
-    display: flex;
-    height: 100%;
+    flex-direction: column;
   }
-
-  .left_col {
-    width: 50%;
-    display: grid;
-    grid-template-rows: 40% 25% 35%;
-    gap: 20px;
-    padding: 20px;
-    padding-right: 10px;
-  }
-
+  
+  .left_col,
   .right_col {
-    width: 50%;
-    display: grid;
-    grid-template-rows: 50% 50%;
-    gap: 40px;
-    padding: 20px;
-    padding-left: 10px;
+    width: 100%;
+    padding: 10px;
+    height: auto;
   }
-
-  .top_right {
-    display: grid;
-    grid-template-columns: 50% 50%;
-    gap: 20px;
-    height: 100%;
-  }
-
-  .priority_col {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-    padding: 20px;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    height: 95%;
-  }
-
-  .overdue_pending {
-    display: grid;
-    grid-template-rows: 50% 50%;
-    gap: 20px;
-    height: 90%;
-    width: 94%
-  }
-
-  .overdue_tasks,
-  .pending_tasks {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    padding: 20px;
-  }
-
-  .grid_item,
+  
   .active_project,
   .general_overview,
   .completed_projects,
+  .top_right,
+  .priority_col,
+  .overdue_pending,
+  .overdue_tasks,
+  .pending_tasks,
   .tasks_in_progress {
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-    padding: 20px;
+    height: auto;
+    margin-bottom: 16px;
   }
+  
+  .top_right {
+    flex-direction: column;
+  }
+  
+  .priority_col,
+  .overdue_pending {
+    width: 100%;
+    margin: 0 0 16px 0;
+  }
+}
 
-  .grid_item h2,
-  .active_project h2,
-  .general_overview h2,
-  .completed_projects h2,
-  .tasks_in_progress h2,
-  .priority_col h2,
-  .overdue_tasks h2,
-  .pending_tasks h2 {
-    font-size: 14px;
-    margin-bottom: 8px;
-    padding-bottom: 8px;
-    border-bottom: 1px solid #000;
+@media (max-width: 768px) {
+  .home_wrapper {
+    width: 100vw;
   }
+  .home_header {
+    padding-left: 10px;
+    height: 55px;
+    margin-bottom: 15px;
+  }
+  .left_col,
+  .right_col {
+    padding: 5px;
+    gap: 10px;
+  }
+}
+
+@media (max-width: 480px) {
+  .home_header {
+    height: 50px;
+    margin-bottom: 10px;
+  }
+  .home_header h1 {
+    font-size: 18px;
+  }
+  .grid_container {
+    gap: 10px;
+  }
+}

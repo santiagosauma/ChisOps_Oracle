@@ -44,7 +44,7 @@ function CompletedTasksProject() {
 
   return (
     <div style={{ width: '100%', height: '100%' }}>
-      <h2>Completed Tasks (Project)</h2>
+      {/* NO TITLE HERE - Title is in the parent component */}
       {error && <p>Error: {error.message}</p>}
       {isLoading && <p>Loading...</p>}
       {!isLoading && counts.length > 0 && (
