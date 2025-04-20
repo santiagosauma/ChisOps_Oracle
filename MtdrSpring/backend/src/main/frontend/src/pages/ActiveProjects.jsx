@@ -15,6 +15,7 @@ function ActiveProjects() {
         return response.json()
       })
       .then(data => {
+        // Filter only active projects
         const activeProjects = data.filter(p => 
           p.status === 'En progreso' || p.status === 'Activo'
         );

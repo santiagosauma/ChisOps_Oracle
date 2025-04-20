@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import '../../styles/Projects.css';
 import dropdownIcon from '../../resources/dropdown.png';
 import dropupIcon from '../../resources/dropup.png';
-// Import new icons
 import tableGridIcon from '../../resources/table-grid.png';
 import searchIcon from '../../resources/search.png';
 import settingIcon from '../../resources/setting.png';
@@ -17,12 +16,25 @@ function ProjectsTable() {
   const [filterActive, setFilterActive] = useState(false);
   const [error, setError] = useState(null);
   const [filterOptions, setFilterOptions] = useState({
-    status: 'All'
+    status: 'All',
+    activeState: 'All',
+    date: ''
   });
+  const [allProjects, setAllProjects] = useState([]);
 
   useEffect(() => {
     setLoading(true);
-    fetch('/proyectos')
+    let url = '/proyectos';
+
+    if (filterOptions.status !== 'All' && filterOptions.status) {
+      url = `/proyectos/estado/${filterOptions.status}`;
+    } else if (filterOptions.activeState === 'Active') {
+      url = '/proyectos/activos';
+    } else if (searchTerm.trim() !== '') {
+      url = `/proyectos/buscar?term=${encodeURIComponent(searchTerm)}`;
+    }
+
+    fetch(url)
       .then(response => {
         if (!response.ok) {
           throw new Error('Failed to fetch projects');
@@ -30,37 +42,84 @@ function ProjectsTable() {
         return response.json();
       })
       .then(data => {
-        setProjects(data);
+        setAllProjects(data);
+        filterProjectsByDate(data);
         setLoading(false);
       })
       .catch(err => {
         console.error('Error fetching projects:', err);
         setError(err.message);
         setProjects([]);
+        setAllProjects([]);
         setLoading(false);
       });
-  }, []);
+  }, [filterOptions.status, filterOptions.activeState, searchTerm]);
 
-  function getProjectProgress(proyecto) {
-    let totalTasks = 0;
-    let completedTasks = 0;
-    if (proyecto.sprints) {
-      proyecto.sprints.forEach(sprint => {
-        if (sprint.tareas) {
-          sprint.tareas.forEach(t => {
-            totalTasks++;
-            if (t.status === 'Completado') {
-              completedTasks++;
-            }
-          });
-        }
-      });
+  useEffect(() => {
+    filterProjectsByDate(allProjects);
+  }, [filterOptions.date, allProjects]);
+
+  const filterProjectsByDate = (projectsToFilter) => {
+    if (!projectsToFilter || projectsToFilter.length === 0) {
+      setProjects([]);
+      return;
     }
-    if (totalTasks === 0) {
-      return 0;
+
+    const { date } = filterOptions;
+    
+    if (!date) {
+      setProjects(projectsToFilter);
+      return;
     }
-    return (completedTasks / totalTasks) * 100;
-  }
+
+    const selectedDate = new Date(date);
+    
+    const filteredByDate = projectsToFilter.filter(project => {
+      const projectStartDate = project.startDate ? new Date(project.startDate) : null;
+      const projectEndDate = project.endDate ? new Date(project.endDate) : null;
+      
+      if (projectStartDate && projectEndDate) {
+        return selectedDate >= projectStartDate && selectedDate <= projectEndDate;
+      }
+      
+      if (projectStartDate && !projectEndDate) {
+        return selectedDate >= projectStartDate;
+      }
+      
+      if (!projectStartDate && projectEndDate) {
+        return selectedDate <= projectEndDate;
+      }
+      
+      return true;
+    });
+    
+    setProjects(filteredByDate);
+  };
+
+  useEffect(() => {
+    const handleSidebarChange = () => {
+      const sidebarElement = document.querySelector('.sidebar');
+      if (sidebarElement && sidebarElement.classList.contains('expanded')) {
+        document.body.classList.add('sidebar-expanded');
+      } else {
+        document.body.classList.remove('sidebar-expanded');
+      }
+    };
+
+    handleSidebarChange();
+
+    const observer = new MutationObserver(handleSidebarChange);
+    const sidebarElement = document.querySelector('.sidebar');
+    
+    if (sidebarElement) {
+      observer.observe(sidebarElement, { attributes: true, attributeFilter: ['class'] });
+    }
+
+    return () => {
+      observer.disconnect();
+      document.body.classList.remove('sidebar-expanded');
+    };
+  }, []);
 
   const handleSort = (field) => {
     const newDirection = sortField === field && sortDirection === 'asc' ? 'desc' : 'asc';
@@ -77,56 +136,36 @@ function ProjectsTable() {
   };
 
   const handleFilterChange = (field, value) => {
-    setFilterOptions({
-      ...filterOptions,
-      [field]: value
-    });
-  };
-
-  const handleNewProject = () => {
-    alert('Create new project functionality would go here');
-  };
-
-  const getStatusClass = (status) => {
-    if (!status) return 'status-tag';
-    
-    switch (status.toLowerCase()) {
-      case 'cancelled':
-        return 'status-tag status-cancelled';
-      case 'on hold':
-        return 'status-tag status-on-hold';
-      case 'completed':
-        return 'status-tag status-completed';
-      case 'in review':
-        return 'status-tag status-in-review';
-      case 'in progress':
-        return 'status-tag status-in-progress';
-      default:
-        return 'status-tag';
+    if (field === 'status' && value !== 'All') {
+      setFilterOptions({
+        ...filterOptions,
+        status: value,
+        activeState: 'All'
+      });
+    } else if (field === 'activeState' && value !== 'All') {
+      setFilterOptions({
+        ...filterOptions,
+        status: 'All',
+        activeState: value
+      });
+    } else {
+      setFilterOptions({
+        ...filterOptions,
+        [field]: value
+      });
     }
   };
 
-  const filteredProjects = projects
-    .filter(project => {
-      const matchesSearch = 
-        project.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        project.projectId?.toString().includes(searchTerm);
-      
-      const matchesStatus = 
-        filterOptions.status === 'All' || 
-        project.status?.toLowerCase() === filterOptions.status.toLowerCase();
-      
-      return matchesSearch && matchesStatus;
-    })
-    .sort((a, b) => {
-      if (sortDirection === 'asc') {
-        return a[sortField] > b[sortField] ? 1 : -1;
-      } else {
-        return a[sortField] < b[sortField] ? 1 : -1;
-      }
-    });
+  const filteredProjects = projects.sort((a, b) => {
+    if (sortDirection === 'asc') {
+      return a[sortField] > b[sortField] ? 1 : -1;
+    } else {
+      return a[sortField] < b[sortField] ? 1 : -1;
+    }
+  });
 
-  const statusOptions = ['All', ...new Set(projects.map(p => p.status).filter(Boolean))];
+  const statusOptions = ['All', ...new Set(allProjects.map(p => p.status).filter(Boolean))];
+  const activeStateOptions = ['All', 'Active'];
 
   return (
     <div className="home-wrapper">
@@ -155,9 +194,9 @@ function ProjectsTable() {
               <img src={settingIcon} alt="Filter" className="button-icon" />
             </button>
             
-            <button className="new-button" onClick={handleNewProject}>
+            <button className="new-button" onClick={() => alert('Create new project functionality would go here')}>
               New Project
-              <img src={plusIcon} alt="Add" className="button-icon" />
+              <img src={plusIcon} alt="Add" className="add-icon" />
             </button>
           </div>
         </div>
@@ -175,6 +214,36 @@ function ProjectsTable() {
                 ))}
               </select>
             </div>
+
+            <div className="filter-option">
+              <label>State:</label>
+              <select 
+                value={filterOptions.activeState} 
+                onChange={(e) => handleFilterChange('activeState', e.target.value)}
+              >
+                {activeStateOptions.map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+            </div>
+
+            <div className="filter-option">
+              <label>Date:</label>
+              <input 
+                type="date" 
+                value={filterOptions.date}
+                onChange={(e) => handleFilterChange('date', e.target.value)}
+                className="date-input"
+                style={{
+                  padding: '6px 10px',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  outline: 'none',
+                  minWidth: '150px',
+                  fontSize: '14px'
+                }}
+              />
+            </div>
           </div>
         )}
         
@@ -184,7 +253,7 @@ function ProjectsTable() {
           ) : error ? (
             <div className="error-message">Error loading projects: {error}</div>
           ) : projects.length === 0 ? (
-            <div className="no-projects">No projects found</div>
+            <div className="no-projects">No projects found matching your search criteria.</div>
           ) : (
             <table className="projects-table">
               <thead>
@@ -299,7 +368,6 @@ function ProjectsTable() {
               </thead>
               <tbody>
                 {filteredProjects.map((project) => {
-                  const progress = getProjectProgress(project);
                   const userCount = project.users ? project.users.length : 0;
                   
                   return (
@@ -308,17 +376,13 @@ function ProjectsTable() {
                       <td>{project.name}</td>
                       <td>{project.startDate ? new Date(project.startDate).toLocaleDateString() : 'N/A'}</td>
                       <td>{project.endDate ? new Date(project.endDate).toLocaleDateString() : 'N/A'}</td>
-                      <td>
-                        <span className={getStatusClass(project.status)}>
-                          {project.status || 'Unknown'}
-                        </span>
-                      </td>
+                      <td>{project.status || 'Unknown'}</td>
                       <td>{userCount}</td>
                       <td>
                         <div className="progress-bar">
                           <div 
                             className={`progress-fill ${project.status === 'Cancelled' ? 'cancelled' : ''}`}
-                            style={{ width: `${progress}%` }}
+                            style={{ width: `${project.progress || 0}%` }}
                           ></div>
                         </div>
                       </td>

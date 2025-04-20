@@ -4,8 +4,9 @@
   box-sizing: border-box;
 }
 
+/* Main wrapper without left margin */
 .home-wrapper {
-  width: 95.8vw;
+  width: 100%; /* Full width */
   height: 99.5vh;
   background-color: #EBECEE;
   display: flex;
@@ -94,6 +95,11 @@
 .button-icon {
   width: 16px;
   height: 16px;
+}
+
+.add-icon {
+  width: 10px;
+  height: 10px;
 }
 
 .filter-button {
@@ -307,4 +313,37 @@
 .filter-option select:focus {
   border-color: #2196f3;
   box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+}
+
+@media (max-width: 768px) {
+  .projects-container {
+    padding: 15px;
+    margin: 15px;
+  }
+  
+  .toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .toolbar-right {
+    width: 100%;
+    justify-content: space-between;
+    flex-wrap: wrap;
+  }
+  
+  .search-box {
+    width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .filter-button, .new-button {
+    padding: 8px 12px;
+    font-size: 13px;
+  }
+  
+  .projects-table th, .projects-table td {
+    padding: 8px;
+  }
 }

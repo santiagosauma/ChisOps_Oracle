@@ -11,12 +11,57 @@ function Login({ onLogin, toggleAuthMode }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsLoading(true);
     
-    setTimeout(() => {
-      onLogin();
+    // Validación básica del lado del cliente
+    if (!email || !password) {
+      setError('Por favor completa todos los campos');
+      return;
+    }
+    
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const response = await fetch('/usuarios/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      // Verificar si el servidor respondió con éxito
+      if (response.ok) {
+        const userData = await response.json();
+        
+        // Validar que userData tiene la estructura esperada
+        if (!userData || !userData.rol) {
+          setError('Error: Respuesta del servidor inválida');
+          return;
+        }
+        
+        // Guardar los datos del usuario en localStorage
+        localStorage.setItem('user', JSON.stringify(userData));
+        
+        // Llamar a onLogin con los datos completos del usuario
+        onLogin(userData);
+      } else {
+        // Manejar específicamente los diferentes tipos de errores
+        if (response.status === 401) {
+          setError('Email o contraseña incorrectos');
+        } else if (response.status === 400) {
+          setError('Datos de inicio de sesión inválidos');
+        } else {
+          const errorText = await response.text();
+          setError(errorText || 'Error al iniciar sesión');
+        }
+      }
+    } catch (err) {
+      console.error('Error de conexión:', err);
+      setError('Error de conexión. Por favor, intente más tarde.');
+    } finally {
       setIsLoading(false);
-    }, 800);
+    }
   };
 
   const togglePassword = () => {
@@ -61,6 +106,7 @@ function Login({ onLogin, toggleAuthMode }) {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  minLength="8"
                 />
                 <span className="eye-icon" onClick={togglePassword}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
