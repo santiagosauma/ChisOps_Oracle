@@ -53,7 +53,7 @@ function CompletedTasksProject() {
             display: 'flex',
             justifyContent: 'space-around',
             alignItems: 'flex-end',
-            height: '200px',
+            height: '100%',
             width: '100%'
           }}
         >
