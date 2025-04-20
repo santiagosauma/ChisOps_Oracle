@@ -32,10 +32,28 @@ function Sidebar({ currentPage, onNav, userRole, onLogout }) {
     setMobileMenuOpen(!mobileMenuOpen);
   };
 
-  const handleLogout = (e) => {
+  const handleLogout = async (e) => {
     e.preventDefault();
     console.log('🚪 Iniciando proceso de logout desde Sidebar');
-    onLogout();
+    
+    try {
+      const response = await fetch('/usuarios/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        console.warn('Server logout failed, proceeding with client-side logout');
+      }
+    } catch (err) {
+      console.error('Error during logout:', err);
+    } finally {
+      localStorage.removeItem('user');
+      
+      onLogout();
+    }
   };
 
   const items = [
