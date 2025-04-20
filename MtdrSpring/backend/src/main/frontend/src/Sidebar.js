@@ -36,8 +36,7 @@ function Sidebar({ currentPage, onNav, userRole, onLogout }) {
 
   const items = [
     { name: 'Home', iconExpanded: homeBlue, iconCollapsed: homeWhite },
-    { name: 'Projects', iconExpanded: folderBlue, iconCollapsed: folderWhite },
-    { name: 'ProjectsTrue', iconExpanded: folderBlue, iconCollapsed: folderWhite }
+    { name: 'Projects', iconExpanded: folderBlue, iconCollapsed: folderWhite, navigateTo: 'ProjectsTrue' }
   ];
 
   return (
@@ -57,7 +56,7 @@ function Sidebar({ currentPage, onNav, userRole, onLogout }) {
               key={item.name}
               className={`sidebar-item ${isActive ? 'active' : ''}`}
               onClick={() => {
-                onNav(item.name);
+                onNav(item.navigateTo || item.name);
               }}
             >
               <div className="icon-container">
