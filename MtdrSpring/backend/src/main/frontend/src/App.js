@@ -15,93 +15,64 @@ function App() {
   const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
-    console.log('🔄 Iniciando aplicación - Verificando sesión guardada...');
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
       try {
         const userData = JSON.parse(savedUser);
-        console.log('📦 Datos encontrados en localStorage:', {
-          rol: userData.rol,
-          email: userData.email,
-          userId: userData.userId
-        });
-
         if (userData && userData.rol) {
-          console.log('✅ Sesión válida encontrada - Rol:', userData.rol);
           setIsLoggedIn(true);
           setUserRole(userData.rol);
           routeByRole(userData.rol);
         } else {
-          console.warn('⚠️ Datos de usuario incompletos - Limpiando localStorage');
           localStorage.removeItem('user');
         }
-      } catch (error) {
-        console.error('❌ Error al procesar datos guardados:', error);
+      } catch {
         localStorage.removeItem('user');
       }
-    } else {
-      console.log('ℹ️ No se encontró sesión guardada');
     }
   }, []);
 
   const routeByRole = (role) => {
-    console.log('🎯 Redirigiendo según rol:', role);
-    switch(role) {
+    switch (role) {
       case 'admin':
-        console.log('👑 Redirigiendo a Home');
         setPage('Home');
         break;
       case 'user':
-        console.log('👤 Redirigiendo a espacio de usuario');
         setPage('Blank');
         break;
       default:
-        console.log('ℹ️ Rol no reconocido, redirigiendo a Home');
         setPage('Home');
     }
   };
 
   const handleLogin = (userData) => {
-    console.log('🔑 Iniciando sesión...', {
-      rol: userData.rol,
-      email: userData.email,
-      userId: userData.userId
-    });
     setIsLoggedIn(true);
     setUserRole(userData.rol);
     routeByRole(userData.rol);
   };
 
   const handleLogout = () => {
-    console.log('🚪 Cerrando sesión...');
     setIsLoggedIn(false);
     setUserRole(null);
     localStorage.removeItem('user');
-    console.log('🧹 Estado limpiado y localStorage eliminado');
     setPage('Home');
     setAuthMode('login');
   };
 
   const toggleAuthMode = () => {
-    console.log('🔄 Cambiando modo de autenticación:', 
-      authMode === 'login' ? 'login → register' : 'register → login');
     setAuthMode(authMode === 'login' ? 'register' : 'login');
   };
 
   const checkSession = () => {
-    console.log('🔍 Verificando sesión activa...');
     const savedUser = localStorage.getItem('user');
     if (!savedUser) {
-      console.warn('⚠️ Sesión no encontrada - Redirigiendo a login');
       handleLogout();
       return false;
     }
-    console.log('✅ Sesión activa verificada');
     return true;
   };
 
   const requireAuth = (Component, props) => {
-    console.log('🔒 Verificando autenticación para componente:', Component.name);
     if (!checkSession()) {
       return <Login onLogin={handleLogin} toggleAuthMode={toggleAuthMode} />;
     }
@@ -109,8 +80,6 @@ function App() {
   };
 
   if (!isLoggedIn) {
-    console.log('🔐 Usuario no autenticado - Mostrando:', 
-      authMode === 'login' ? 'Login' : 'Register');
     if (authMode === 'login') {
       return <Login onLogin={handleLogin} toggleAuthMode={toggleAuthMode} />;
     } else {
@@ -118,7 +87,6 @@ function App() {
     }
   }
 
-  console.log('📱 Renderizando interfaz principal - Página actual:', page);
   return (
     <div style={{ display: 'flex' }}>
       <Sidebar 
