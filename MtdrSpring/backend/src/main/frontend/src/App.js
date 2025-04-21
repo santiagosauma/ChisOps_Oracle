@@ -6,23 +6,26 @@ import ManageTasks from './ManageTasks';
 import Projects from './pages/Projects';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Blank from './pages/Blank';
+import UserHome from './pages/UserHome';
 
 function App() {
-  const [page, setPage] = useState('Home');
+  // al principio no mostramos nada hasta validar sesión
+  const [page, setPage] = useState(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authMode, setAuthMode] = useState('login');
   const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
+    const saved = localStorage.getItem('user');
+    if (saved) {
       try {
-        const userData = JSON.parse(savedUser);
-        if (userData && userData.rol) {
+        const data = JSON.parse(saved);
+        if (data?.rol) {
+          const r = data.rol.toLowerCase();
           setIsLoggedIn(true);
-          setUserRole(userData.rol);
-          routeByRole(userData.rol);
+          setUserRole(r);
+          // directamente definimos la página en base al rol
+          setPage(r === 'user' ? 'UserHome' : 'Home');
         } else {
           localStorage.removeItem('user');
         }
@@ -33,22 +36,17 @@ function App() {
   }, []);
 
   const routeByRole = (role) => {
-    switch (role) {
-      case 'admin':
-        setPage('Home');
-        break;
-      case 'user':
-        setPage('Blank');
-        break;
-      default:
-        setPage('Home');
-    }
+    const r = (role || '').toLowerCase();
+    setPage(r === 'user' ? 'UserHome' : 'Home');
   };
 
   const handleLogin = (userData) => {
+    // guardar sesión y redirigir
+    localStorage.setItem('user', JSON.stringify(userData));
     setIsLoggedIn(true);
-    setUserRole(userData.rol);
-    routeByRole(userData.rol);
+    const r = (userData.rol || '').toLowerCase();
+    setUserRole(r);
+    setPage(r === 'user' ? 'UserHome' : 'Home');
   };
 
   const handleLogout = () => {
@@ -96,10 +94,10 @@ function App() {
         onLogout={handleLogout}
       />
       <div style={{ marginLeft: '60px', flex: 1, padding: '0px' }}>
+        {page === 'UserHome' && requireAuth(UserHome, {})}
         {page === 'Home' && requireAuth(Home, {})}
         {page === 'Projects' && userRole === 'admin' && requireAuth(ManageTasks, {})}
         {page === 'ProjectsTrue' && requireAuth(Projects, {})}
-        {page === 'Blank' && requireAuth(Blank, {})}
       </div>
     </div>
   );

@@ -11,13 +11,12 @@ function Login({ onLogin, toggleAuthMode }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Validación básica del lado del cliente
+
     if (!email || !password) {
       setError('Por favor completa todos los campos');
       return;
     }
-    
+
     setIsLoading(true);
     setError('');
 
@@ -30,31 +29,19 @@ function Login({ onLogin, toggleAuthMode }) {
         body: JSON.stringify({ email, password }),
       });
 
-      // Verificar si el servidor respondió con éxito
       if (response.ok) {
         const userData = await response.json();
-        
-        // Validar que userData tiene la estructura esperada
+
         if (!userData || !userData.rol) {
           setError('Error: Respuesta del servidor inválida');
           return;
         }
-        
-        // Guardar los datos del usuario en localStorage
+
         localStorage.setItem('user', JSON.stringify(userData));
-        
-        // Llamar a onLogin con los datos completos del usuario
         onLogin(userData);
 
-        // ← Aquí se separa por rol
-        if (userData.rol === 'admin') {
-          console.log('👑 Admin logueado → irá a Home');
-        } else {
-          console.log('👤 Usuario normal logueado → irá a Blank');
-        }
         return;
       } else {
-        // Manejar específicamente los diferentes tipos de errores
         if (response.status === 401) {
           setError('Email o contraseña incorrectos');
         } else if (response.status === 400) {
@@ -65,7 +52,6 @@ function Login({ onLogin, toggleAuthMode }) {
         }
       }
     } catch (err) {
-      console.error('Error de conexión:', err);
       setError('Error de conexión. Por favor, intente más tarde.');
     } finally {
       setIsLoading(false);
