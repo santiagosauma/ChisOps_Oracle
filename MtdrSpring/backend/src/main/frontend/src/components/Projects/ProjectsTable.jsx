@@ -7,6 +7,7 @@ import searchIcon from '../../resources/search.png';
 import settingIcon from '../../resources/setting.png';
 import plusIcon from '../../resources/plus.png';
 
+
 function ProjectsTable() {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -373,7 +374,11 @@ function ProjectsTable() {
                   const userCount = project.users ? project.users.length : 0;
                   
                   return (
-                    <tr key={project.projectId}>
+                    <tr 
+                      key={project.projectId}
+                     // onClick={() => navigate(`/projects/${project.projectId}`)} 
+                      style={{ cursor: 'pointer' }}
+                    >
                       
                       <td>{project.projectId}</td>
                       <td>{project.name}</td>

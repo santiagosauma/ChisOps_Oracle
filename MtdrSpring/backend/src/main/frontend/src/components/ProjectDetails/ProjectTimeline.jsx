@@ -2,14 +2,40 @@ import React from 'react';
 import '../../styles/ProjectDetails/ProjectTimeline.css';
 
 const ProjectTimeline = ({ timeline }) => {
-  const months = ["January", "February", "March", "April", "May", "June"];
+  // Si no hay elementos en la línea de tiempo, mostrar mensaje
+  if (!timeline || timeline.length === 0) {
+    return (
+      <div className="project-timeline">
+        <div className="timeline-empty">
+          No hay tareas en este sprint para mostrar en la línea de tiempo
+        </div>
+      </div>
+    );
+  }
+
+  const allMonths = ["January", "February", "March", "April", "May", "June", 
+                    "July", "August", "September", "October", "November", "December"];
   
-  // Helper function para determinar la posición y ancho de los elementos del timeline
+  // Encontrar el rango de meses necesario para las tareas actuales
+  const startMonths = timeline.map(item => allMonths.indexOf(item.startMonth));
+  const endMonths = timeline.map(item => allMonths.indexOf(item.endMonth));
+  const minMonthIndex = Math.min(...startMonths);
+  const maxMonthIndex = Math.max(...endMonths);
+  
+  // Asegurar al menos 3 meses de contexto visual
+  const visibleMinMonthIndex = Math.max(0, minMonthIndex - 1);
+  const visibleMaxMonthIndex = Math.min(11, maxMonthIndex + 1);
+    
+  const visibleMonths = allMonths.slice(visibleMinMonthIndex, visibleMaxMonthIndex + 1);
+
   const calculatePosition = (startMonth, endMonth) => {
-    const startIndex = months.indexOf(startMonth);
-    const endIndex = months.indexOf(endMonth);
-    const start = (startIndex / months.length) * 100;
-    const width = ((endIndex - startIndex + 1) / months.length) * 100;
+    const startIndex = allMonths.indexOf(startMonth) - visibleMinMonthIndex;
+    const endIndex = allMonths.indexOf(endMonth) - visibleMinMonthIndex;
+    
+    // Calcular posición relativa en la línea de tiempo visible
+    const totalVisibleMonths = visibleMonths.length;
+    const start = (startIndex / totalVisibleMonths) * 100;
+    const width = ((endIndex - startIndex + 1) / totalVisibleMonths) * 100;
     
     return {
       left: `${start}%`,
@@ -17,7 +43,6 @@ const ProjectTimeline = ({ timeline }) => {
     };
   };
   
-  // Helper function para determinar la clase CSS según el estado
   const getTimelineItemClass = (status) => {
     switch(status) {
       case 'completed': return 'timeline-item-completed';
@@ -29,16 +54,17 @@ const ProjectTimeline = ({ timeline }) => {
 
   return (
     <div className="project-timeline">
+      <h2>Timeline</h2>
       <div className="timeline-header">
-        {months.map((month, index) => (
+        {visibleMonths.map((month, index) => (
           <div key={index} className="timeline-month">
-            {month}
+            {month.substring(0, 3)}
           </div>
         ))}
       </div>
       
       <div className="timeline-grid">
-        {months.map((_, index) => (
+        {visibleMonths.map((_, index) => (
           <div key={index} className="timeline-grid-column"></div>
         ))}
       </div>
@@ -54,8 +80,9 @@ const ProjectTimeline = ({ timeline }) => {
                 left: position.left,
                 width: position.width
               }}
+              title={`${item.name} (${item.startMonth} - ${item.endMonth})`}
             >
-              {item.name}
+              <span className="timeline-item-name">{item.name}</span>
               {item.status === 'completed' && (
                 <span className="timeline-item-icon">✓</span>
               )}
@@ -64,8 +91,15 @@ const ProjectTimeline = ({ timeline }) => {
         })}
       </div>
       
-      {/* Línea de tiempo actual */}
-      <div className="timeline-current-line" style={{ left: '60%' }}></div>
+      {/* Línea de tiempo actual - ajustada al rango visible */}
+      <div 
+        className="timeline-current-line" 
+        style={{ 
+          left: `${((new Date().getMonth() - visibleMinMonthIndex) / visibleMonths.length) * 100}%`,
+          display: new Date().getMonth() >= visibleMinMonthIndex && 
+                   new Date().getMonth() <= visibleMaxMonthIndex ? 'block' : 'none'
+        }}
+      ></div>
     </div>
   );
 };

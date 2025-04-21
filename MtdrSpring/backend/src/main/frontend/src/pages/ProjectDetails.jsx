@@ -6,246 +6,216 @@ import ProjectOverview from '../components/ProjectDetails/ProjectOverview';
 import ProjectUsers from '../components/ProjectDetails/ProjectUsers';
 import ProjectTasks from '../components/ProjectDetails/ProjectTasks';
 import ProjectTimeline from '../components/ProjectDetails/ProjectTimeline';
+import Loader from '../components/Loader';
 
 function ProjectDetails({ projectId: propProjectId }) {
-  // Estado para el proyecto actual y su ID
-  const [projectId, setProjectId] = useState(null);
+  const [fullProjectData, setFullProjectData] = useState(null);
   const [projectData, setProjectData] = useState(null);
-  
-  // Estado para los sprints y el sprint seleccionado
-  const [sprints, setSprints] = useState([]);
   const [selectedSprint, setSelectedSprint] = useState(null);
-  
-  // Estados para los datos relacionados
-  const [users, setUsers] = useState([]);
-  const [tasks, setTasks] = useState([]);
-  
-  // Estado para seguimiento de carga y errores
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Obtener proyectos y establecer el proyecto inicial
+  // Cargar todos los datos del proyecto de una sola vez
   useEffect(() => {
-    setLoading(true);
-    fetch('/proyectos')
-      .then(res => {
-        if (!res.ok) throw new Error('Error fetching projects');
-        return res.json();
-      })
-      .then(data => {
-        if (data && data.length > 0) {
-          // Establecer el primer proyecto como valor inicial
-          setProjectId(data[0].projectId);
-        }
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Error loading projects:', err);
-        setError(err.message);
-        setLoading(false);
-        // Usar datos de ejemplo si hay un error
-        setProjectId('Project1');
-      });
-  }, []);
-
-  // Cargar datos del proyecto seleccionado
-  useEffect(() => {
-    if (!projectId) return;
+    if (!propProjectId) return;
     
-    setLoading(true);
-    // Intentar cargar los datos del proyecto
     const loadProjectData = async () => {
       try {
-        const response = await fetch(`/proyectos/${projectId}`);
-        if (!response.ok) throw new Error('Error fetching project details');
-        const data = await response.json();
+        setLoading(true);
         
-        // Formatear datos del proyecto
-        setProjectData({
-          id: data.projectId,
-          name: data.name,
-          description: data.description || 'No description available',
-          startDate: data.startDate ? new Date(data.startDate).toLocaleDateString() : 'N/A',
-          dueDate: data.endDate ? new Date(data.endDate).toLocaleDateString() : 'N/A',
-          status: data.status || 'IN PROGRESS',
-          tasksInfo: {
-            overdue: 0,
-            progress: '0%',
-            completed: 0,
-            pending: 0,
-            total: 0
+        // Usar el endpoint completo para obtener todos los datos del proyecto
+        const projectResponse = await fetch(`/proyectos/${propProjectId}`);
+        if (!projectResponse.ok) throw new Error('Error fetching project');
+        const projectFull = await projectResponse.json();
+        
+        // Guardar todos los datos del proyecto
+        setFullProjectData(projectFull);
+        
+        // Obtener usuarios del proyecto si no están incluidos en el endpoint completo
+        let users = [];
+        if (!projectFull.usuarios) {
+          const usersResponse = await fetch(`/proyectos/${propProjectId}/usuarios`);
+          if (usersResponse.ok) {
+            users = await usersResponse.json();
           }
-        });
-      } catch (err) {
-        console.error('Error loading project details:', err);
-        // Usar datos de ejemplo si hay un error
-        setProjectData({
-          id: 'Project1',
-          name: 'Project1',
-          description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
-          startDate: '12/05/25',
-          dueDate: '12/05/25',
-          status: 'IN PROGRESS',
-          tasksInfo: {
-            overdue: 2,
-            progress: '60%',
-            completed: 23,
-            pending: 13,
-            total: 36
-          }
-        });
-      }
-      
-      // Cargar sprints asociados al proyecto
-      try {
-        const sprintsResponse = await fetch(`/sprints/proyecto/${projectId}`);
-        if (!sprintsResponse.ok) throw new Error('Error fetching sprints');
-        const sprintsData = await sprintsResponse.json();
-        
-        // Eliminar duplicados de sprints
-        const uniqueSprints = [];
-        const seenIds = new Set();
-        sprintsData.forEach(sprint => {
-          if (!seenIds.has(sprint.sprintId)) {
-            seenIds.add(sprint.sprintId);
-            uniqueSprints.push(sprint);
-          }
-        });
-        
-        setSprints(uniqueSprints);
-        
-        // Seleccionar el primer sprint por defecto
-        if (uniqueSprints.length > 0) {
-          setSelectedSprint(uniqueSprints[0].sprintId);
+        } else {
+          users = projectFull.usuarios;
         }
-      } catch (err) {
-        console.error('Error loading sprints:', err);
-        // Datos de ejemplo para sprints
-        setSprints([
-          { sprintId: 1, name: 'Sprint 1' },
-          { sprintId: 2, name: 'Sprint 2' },
-          { sprintId: 3, name: 'Sprint 3' },
-          { sprintId: 4, name: 'Sprint 4' }
-        ]);
-        setSelectedSprint(4);
-      }
-      
-      // Cargar usuarios asociados al proyecto
-      try {
-        const usersResponse = await fetch(`/usuarios/proyecto/${projectId}`);
-        if (!usersResponse.ok) throw new Error('Error fetching users');
-        const usersData = await usersResponse.json();
         
-        setUsers(usersData.map(user => ({
+        // Formatear usuarios
+        const formattedUsers = users.map(user => ({
           id: user.userId,
           name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
-          role: user.role || 'Team Member'
-        })));
+          role: user.rol || 'Team Member'
+        }));
+        
+        // Seleccionar el primer sprint por defecto
+        const initialSprintId = projectFull.sprints && projectFull.sprints.length > 0 
+          ? projectFull.sprints[0].sprintId 
+          : null;
+          
+        // Filtrar tareas para el sprint inicial
+        const initialTasks = filterTasksForSprint(projectFull, initialSprintId);
+        
+        // Calcular estadísticas de tareas para el sprint inicial
+        const tasksInfo = calculateTasksInfo(initialTasks);
+        
+        // Formatear datos para el estado
+        setProjectData({
+          id: projectFull.projectId,
+          name: projectFull.name,
+          description: projectFull.description,
+          startDate: projectFull.startDate,
+          endDate: projectFull.endDate,
+          status: projectFull.status,
+          sprints: projectFull.sprints,
+          users: formattedUsers,
+          tasksInfo,
+          formattedTasks: formatTasks(initialTasks)
+        });
+        
+        setSelectedSprint(initialSprintId);
+        setLoading(false);
       } catch (err) {
-        console.error('Error loading users:', err);
-        // Datos de ejemplo para usuarios
-        setUsers([
-          { id: 1, name: 'Manuel Vásquez', role: 'Manager' },
-          { id: 2, name: 'Humberto Vélez', role: 'FrontEnd Developer' },
-          { id: 3, name: 'Charly García', role: 'BackEnd Developer' },
-          { id: 4, name: 'Rocío Durcal', role: 'Platform Engineer' },
-          { id: 5, name: 'José Madero', role: 'Site Reliability Engineer' }
-        ]);
+        console.error('Error loading project data:', err);
+        setError(err.message);
+        setLoading(false);
       }
-      
-      setLoading(false);
     };
     
     loadProjectData();
-  }, [projectId]);
+  }, [propProjectId]);
 
-  // Cargar tareas cuando se seleccione un sprint
-  useEffect(() => {
-    if (!selectedSprint) return;
+  // Función para filtrar tareas por sprint del conjunto completo de datos
+  const filterTasksForSprint = (projectData, sprintId) => {
+    if (!projectData || !projectData.sprints) return [];
     
-    setLoading(true);
-    fetch(`/tareas/sprint/${selectedSprint}`)
-      .then(res => {
-        if (!res.ok) throw new Error('Error fetching tasks');
-        return res.json();
-      })
-      .then(data => {
-        // Formatear los datos de tareas
-        const formattedTasks = data.map(task => ({
-          id: task.taskId,
-          name: task.title || 'Unnamed Task',
-          status: task.status || 'Pending',
-          priority: task.priority || 'Medium',
-          startDate: task.startDate ? new Date(task.startDate).toLocaleDateString() : 'N/A',
-          dueDate: task.endDate ? new Date(task.endDate).toLocaleDateString() : 'N/A',
-          assignedTo: task.usuario ? `${task.usuario.firstName || ''} ${task.usuario.lastName || ''}`.trim() : 'Unassigned',
-          estimatedHour: task.estimatedHours || 0,
-          realHours: task.actualHours || '-'
-        }));
-        
-        setTasks(formattedTasks);
-        
-        // Actualizar estadísticas de tareas en el proyecto
-        if (projectData) {
-          const completed = data.filter(t => t.status?.toLowerCase() === 'completed').length;
-          const overdue = data.filter(t => t.status?.toLowerCase() === 'overdue').length;
-          const pending = data.filter(t => t.status?.toLowerCase() === 'pending').length;
-          const inProgress = data.filter(t => 
-            t.status?.toLowerCase() === 'doing' || 
-            t.status?.toLowerCase() === 'in progress'
-          ).length;
-          
-          const total = data.length;
-          const progress = total > 0 ? Math.round((completed / total) * 100) + '%' : '0%';
-          
-          setProjectData(prev => ({
-            ...prev,
-            tasksInfo: {
-              overdue,
-              progress,
-              completed,
-              pending: pending + inProgress,
-              total
-            }
-          }));
-        }
-        
-        setLoading(false);
-      })
-      .catch(err => {
-        console.error('Error loading tasks:', err);
-        setError(err.message);
-        setLoading(false);
-        
-        // Datos de ejemplo para tareas
-        const dummyTasks = [
-          { id: '01', name: 'Bug in Set Function', status: 'Completed', priority: 'High', startDate: '01/12/24', dueDate: '01/12/24', assignedTo: 'M. Gómez', estimatedHour: 4, realHours: 4 },
-          { id: '02', name: 'Fix UI Components', status: 'Doing', priority: 'Medium', startDate: '15/03/25', dueDate: '15/03/25', assignedTo: 'H. Vélez', estimatedHour: 10, realHours: '-' },
-          { id: '03', name: 'Database Query Optimization', status: 'Overdue', priority: 'Low', startDate: '01/12/24', dueDate: '01/12/24', assignedTo: 'C. García', estimatedHour: 15, realHours: '-' }
-        ];
-        
-        setTasks(dummyTasks);
-      });
-  }, [selectedSprint]);
-
-  // Función para cambiar el sprint seleccionado
-  const handleSprintChange = (sprintId) => {
-    setSelectedSprint(sprintId);
+    const sprint = projectData.sprints.find(s => s.sprintId === sprintId);
+    return sprint ? sprint.tareas || [] : [];
   };
 
-  // Datos simulados para la línea de tiempo
-  const timelineData = [
-    { id: 1, name: 'Focus 1', startMonth: 'January', endMonth: 'February', status: 'completed' },
-    { id: 2, name: 'Focus 2', startMonth: 'February', endMonth: 'April', status: 'in-progress' },
-    { id: 3, name: 'Focus 3', startMonth: 'January', endMonth: 'April', status: 'in-progress' },
-    { id: 4, name: 'Focus 4', startMonth: 'April', endMonth: 'May', status: 'upcoming' }
-  ];
+  // Función para manejar cambio de sprint sin hacer nuevos fetch
+  const handleSprintChange = (sprintId) => {
+    setLoading(true);
+    
+    // Filtrar tareas para el sprint seleccionado de los datos ya cargados
+    const sprintTasks = filterTasksForSprint(fullProjectData, sprintId);
+    
+    // Actualizar el estado con los datos del sprint seleccionado
+    setProjectData(prev => ({
+      ...prev,
+      tasksInfo: calculateTasksInfo(sprintTasks),
+      formattedTasks: formatTasks(sprintTasks)
+    }));
+    
+    setSelectedSprint(sprintId);
+    setLoading(false);
+  };
+
+  // Funciones helper
+  const calculateTasksInfo = (tasks) => {
+    if (!tasks) return { overdue: 0, progress: '0%', completed: 0, pending: 0, total: 0 };
+    
+    // Contar tareas por estado
+    const completed = tasks.filter(t => 
+      t.status?.toLowerCase() === 'completed' || 
+      t.status?.toLowerCase() === 'finalizada'
+    ).length;
+    
+    const overdue = tasks.filter(t => 
+      t.status?.toLowerCase() === 'overdue' || 
+      t.status?.toLowerCase() === 'vencida'
+    ).length;
+    
+    const pending = tasks.filter(t => 
+      t.status?.toLowerCase() === 'pending' || 
+      t.status?.toLowerCase() === 'pendiente'
+    ).length;
+    
+    const inProgress = tasks.filter(t => 
+      t.status?.toLowerCase() === 'doing' || 
+      t.status?.toLowerCase() === 'in progress' ||
+      t.status?.toLowerCase() === 'en progreso'
+    ).length;
+    
+    const total = tasks.length;
+    // Calcular porcentaje de progreso
+    const progress = total > 0 ? Math.round((completed / total) * 100) + '%' : '0%';
+    
+    return {
+      overdue,
+      progress,
+      completed,
+      pending: pending + inProgress,
+      total
+    };
+  };
+
+  const formatTasks = (tasks) => {
+    if (!tasks) return [];
+    
+    return tasks.map(task => ({
+      id: task.taskId,
+      name: task.title || 'Unnamed Task',
+      status: task.status || 'Pending',
+      priority: task.priority || 'Medium',
+      startDate: task.startDate ? new Date(task.startDate).toLocaleDateString() : 'N/A',
+      dueDate: task.endDate ? new Date(task.endDate).toLocaleDateString() : 'N/A',
+      assignedTo: task.usuario ? `${task.usuario.firstName || ''} ${task.usuario.lastName || ''}`.trim() : 'Unassigned',
+      estimatedHour: task.estimatedHours || 0,
+      realHours: task.actualHours || '-'
+    }));
+  };
+
+  // Generar datos para la línea de tiempo basados en el sprint seleccionado
+  const generateTimelineData = () => {
+    if (!projectData || !selectedSprint) return [];
+    
+    const monthNames = ["January", "February", "March", "April", "May", "June", "July", 
+                       "August", "September", "October", "November", "December"];
+    
+    // Filtrar tareas del sprint seleccionado
+    const sprintTasks = filterTasksForSprint(fullProjectData, selectedSprint);
+    if (!sprintTasks || sprintTasks.length === 0) return [];
+    
+    // Obtener sprint seleccionado para contexto
+    const currentSprint = fullProjectData.sprints.find(s => s.sprintId === selectedSprint);
+    if (!currentSprint) return [];
+    
+    // Crear elementos de línea de tiempo basados en las tareas del sprint
+    return sprintTasks.map(task => {
+      const startDate = new Date(task.startDate);
+      const endDate = new Date(task.endDate);
+      
+      let status = 'upcoming';
+      if (task.status?.toLowerCase().includes('complete') || 
+          task.status?.toLowerCase() === 'finalizada') {
+        status = 'completed';
+      } else if (task.status?.toLowerCase().includes('progress') || 
+                 task.status?.toLowerCase() === 'en progreso' ||
+                 task.status?.toLowerCase() === 'doing') {
+        status = 'in-progress';
+      }
+      
+      return {
+        id: task.taskId,
+        name: task.title,
+        startMonth: monthNames[startDate.getMonth()],
+        endMonth: monthNames[endDate.getMonth()],
+        status: status
+      };
+    });
+  };
 
   if (loading && !projectData) {
-    return <div className="loading">Loading project details...</div>;
+    return (
+      <div className="loading-container">
+        <Loader />
+      </div>
+    );
   }
 
-  if (error && !projectData) {
+  if (error) {
     return <div className="error">Error: {error}</div>;
   }
 
@@ -257,8 +227,8 @@ function ProjectDetails({ projectId: propProjectId }) {
     <div className="project-details-wrapper">
       <ProjectHeader 
         projectName={projectData.name} 
-        sprint={selectedSprint || projectData.sprint}
-        sprints={sprints}
+        sprint={selectedSprint}
+        sprints={projectData.sprints}
         onSprintChange={handleSprintChange}
       />
 
@@ -271,7 +241,7 @@ function ProjectDetails({ projectId: propProjectId }) {
               <ProjectDescription 
                 description={projectData.description}
                 startDate={projectData.startDate}
-                dueDate={projectData.dueDate}
+                dueDate={projectData.endDate}
                 status={projectData.status}
               />
             </div>
@@ -279,15 +249,15 @@ function ProjectDetails({ projectId: propProjectId }) {
               <ProjectOverview tasksInfo={projectData.tasksInfo} />
             </div>
             <div className="project-users-container">
-              <ProjectUsers users={users} />
+              <ProjectUsers users={projectData.users} />
             </div>
           </div>
           <div className="project-right-col">
             <div className="project-tasks-container">
-              <ProjectTasks tasks={tasks} />
+              <ProjectTasks tasks={projectData.formattedTasks} />
             </div>
             <div className="project-timeline-container">
-              <ProjectTimeline timeline={timelineData} />
+              <ProjectTimeline timeline={generateTimelineData()} />
             </div>
           </div>
         </div>

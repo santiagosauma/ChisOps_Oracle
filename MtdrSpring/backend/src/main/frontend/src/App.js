@@ -46,7 +46,7 @@ function App() {
         {page === 'Home' && <Home />}
         {page === 'Projects' && <ManageTasks />}
         {page === 'ProjectsTrue' && <Projects onProjectSelect={handleProjectSelect} />} 
-        {page === 'TestComp' && <ProjectDetails/>}
+        {page === 'TestComp' && <ProjectDetails projectId={1}/>}
         {page === 'ProjectDetails' && <ProjectDetails projectId={selectedProjectId} />}
 
       </div>
