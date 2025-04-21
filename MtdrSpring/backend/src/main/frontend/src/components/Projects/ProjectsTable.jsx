@@ -368,7 +368,7 @@ function ProjectsTable() {
                   </th>
                   <th>Actions</th>
                 </tr>
-              </thead>
+              </thead> 
               <tbody>
                 {filteredProjects.map((project) => {
                   const userCount = project.users ? project.users.length : 0;
