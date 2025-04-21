@@ -45,6 +45,14 @@ function Login({ onLogin, toggleAuthMode }) {
         
         // Llamar a onLogin con los datos completos del usuario
         onLogin(userData);
+
+        // ← Aquí se separa por rol
+        if (userData.rol === 'admin') {
+          console.log('👑 Admin logueado → irá a Home');
+        } else {
+          console.log('👤 Usuario normal logueado → irá a Blank');
+        }
+        return;
       } else {
         // Manejar específicamente los diferentes tipos de errores
         if (response.status === 401) {

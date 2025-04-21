@@ -6,6 +6,7 @@ import ManageTasks from './ManageTasks';
 import Projects from './pages/Projects';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import Blank from './pages/Blank';
 
 function App() {
   const [page, setPage] = useState('Home');
@@ -47,12 +48,12 @@ function App() {
     console.log('🎯 Redirigiendo según rol:', role);
     switch(role) {
       case 'admin':
-        console.log('👑 Redirigiendo a AdminDashboard');
-        setPage('AdminDashboard');
+        console.log('👑 Redirigiendo a Home');
+        setPage('Home');
         break;
       case 'user':
-        console.log('👤 Redirigiendo a Home');
-        setPage('Home');
+        console.log('👤 Redirigiendo a espacio de usuario');
+        setPage('Blank');
         break;
       default:
         console.log('ℹ️ Rol no reconocido, redirigiendo a Home');
@@ -128,8 +129,9 @@ function App() {
       />
       <div style={{ marginLeft: '60px', flex: 1, padding: '0px' }}>
         {page === 'Home' && requireAuth(Home, {})}
-        {page === 'Projects' && userRole === 'ADMIN' && requireAuth(ManageTasks, {})}
+        {page === 'Projects' && userRole === 'admin' && requireAuth(ManageTasks, {})}
         {page === 'ProjectsTrue' && requireAuth(Projects, {})}
+        {page === 'Blank' && requireAuth(Blank, {})}
       </div>
     </div>
   );
