@@ -11,6 +11,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -48,7 +50,8 @@ public class TaskBotController extends TelegramLongPollingBot {
         NONE, WAITING_PASSWORD, // Added WAITING_PASSWORD state
         WAITING_TITLE, WAITING_DESCRIPTION, WAITING_PRIORITY,
         WAITING_TYPE, WAITING_USER, WAITING_SPRINT, WAITING_POINTS,
-        WAITING_ESTIMATED_HOURS, WAITING_ACTUAL_HOURS
+        WAITING_ESTIMATED_HOURS, WAITING_ACTUAL_HOURS, WAITING_TASK_TO_FINISH,
+        WAITING_ACTUAL_HOURS_INPUT
     }
 
     /**
@@ -348,7 +351,67 @@ public class TaskBotController extends TelegramLongPollingBot {
                 }
                 session.state = BotState.NONE;
                 handleListMyTasks(chatId, session); // Call new method to list user's tasks
-            } else if (messageText.equals(BotLabels.HIDE_MAIN_SCREEN.getLabel())) {
+
+            } else if (messageText.equals("✅ Finalizar tarea")) {
+                if (!session.isAuthenticated()) {
+                    sendLoginRequiredMessage(chatId);
+                    return;
+                }
+                session.state = BotState.WAITING_TASK_TO_FINISH;
+            
+                // Mostrar las tareas del usuario para seleccionar cuál finalizar
+                List<Tarea> userTasks = tareaService.getTareasByUsuario(session.getAuthenticatedUser().getUserId());
+                if (userTasks.isEmpty()) {
+                    sendMessage(chatId, "No tienes tareas asignadas para finalizar.");
+                    session.state = BotState.NONE;
+                    showMainMenu(chatId, session);
+                } else {
+                    sendMessage(chatId, "Selecciona la tarea que deseas marcar como finalizada:");
+                    showTaskList(chatId, userTasks);
+                }
+            } else if (session.state == BotState.WAITING_TASK_TO_FINISH) {
+                try {
+                    int taskId = Integer.parseInt(messageText.replaceAll("[^0-9]", "")); // Extraer el ID de la tarea
+                    ResponseEntity<Tarea> tareaResponse = tareaService.getTareaById(taskId);
+            
+                    if (tareaResponse.getStatusCode() == HttpStatus.OK) {
+                        Tarea tarea = tareaResponse.getBody();
+                        if (tarea != null && tarea.getUsuario().getUserId() == session.getAuthenticatedUser().getUserId()) {
+                            session.currentTask = tarea; // Guardar la tarea seleccionada en la sesión
+                            session.state = BotState.WAITING_ACTUAL_HOURS_INPUT; // Cambiar al nuevo estado
+                            sendMessage(chatId, "Por favor, ingresa las horas reales que te tomó completar la tarea:");
+                        } else {
+                            sendMessage(chatId, "❌ No puedes finalizar una tarea que no te pertenece.");
+                        }
+                    } else {
+                        sendMessage(chatId, "❌ No se encontró la tarea con el ID proporcionado.");
+                    }
+                } catch (NumberFormatException e) {
+                    sendMessage(chatId, "❌ Por favor, selecciona un ID de tarea válido.");
+                }
+            } else if (session.state == BotState.WAITING_ACTUAL_HOURS_INPUT) {
+                try {
+                    double actualHours = Double.parseDouble(messageText); // Leer las horas reales ingresadas
+                    if (actualHours >= 0) {
+                        Tarea tarea = session.currentTask;
+                        tarea.setActualHours(actualHours); // Asignar las horas reales
+                        tarea.setStatus("Finalizada"); // Cambiar el estado a "Finalizada"
+                        tareaService.updateTarea(tarea.getTaskId(), tarea); // Actualizar la tarea en la base de datos
+            
+                        sendMessage(chatId, "✅ La tarea #" + tarea.getTaskId() + " ha sido marcada como finalizada con " + actualHours + " horas reales.");
+                    } else {
+                        sendMessage(chatId, "❌ Por favor, ingresa un número válido mayor o igual a 0.");
+                        return;
+                    }
+                } catch (NumberFormatException e) {
+                    sendMessage(chatId, "❌ Por favor, ingresa un número válido para las horas reales.");
+                    return;
+                }
+            
+                // Reiniciar el estado y mostrar el menú principal
+                session.state = BotState.NONE;
+                showMainMenu(chatId, session);
+            }else if (messageText.equals(BotLabels.HIDE_MAIN_SCREEN.getLabel())) {
                 // Ocultar teclado
                 SendMessage message = new SendMessage();
                 message.setChatId(chatId);
@@ -413,6 +476,7 @@ public class TaskBotController extends TelegramLongPollingBot {
             message.setText("Bienvenido/a, " + session.getAuthenticatedUser().getFirstName() + ". ¿Qué deseas hacer?");
             row1.add(BotLabels.CREATE_TASK.getLabel());
             row1.add(BotLabels.LIST_TASKS.getLabel());
+            row2.add("✅ Finalizar tarea");
             row2.add(BotCommands.LOGOUT_COMMAND.getCommand());
         } else {
             message.setText("Bienvenido/a al gestor de tareas. Inicia sesión para continuar.");
@@ -680,7 +744,7 @@ public class TaskBotController extends TelegramLongPollingBot {
         switch (status.toUpperCase()) {
             case "PENDIENTE": return "⏳ Pendiente";
             case "EN PROGRESO": return "⚙️ En progreso";
-            case "COMPLETADO": return "✅ Completado";
+            case "FINALIZADA": return "✅ Finalizada";
             default: return "❓ " + status;
         }
     }
