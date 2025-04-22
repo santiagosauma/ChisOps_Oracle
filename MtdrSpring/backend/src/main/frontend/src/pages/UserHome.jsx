@@ -11,9 +11,9 @@ export default function UserHome() {
   const months = ["January", "February", "March", "April", "May", "June"]
   
   const [projects, setProjects] = useState([])
-  const [projectSprints, setProjectSprints] = useState({}) // Map of projectId -> sprints array
-  const [selectedSprintByProject, setSelectedSprintByProject] = useState({}) // Map of projectId -> selected sprint
-  const [showSprintDropdown, setShowSprintDropdown] = useState({}) // Map of projectId -> dropdown visibility
+  const [projectSprints, setProjectSprints] = useState({})
+  const [selectedSprintByProject, setSelectedSprintByProject] = useState({})
+  const [showSprintDropdown, setShowSprintDropdown] = useState({})
   const [tasks, setTasks] = useState([])
   const [filteredTasks, setFilteredTasks] = useState([])
   const [overdueTasks, setOverdueTasks] = useState(0)
@@ -60,7 +60,6 @@ export default function UserHome() {
       .then(data => {
         setProjects(data)
         
-        // For each project, fetch its sprints
         data.forEach(project => {
           fetchProjectSprints(project.projectId);
         });
@@ -93,17 +92,14 @@ export default function UserHome() {
         const currentDate = new Date();
         console.log("Current date:", currentDate);
         
-        // Try to find a sprint where today's date falls between start and end dates
         let activeSprint = null;
         
         for (const sprint of sprints) {
-          // Ensure we're working with date objects
           const startDate = new Date(sprint.startDate);
           const endDate = new Date(sprint.endDate);
           
           console.log(`Sprint ${sprint.name} - startDate: ${startDate}, endDate: ${endDate}`);
           
-          // Check if current date is between start and end dates
           if (currentDate >= startDate && currentDate <= endDate) {
             console.log(`Found active sprint by date: ${sprint.name}`);
             activeSprint = sprint;
@@ -111,7 +107,6 @@ export default function UserHome() {
           }
         }
         
-        // If no sprint is active by date, try to find one with status='active'
         if (!activeSprint) {
           activeSprint = sprints.find(sprint => 
             sprint.status && sprint.status.toLowerCase() === 'active'
@@ -122,26 +117,22 @@ export default function UserHome() {
           }
         }
         
-        // If still no active sprint, use the first one
         if (!activeSprint && sprints.length > 0) {
           activeSprint = sprints[0];
           console.log(`Using first sprint as active: ${activeSprint.name}`);
         }
         
-        // Store all sprints for this project
         setProjectSprints(prev => ({
           ...prev,
           [projectId]: sprints
         }));
         
-        // Set the selected sprint
         if (activeSprint) {
           setSelectedSprintByProject(prev => ({
             ...prev,
             [projectId]: activeSprint
           }));
           
-          // Fetch tasks for the selected sprint when it's initially set
           fetchTasksForSprint(activeSprint.sprintId);
         }
       })
@@ -156,23 +147,18 @@ export default function UserHome() {
       [projectId]: sprint
     }));
     
-    // Close the dropdown
     toggleSprintDropdown(projectId);
     
-    // If "All Sprints" is selected, fetch tasks for all sprints in the project
     if (sprint.isAllSprints) {
       fetchTasksForProject(projectId);
     } else {
-      // Otherwise fetch tasks for the specific sprint
       fetchTasksForSprint(sprint.sprintId);
     }
   };
 
-  // New function to fetch tasks for all sprints in a project
   const fetchTasksForProject = (projectId) => {
     setLoading(prev => ({ ...prev, tasks: true }));
     
-    // Get all sprint IDs for this project
     const sprints = projectSprints[projectId] || [];
     const sprintIds = sprints.map(sprint => sprint.sprintId);
     
@@ -185,7 +171,6 @@ export default function UserHome() {
       return;
     }
     
-    // Create an array of promises for fetching tasks from each sprint
     const fetchPromises = sprintIds.map(sprintId => 
       fetch(`/tareas/sprint/${sprintId}`)
         .then(response => {
@@ -196,13 +181,10 @@ export default function UserHome() {
         })
     );
     
-    // Wait for all fetch operations to complete
     Promise.all(fetchPromises)
       .then(resultsArray => {
-        // Flatten the array of arrays
         const allTasks = resultsArray.flat();
         
-        // Process the tasks
         const processedTasks = allTasks.map(task => ({
           id: task.taskId,
           name: task.title || task.name || task.nombre || task.descripcion || 'Untitled',
@@ -213,7 +195,6 @@ export default function UserHome() {
         
         setTasks(processedTasks);
         
-        // Update task counts
         const overdue = processedTasks.filter(task => 
           (new Date(task.finishDate) < new Date() && task.status !== 'Done' && task.status !== 'Completado')
         ).length;
@@ -264,7 +245,6 @@ export default function UserHome() {
         
         setTasks(processedTasks);
         
-        // Update task counts
         const overdue = processedTasks.filter(task => 
           (new Date(task.finishDate) < new Date() && task.status !== 'Done' && task.status !== 'Completado')
         ).length;
@@ -290,7 +270,6 @@ export default function UserHome() {
       });
   };
 
-  // Store reference to clicked element for positioning dropdowns
   const [dropdownPosition, setDropdownPosition] = useState({});
 
   const toggleSprintDropdown = (projectId, event) => {
@@ -298,25 +277,22 @@ export default function UserHome() {
       event.stopPropagation();
       const rect = event.currentTarget.getBoundingClientRect();
       setDropdownPosition({
-        top: rect.bottom + window.scrollY + 5, // Position below the element with a small offset
+        top: rect.bottom + window.scrollY + 5,
         left: rect.left + window.scrollX,
         width: rect.width
       });
     }
     
     setShowSprintDropdown(prev => {
-      // Close all dropdowns first
       const newState = {};
       Object.keys(prev).forEach(key => {
         newState[key] = false;
       });
-      // Then toggle the current one
       newState[projectId] = !prev[projectId];
       return newState;
     });
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = () => {
       setShowSprintDropdown({});
@@ -552,7 +528,6 @@ export default function UserHome() {
                                     <span className="dropdown-indicator">▼</span>
                                   </div>
                                   
-                                  {/* Render dropdown outside of the component hierarchy */}
                                   {showSprintDropdown[project.projectId] && projectSprints[project.projectId]?.length > 0 && (
                                     <div 
                                       className="sprint-dropdown" 
@@ -565,9 +540,8 @@ export default function UserHome() {
                                         overflowY: 'auto',
                                         zIndex: 9999
                                       }}
-                                      onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside dropdown
+                                      onClick={(e) => e.stopPropagation()}
                                     >
-                                      {/* Add "All Sprints" option at the top */}
                                       <div 
                                         key="all-sprints" 
                                         className={`sprint-option ${selectedSprintByProject[project.projectId]?.isAllSprints ? 'selected' : ''}`}
@@ -583,7 +557,6 @@ export default function UserHome() {
                                         All Sprints
                                       </div>
                                       
-                                      {/* Regular sprint options */}
                                       {projectSprints[project.projectId].map(sprint => (
                                         <div 
                                           key={sprint.sprintId} 
