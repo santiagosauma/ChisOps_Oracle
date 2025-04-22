@@ -245,3 +245,21 @@
     align-items: center;
     gap: 0.5rem;
 }
+
+.loading-message {
+    text-align: center;
+    padding: 20px;
+    color: #6b7280;
+}
+
+.error-message {
+    text-align: center;
+    padding: 20px;
+    color: #ef4444;
+}
+
+.no-data {
+    text-align: center;
+    color: #6b7280;
+    padding: 20px !important;
+}
