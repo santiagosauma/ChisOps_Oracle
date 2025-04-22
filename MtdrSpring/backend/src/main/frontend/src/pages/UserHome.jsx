@@ -293,7 +293,11 @@ export default function UserHome() {
                                     <span className="dropdown-indicator">▼</span>
                                   </div>
                                 </td>
-                                <td className="table-cell">{project.manager || project.responsable || 'Unassigned'}</td>
+                                <td className="table-cell">
+                                  {project.usuario ? 
+                                   `${project.usuario.firstName} ${project.usuario.lastName}` : 
+                                   'Unassigned'}
+                                </td>
                                 <td className="table-cell">
                                   <div className="progress-bar">
                                     <div className="progress-indicator" style={{ width: `${project.progress || 0}%` }}></div>
