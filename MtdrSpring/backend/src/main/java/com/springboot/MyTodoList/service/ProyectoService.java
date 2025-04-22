@@ -8,10 +8,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import com.springboot.MyTodoList.model.Sprint;
+import com.springboot.MyTodoList.model.Tarea;
 
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * SERVICIO DE PROYECTOS
@@ -29,6 +34,12 @@ public class ProyectoService {
     
     @Autowired
     private UsuarioRepository usuarioRepository;
+
+    @Autowired
+    private SprintService sprintService;
+
+    @Autowired
+    private TareaService tareaService;
     
     /**
      * Obtiene todos los proyectos activos del sistema
@@ -37,6 +48,45 @@ public class ProyectoService {
      */
     public List<Proyecto> findAll() {
         return proyectoRepository.findActiveProyectos();
+    }
+
+
+    /**
+ * Obtiene todos los usuarios asociados a un proyecto a través de sus tareas en los sprints
+ * 
+ * @param proyectoId ID del proyecto
+ * @return Lista de usuarios únicos que participan en el proyecto
+ */
+    public List<Usuario> getUsuariosByProyecto(int proyectoId) {
+        // 1. Verificar que el proyecto existe y está activo
+        Optional<Proyecto> proyecto = proyectoRepository.findById(proyectoId);
+        if (!proyecto.isPresent() || proyecto.get().getDeleted() == 1) {
+            throw new RuntimeException("Proyecto no encontrado o inactivo");
+        }
+
+        // 2. Obtener todos los sprints activos del proyecto
+        List<Sprint> sprints = sprintService.getSprintsByProyecto(proyectoId);
+
+        // 3. Usar un Set para evitar duplicados
+        Set<Usuario> usuariosUnicos = new HashSet<>();
+
+        // 4. Recorrer sprints y sus tareas
+        for (Sprint sprint : sprints) {
+            // Solo considerar sprints activos
+            if (sprint.getDeleted() == 0) {
+                List<Tarea> tareas = tareaService.getTareasBySprint(sprint.getSprintId());
+
+                // 5. Obtener usuarios de cada tarea
+                for (Tarea tarea : tareas) {
+                    // Solo considerar tareas activas y con usuario asignado
+                    if (tarea.getDeleted() == 0 && tarea.getUsuario() != null) {
+                        usuariosUnicos.add(tarea.getUsuario());
+                    }
+                }
+            }
+        }
+
+        return new ArrayList<>(usuariosUnicos);
     }
     
     /**
