@@ -15,6 +15,9 @@
     background-color: white;
     padding: 1.5rem 2rem;
     border-bottom: 1px solid #e5e7eb;
+    width: 100%;
+    max-width: 1600px;
+    margin: 0 auto;
 }
 
 .page-title {
@@ -45,29 +48,21 @@
     padding: 1.25rem;
 }
 
-.card-header {
-    padding-bottom: 1rem;
-}
-
-.card-header-with-actions {
-    padding-bottom: 1rem;
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.card-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: #111827;
+.card-header, .card-header-with-actions {
+    padding: 0 0 1rem 0;
 }
 
 .card-content {
-    padding-top: 0.5rem;
+    padding: 0.5rem 1.25rem 0 1.25rem;
+}
+
+.card-content {
+    padding: 0.5rem 0 0 0;
 }
 
 .table-container {
+    margin: 0 -1.25rem;
+    width: calc(100% + 2.5rem);
     overflow-x: auto;
 }
 
@@ -84,18 +79,41 @@
 }
 
 .table-header-cell {
-    padding-bottom: 0.75rem;
+    padding: 0 1rem 0.75rem 0;
     font-weight: 500;
-    padding-right: 1rem;
-}
-
-.table-row {
-    border-top: 1px solid #f3f4f6;
 }
 
 .table-cell {
     padding: 1rem 1rem 1rem 0;
     color: #374151;
+}
+
+.table-header-cell:first-child,
+.table-cell:first-child {
+    padding-left: 1.25rem;
+}
+
+.projects-table th,
+.projects-table td {
+    padding: 12px 16px;
+}
+
+.card-header-with-actions {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #111827;
+}
+h2.card-title {
+    padding: 0;
+    padding-bottom: 15px;
+    margin: 0;
 }
 
 .sprint-selector {
@@ -109,16 +127,17 @@
 }
 
 .progress-bar {
-    height: 0.5rem;
-    background-color: #e5e7eb;
-    border-radius: 9999px;
+    width: 100%;
+    background-color: #e0e0e0;
+    height: 8px;
+    border-radius: 4px;
     overflow: hidden;
 }
 
 .progress-indicator {
     height: 100%;
-    background-color: #22c55e;
-    border-radius: 9999px;
+    background-color: #4caf50;
+    border-radius: 4px;
 }
 
 .task-summary-grid {
@@ -167,6 +186,42 @@
     font-size: 0.75rem;
 }
 
+/* New styles for dates */
+.task-date {
+    font-size: 0.875rem;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    margin-top: 0.5rem;
+}
+
+.task-date-label {
+    font-weight: 500;
+    margin-right: 0.5rem;
+}
+
+.task-due-date {
+    color: #374151;
+    font-weight: 500;
+}
+
+.task-overdue {
+    color: #ef4444;
+    font-weight: 600;
+}
+
+.date-icon {
+    margin-right: 0.25rem;
+    height: 0.875rem;
+    width: 0.875rem;
+}
+
+/* Make sure date fields are visible */
+.table-cell[data-field="dueDate"] {
+    min-width: 120px;
+    white-space: nowrap;
+}
+
 .task-card-title {
     font-size: 0.875rem;
     font-weight: 500;
@@ -175,6 +230,7 @@
 
 .task-card-content {
     background-color: white;
+    padding: 1rem 1.25rem;
 }
 
 .task-count {
@@ -207,13 +263,42 @@
     margin-left: 0.25rem;
 }
 
+.sortable {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.sortable:hover {
+    background-color: #f8f9fa;
+}
+
 .sortable-header {
     display: flex;
     align-items: center;
+    gap: 0.25rem;
+    justify-content: left;
 }
 
 .sort-indicator {
-    margin-left: 0.25rem;
+    vertical-align: middle;
+    margin-left: 5px;
+    width: 12px;
+    height: 12px;
+    opacity: 0.7;
+}
+
+.table-header-cell[data-active-sort="true"] {
+    font-weight: 600;
+    color: #555;
+}
+
+.table-header-cell[data-active-sort="true"] .sort-indicator {
+    opacity: 1;
+}
+
+.sortable-header {
+    display: flex;
+    align-items: center;
 }
 
 .edit-button {
@@ -266,7 +351,6 @@
     font-weight: 500;
 }
 
-/* Filtros */
 .filter-wrapper {
     position: relative;
     display: inline-block;

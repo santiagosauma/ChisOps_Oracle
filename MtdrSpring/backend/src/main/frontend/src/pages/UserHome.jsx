@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react"
 import "../styles/UserHome.css"
+import dropdownIcon from '../resources/dropdown.png';
+import dropupIcon from '../resources/dropup.png';
 
 export default function UserHome() {
   const [currentMonth, setCurrentMonth] = useState(2)
@@ -21,6 +23,9 @@ export default function UserHome() {
     searchTerm: ''
   })
   const [activeFilters, setActiveFilters] = useState([])
+
+  const [sortField, setSortField] = useState('name')
+  const [sortDirection, setSortDirection] = useState('asc')
   
   const [loading, setLoading] = useState({
     projects: false,
@@ -76,7 +81,7 @@ export default function UserHome() {
           id: task.taskId,
           name: task.title || task.name || task.nombre || task.descripcion || 'Untitled',
           status: task.status || task.estado || 'Pending',
-          finishDate: task.fechaFin || task.dueDate || task.finishDate || 'No date',
+          finishDate: task.endDate || task.fechaFin || task.dueDate || task.finishDate || 'No date',
           priority: task.priority || task.prioridad || 'Normal'
         }))
         
@@ -199,85 +204,43 @@ export default function UserHome() {
     });
   };
 
+  const handleSort = (field) => {
+    if (field === sortField) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
+    } else {
+      setSortField(field)
+      setSortDirection('asc')
+    }
+  }
+
+  const getSortedTasks = (taskList) => {
+    if (!taskList.length) return []
+    
+    return [...taskList].sort((a, b) => {
+      let valueA = a[sortField]
+      let valueB = b[sortField]
+      
+      if (sortField === 'finishDate') {
+        valueA = new Date(valueA)
+        valueB = new Date(valueB)
+        
+        if (isNaN(valueA)) valueA = new Date(0)
+        if (isNaN(valueB)) valueB = new Date(0)
+      }
+      
+      if (typeof valueA === 'string' && typeof valueB === 'string') {
+        valueA = valueA.toLowerCase()
+        valueB = valueB.toLowerCase()
+      }
+      
+      if (valueA < valueB) return sortDirection === 'asc' ? -1 : 1
+      if (valueA > valueB) return sortDirection === 'asc' ? 1 : -1
+      return 0
+    })
+  }
+
   const uniqueStatuses = [...new Set(tasks.map(task => task.status))];
   const uniquePriorities = [...new Set(tasks.map(task => task.priority))];
-
-  const ganttTasks = [
-    {
-      id: "1",
-      name: "Focus 1",
-      start: "2020-01-05",
-      end: "2020-01-25",
-      progress: 100,
-      dependencies: "",
-      custom_class: "bar-blue-light",
-    },
-    {
-      id: "2",
-      name: "Focus 1",
-      start: "2020-02-03",
-      end: "2020-02-28",
-      progress: 85,
-      dependencies: "1",
-      custom_class: "bar-blue",
-      hasIssue: true,
-    },
-    {
-      id: "3",
-      name: "Focus 1",
-      start: "2020-03-05",
-      end: "2020-03-25",
-      progress: 70,
-      dependencies: "2",
-      custom_class: "bar-blue-light",
-    },
-    {
-      id: "4",
-      name: "Focus 1",
-      start: "2020-04-03",
-      end: "2020-04-28",
-      progress: 50,
-      dependencies: "3",
-      custom_class: "bar-blue",
-    },
-    {
-      id: "5",
-      name: "Focus 2",
-      start: "2020-02-10",
-      end: "2020-02-28",
-      progress: 100,
-      dependencies: "",
-      custom_class: "bar-blue-light",
-      hasIssue: true,
-    },
-    {
-      id: "6",
-      name: "Focus 2",
-      start: "2020-03-03",
-      end: "2020-05-15",
-      progress: 60,
-      dependencies: "5",
-      custom_class: "bar-blue",
-    },
-    {
-      id: "7",
-      name: "Focus 3",
-      start: "2020-01-15",
-      end: "2020-02-28",
-      progress: 100,
-      dependencies: "",
-      custom_class: "bar-blue-light",
-    },
-    {
-      id: "8",
-      name: "Focus 3",
-      start: "2020-03-10",
-      end: "2020-05-20",
-      progress: 40,
-      dependencies: "7",
-      custom_class: "bar-blue",
-    },
-  ]
 
   return (
     <div className="main-container">
@@ -500,22 +463,77 @@ export default function UserHome() {
                       <table className="data-table">
                         <thead>
                           <tr className="table-header-row">
-                            <th className="table-header-cell">Name</th>
-                            <th className="table-header-cell">Status</th>
-                            <th className="table-header-cell">Finish Date</th>
-                            <th className="table-header-cell">
+                            <th 
+                              className="table-header-cell sortable" 
+                              onClick={() => handleSort('name')}
+                              data-active-sort={sortField === 'name' ? "true" : "false"}
+                            >
                               <div className="sortable-header">
-                                <span>Priority</span>
-                                <span className="sort-indicator">▼</span>
+                                <span>Name</span>
+                                {sortField === 'name' && (
+                                  <img 
+                                    src={sortDirection === 'asc' ? dropupIcon : dropdownIcon} 
+                                    alt="sort" 
+                                    className="sort-indicator" 
+                                  />
+                                )}
                               </div>
                             </th>
-                            <th className="table-header-cell"></th>
+                            <th 
+                              className="table-header-cell sortable" 
+                              onClick={() => handleSort('status')}
+                              data-active-sort={sortField === 'status' ? "true" : "false"}
+                            >
+                              <div className="sortable-header">
+                                <span>Status</span>
+                                {sortField === 'status' && (
+                                  <img 
+                                    src={sortDirection === 'asc' ? dropupIcon : dropdownIcon} 
+                                    alt="sort" 
+                                    className="sort-indicator" 
+                                  />
+                                )}
+                              </div>
+                            </th>
+                            <th 
+                              className="table-header-cell sortable" 
+                              onClick={() => handleSort('finishDate')}
+                              data-active-sort={sortField === 'finishDate' ? "true" : "false"}
+                            >
+                              <div className="sortable-header">
+                                <span>Finish Date</span>
+                                {sortField === 'finishDate' && (
+                                  <img 
+                                    src={sortDirection === 'asc' ? dropupIcon : dropdownIcon} 
+                                    alt="sort" 
+                                    className="sort-indicator" 
+                                  />
+                                )}
+                              </div>
+                            </th>
+                            <th 
+                              className="table-header-cell sortable" 
+                              onClick={() => handleSort('priority')}
+                              data-active-sort={sortField === 'priority' ? "true" : "false"}
+                            >
+                              <div className="sortable-header">
+                                <span>Priority</span>
+                                {sortField === 'priority' && (
+                                  <img 
+                                    src={sortDirection === 'asc' ? dropupIcon : dropdownIcon} 
+                                    alt="sort" 
+                                    className="sort-indicator" 
+                                  />
+                                )}
+                              </div>
+                            </th>
+                            <th className="table-header-cell">Actions</th>
                           </tr>
                         </thead>
                         <tbody>
                           {activeFilters.length > 0 ? (
                             filteredTasks.length > 0 ? (
-                              filteredTasks.map((task, index) => (
+                              getSortedTasks(filteredTasks).map((task, index) => (
                                 <tr key={task.id || index} className="table-row">
                                   <td className="table-cell">{task.name}</td>
                                   <td className="table-cell">{task.status}</td>
@@ -539,7 +557,7 @@ export default function UserHome() {
                             )
                           ) : (
                             tasks.length > 0 ? (
-                              tasks.map((task, index) => (
+                              getSortedTasks(tasks).map((task, index) => (
                                 <tr key={task.id || index} className="table-row">
                                   <td className="table-cell">{task.name}</td>
                                   <td className="table-cell">{task.status}</td>
