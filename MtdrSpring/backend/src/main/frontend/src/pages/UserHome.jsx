@@ -9,9 +9,18 @@ export default function UserHome() {
   
   const [projects, setProjects] = useState([])
   const [tasks, setTasks] = useState([])
+  const [filteredTasks, setFilteredTasks] = useState([])
   const [overdueTasks, setOverdueTasks] = useState(0)
   const [pendingTasks, setPendingTasks] = useState(0)
   const [completedTasks, setCompletedTasks] = useState(0)
+  
+  const [showFilters, setShowFilters] = useState(false)
+  const [filters, setFilters] = useState({
+    status: '',
+    priority: '',
+    searchTerm: ''
+  })
+  const [activeFilters, setActiveFilters] = useState([])
   
   const [loading, setLoading] = useState({
     projects: false,
@@ -26,7 +35,7 @@ export default function UserHome() {
   const [userId, setUserId] = useState(1)
 
   useEffect(() => {
-    setCurrentUser({ id: userId, name: "Usuario Actual" })
+    setCurrentUser({ id: userId, name: "Current User" })
   }, [userId])
 
   useEffect(() => {
@@ -35,7 +44,7 @@ export default function UserHome() {
     fetch('/proyectos/activos')
       .then(response => {
         if (!response.ok) {
-          throw new Error('Error al cargar proyectos activos')
+          throw new Error('Error loading active projects')
         }
         return response.json()
       })
@@ -58,16 +67,16 @@ export default function UserHome() {
     fetch(`/tareas/usuario/${userId}`)
       .then(response => {
         if (!response.ok) {
-          throw new Error('Error al cargar tareas')
+          throw new Error('Error loading tasks')
         }
         return response.json()
       })
       .then(data => {
         const processedTasks = data.map(task => ({
           id: task.taskId,
-          name: task.title || task.name || task.nombre || task.descripcion || 'Sin título',
+          name: task.title || task.name || task.nombre || task.descripcion || 'Untitled',
           status: task.status || task.estado || 'Pending',
-          finishDate: task.fechaFin || task.dueDate || task.finishDate || 'Sin fecha',
+          finishDate: task.fechaFin || task.dueDate || task.finishDate || 'No date',
           priority: task.priority || task.prioridad || 'Normal'
         }))
         
@@ -97,13 +106,13 @@ export default function UserHome() {
         setLoading(prev => ({ ...prev, tasks: false }))
         
         const exampleTasks = [
-          { id: 1, name: "Bug en función set", status: "Done", finishDate: "2023-12-01", priority: "High" },
-          { id: 2, name: "Corregir pantalla de login", status: "Done", finishDate: "2023-12-05", priority: "High" },
-          { id: 3, name: "Implementar búsqueda", status: "Done", finishDate: "2023-12-10", priority: "Medium" },
-          { id: 4, name: "Actualizar dependencias", status: "Done", finishDate: "2023-12-15", priority: "Low" },
-          { id: 5, name: "Ajustes UI para móvil", status: "Pending", finishDate: "2023-12-20", priority: "High" },
-          { id: 6, name: "Migración de base de datos", status: "Pending", finishDate: "2023-12-25", priority: "High" },
-          { id: 7, name: "Documentación", status: "Pending", finishDate: "2023-12-30", priority: "Medium" },
+          { id: 1, name: "Bug in set function", status: "Done", finishDate: "2023-12-01", priority: "High" },
+          { id: 2, name: "Fix login screen", status: "Done", finishDate: "2023-12-05", priority: "High" },
+          { id: 3, name: "Implement search", status: "Done", finishDate: "2023-12-10", priority: "Medium" },
+          { id: 4, name: "Update dependencies", status: "Done", finishDate: "2023-12-15", priority: "Low" },
+          { id: 5, name: "UI adjustments for mobile", status: "Pending", finishDate: "2023-12-20", priority: "High" },
+          { id: 6, name: "Database migration", status: "Pending", finishDate: "2023-12-25", priority: "High" },
+          { id: 7, name: "Documentation", status: "Pending", finishDate: "2023-12-30", priority: "Medium" },
         ]
         
         setTasks(exampleTasks)
@@ -112,6 +121,86 @@ export default function UserHome() {
         setCompletedTasks(10)
       })
   }, [userId])
+
+  useEffect(() => {
+    if (!tasks.length) {
+      setFilteredTasks([]);
+      return;
+    }
+
+    let result = [...tasks];
+
+    if (filters.status) {
+      result = result.filter(task => {
+        const taskStatus = task.status.toLowerCase();
+        if (filters.status.toLowerCase() === 'pending') {
+          return ['pending', 'en progreso', 'pendiente'].includes(taskStatus);
+        } else if (filters.status.toLowerCase() === 'done') {
+          return ['done', 'completado', 'finalizado'].includes(taskStatus);
+        }
+        return taskStatus === filters.status.toLowerCase();
+      });
+    }
+
+    if (filters.priority) {
+      result = result.filter(task => 
+        task.priority.toLowerCase() === filters.priority.toLowerCase()
+      );
+    }
+
+    if (filters.searchTerm) {
+      const term = filters.searchTerm.toLowerCase();
+      result = result.filter(task => 
+        task.name.toLowerCase().includes(term)
+      );
+    }
+
+    setFilteredTasks(result);
+    
+    const newActiveFilters = [];
+    if (filters.status) newActiveFilters.push({ type: 'status', value: filters.status });
+    if (filters.priority) newActiveFilters.push({ type: 'priority', value: filters.priority });
+    if (filters.searchTerm) newActiveFilters.push({ type: 'search', value: filters.searchTerm });
+    
+    setActiveFilters(newActiveFilters);
+    
+  }, [tasks, filters]);
+
+  const applyFilter = (filterType, value) => {
+    setFilters(prev => {
+      if (prev[filterType] === value) {
+        return { ...prev, [filterType]: '' };
+      }
+      return { ...prev, [filterType]: value };
+    });
+    
+    if (filterType !== 'searchTerm') {
+      setShowFilters(false);
+    }
+  };
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setFilters(prev => ({ ...prev, searchTerm: value }));
+  };
+
+  const removeFilter = (filterType) => {
+    setFilters(prev => ({ 
+      ...prev, 
+      [filterType]: '' 
+    }));
+  };
+
+  const clearAllFilters = () => {
+    setFilters({
+      status: '',
+      priority: '',
+      searchTerm: ''
+    });
+  };
+
+  const uniqueStatuses = [...new Set(tasks.map(task => task.status))];
+  const uniquePriorities = [...new Set(tasks.map(task => task.priority))];
 
   const ganttTasks = [
     {
@@ -202,7 +291,7 @@ export default function UserHome() {
         <div className="content-area">
           {!currentUser ? (
             <div className="card">
-              <p className="loading-message">Cargando información de usuario...</p>
+              <p className="loading-message">Loading user information...</p>
             </div>
           ) : (
             <div className="content-grid">
@@ -212,7 +301,7 @@ export default function UserHome() {
                 </div>
                 <div className="card-content">
                   {loading.projects ? (
-                    <p className="loading-message">Cargando proyectos...</p>
+                    <p className="loading-message">Loading projects...</p>
                   ) : error.projects ? (
                     <p className="error-message">{error.projects}</p>
                   ) : (
@@ -231,9 +320,9 @@ export default function UserHome() {
                           {projects.length > 0 ? (
                             projects.map((project, index) => (
                               <tr key={project.projectId || index} className="table-row">
-                                <td className="table-cell">{project.name || project.nombre || 'Sin nombre'}</td>
+                                <td className="table-cell">{project.name || project.nombre || 'Unnamed'}</td>
                                 <td className="table-cell">
-                                  {project.fechaFin ? new Date(project.fechaFin).toLocaleDateString() : 'Sin fecha'}
+                                  {project.fechaFin ? new Date(project.fechaFin).toLocaleDateString() : 'No date'}
                                 </td>
                                 <td className="table-cell">
                                   <div className="sprint-selector">
@@ -241,7 +330,7 @@ export default function UserHome() {
                                     <span className="dropdown-indicator">▼</span>
                                   </div>
                                 </td>
-                                <td className="table-cell">{project.manager || project.responsable || 'No asignado'}</td>
+                                <td className="table-cell">{project.manager || project.responsable || 'Unassigned'}</td>
                                 <td className="table-cell">
                                   <div className="progress-bar">
                                     <div className="progress-indicator" style={{ width: `${project.progress || 0}%` }}></div>
@@ -251,7 +340,7 @@ export default function UserHome() {
                             ))
                           ) : (
                             <tr>
-                              <td colSpan="5" className="table-cell no-data">No hay proyectos activos</td>
+                              <td colSpan="5" className="table-cell no-data">No active projects</td>
                             </tr>
                           )}
                         </tbody>
@@ -297,16 +386,113 @@ export default function UserHome() {
                 <div className="card-header-with-actions">
                   <h2 className="card-title">Tasks</h2>
                   <div className="action-buttons">
-                    <div className="filter-badge">
-                      <span className="filter-icon">◎</span>
-                      <span>Filter</span>
-                      <span className="close-icon">✕</span>
+                    {activeFilters.length > 0 && (
+                      <div className="active-filters">
+                        {activeFilters.map((filter, index) => (
+                          <div key={index} className="active-filter">
+                            <span>{filter.type}: {filter.value}</span>
+                            <button 
+                              className="remove-filter-btn" 
+                              onClick={() => removeFilter(filter.type)}
+                            >
+                              ×
+                            </button>
+                          </div>
+                        ))}
+                        {activeFilters.length > 1 && (
+                          <button 
+                            className="clear-filters-btn"
+                            onClick={clearAllFilters}
+                          >
+                            Clear all
+                          </button>
+                        )}
+                      </div>
+                    )}
+                    <div className="filter-wrapper">
+                      <div 
+                        className="filter-badge"
+                        onClick={() => setShowFilters(!showFilters)}
+                      >
+                        <span className="filter-icon">◎</span>
+                        <span>Filter</span>
+                        {activeFilters.length > 0 && (
+                          <span className="filter-count">{activeFilters.length}</span>
+                        )}
+                        <span className="close-icon">
+                          {showFilters ? '△' : '▽'}
+                        </span>
+                      </div>
+                      
+                      {showFilters && (
+                        <div className="filter-dropdown">
+                          <div className="filter-section">
+                            <h3>Search</h3>
+                            <div className="filter-search">
+                              <input 
+                                type="text" 
+                                placeholder="Search tasks..." 
+                                value={filters.searchTerm}
+                                onChange={handleSearchChange}
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="filter-section">
+                            <h3>Status</h3>
+                            <div className="filter-options">
+                              {['Pending', 'Done', ...uniqueStatuses]
+                                .filter((value, index, self) => 
+                                  self.indexOf(value) === index && 
+                                  !['Pending', 'Done'].includes(value) || 
+                                  index < 2
+                                )
+                                .map((status, index) => (
+                                <div 
+                                  key={index} 
+                                  className={`filter-option ${filters.status === status ? 'selected' : ''}`}
+                                  onClick={() => applyFilter('status', status)}
+                                >
+                                  <span>{status}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <div className="filter-section">
+                            <h3>Priority</h3>
+                            <div className="filter-options">
+                              {uniquePriorities.map((priority, index) => (
+                                <div 
+                                  key={index} 
+                                  className={`filter-option ${filters.priority === priority ? 'selected' : ''}`}
+                                  onClick={() => applyFilter('priority', priority)}
+                                >
+                                  <span>{priority}</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <div className="filter-actions">
+                            <button 
+                              className="clear-filter-btn"
+                              onClick={() => {
+                                clearAllFilters();
+                                setShowFilters(false);
+                              }}
+                            >
+                              Clear Filters
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
                 <div className="card-content">
                   {loading.tasks ? (
-                    <p className="loading-message">Cargando tareas...</p>
+                    <p className="loading-message">Loading tasks...</p>
                   ) : error.tasks ? (
                     <p className="error-message">{error.tasks}</p>
                   ) : (
@@ -327,26 +513,54 @@ export default function UserHome() {
                           </tr>
                         </thead>
                         <tbody>
-                          {tasks.length > 0 ? (
-                            tasks.map((task, index) => (
-                              <tr key={task.id || index} className="table-row">
-                                <td className="table-cell">{task.name}</td>
-                                <td className="table-cell">{task.status}</td>
-                                <td className="table-cell">
-                                  {typeof task.finishDate === 'string' ? task.finishDate : 'Sin fecha'}
-                                </td>
-                                <td className="table-cell">{task.priority}</td>
-                                <td className="table-cell text-right">
-                                  <button className="edit-button">
-                                    <span className="edit-icon">✎</span>
-                                  </button>
+                          {activeFilters.length > 0 ? (
+                            filteredTasks.length > 0 ? (
+                              filteredTasks.map((task, index) => (
+                                <tr key={task.id || index} className="table-row">
+                                  <td className="table-cell">{task.name}</td>
+                                  <td className="table-cell">{task.status}</td>
+                                  <td className="table-cell">
+                                    {typeof task.finishDate === 'string' ? task.finishDate : 'No date'}
+                                  </td>
+                                  <td className="table-cell">{task.priority}</td>
+                                  <td className="table-cell text-right">
+                                    <button className="edit-button">
+                                      <span className="edit-icon">✎</span>
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan="5" className="table-cell no-data">
+                                  No tasks match the applied filters. Try different criteria or remove some filters.
                                 </td>
                               </tr>
-                            ))
+                            )
                           ) : (
-                            <tr>
-                              <td colSpan="5" className="table-cell no-data">No hay tareas disponibles</td>
-                            </tr>
+                            tasks.length > 0 ? (
+                              tasks.map((task, index) => (
+                                <tr key={task.id || index} className="table-row">
+                                  <td className="table-cell">{task.name}</td>
+                                  <td className="table-cell">{task.status}</td>
+                                  <td className="table-cell">
+                                    {typeof task.finishDate === 'string' ? task.finishDate : 'No date'}
+                                  </td>
+                                  <td className="table-cell">{task.priority}</td>
+                                  <td className="table-cell text-right">
+                                    <button className="edit-button">
+                                      <span className="edit-icon">✎</span>
+                                    </button>
+                                  </td>
+                                </tr>
+                              ))
+                            ) : (
+                              <tr>
+                                <td colSpan="5" className="table-cell no-data">
+                                  You have no assigned tasks at this time
+                                </td>
+                              </tr>
+                            )
                           )}
                         </tbody>
                       </table>
