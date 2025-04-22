@@ -28,6 +28,8 @@ export default function UserHome() {
   })
   const [activeFilters, setActiveFilters] = useState([])
 
+  const [currentSelectedSprint, setCurrentSelectedSprint] = useState(null)
+
   const [sortField, setSortField] = useState('name')
   const [sortDirection, setSortDirection] = useState('asc')
   
@@ -141,6 +143,116 @@ export default function UserHome() {
       });
   };
 
+  const calculateTaskStatistics = (tasks) => {
+    const overdue = tasks.filter(task => 
+      (new Date(task.finishDate) < new Date() && 
+       task.status !== 'Done' && 
+       task.status !== 'Completado' && 
+       task.status !== 'Finalizado')
+    ).length;
+    
+    const pending = tasks.filter(task => 
+      ['pending', 'en progreso', 'pendiente'].includes(task.status.toLowerCase())
+    ).length;
+    
+    const completed = tasks.filter(task => 
+      ['done', 'completado', 'finalizado'].includes(task.status.toLowerCase())
+    ).length;
+    
+    return { overdue, pending, completed };
+  };
+
+  const fetchUserTasksForSprint = (sprintId) => {
+    if (!userId) return;
+    
+    setLoading(prev => ({ ...prev, tasks: true }));
+    setCurrentSelectedSprint(sprintId);
+    
+    fetch(`/tareas/usuario/${userId}/sprint/${sprintId}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Error loading user tasks for sprint');
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log(`Found ${data.length} user tasks in sprint ${sprintId}`);
+        
+        const processedTasks = data.map(task => ({
+          id: task.taskId,
+          name: task.title || task.name || task.nombre || task.descripcion || 'Untitled',
+          status: task.status || task.estado || 'Pending',
+          finishDate: task.endDate || task.fechaFin || task.dueDate || task.finishDate || 'No date',
+          priority: task.priority || task.prioridad || 'Normal',
+          sprintId: task.sprint?.sprintId
+        }));
+        
+        setTasks(processedTasks);
+        
+        const { overdue, pending, completed } = calculateTaskStatistics(processedTasks);
+        
+        setOverdueTasks(overdue);
+        setPendingTasks(pending);
+        setCompletedTasks(completed);
+        
+        setLoading(prev => ({ ...prev, tasks: false }));
+      })
+      .catch(err => {
+        console.error('Error fetching user tasks for sprint:', err);
+        setError(prev => ({ ...prev, tasks: err.message }));
+        setLoading(prev => ({ ...prev, tasks: false }));
+        
+        setTasks([]);
+        setOverdueTasks(0);
+        setPendingTasks(0);
+        setCompletedTasks(0);
+      });
+  };
+
+  const fetchTasksForUser = () => {
+    if (!userId) return;
+    
+    setLoading(prev => ({ ...prev, tasks: true }));
+    setCurrentSelectedSprint(null);
+    
+    fetch(`/tareas/usuario/${userId}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Error loading tasks');
+        }
+        return response.json();
+      })
+      .then(data => {
+        const processedTasks = data.map(task => ({
+          id: task.taskId,
+          name: task.title || task.name || task.nombre || task.descripcion || 'Untitled',
+          status: task.status || task.estado || 'Pending',
+          finishDate: task.endDate || task.fechaFin || task.dueDate || task.finishDate || 'No date',
+          priority: task.priority || task.prioridad || 'Normal'
+        }));
+        
+        setTasks(processedTasks);
+        
+        const { overdue, pending, completed } = calculateTaskStatistics(processedTasks);
+        
+        setOverdueTasks(overdue);
+        setPendingTasks(pending);
+        setCompletedTasks(completed);
+        
+        setLoading(prev => ({ ...prev, tasks: false }));
+      })
+      .catch(err => {
+        console.error('Error fetching tasks:', err);
+        setError(prev => ({ ...prev, tasks: err.message }));
+        setLoading(prev => ({ ...prev, tasks: false }));
+        
+        setTasks([]);
+        setOverdueTasks(0);
+        setPendingTasks(0);
+        setCompletedTasks(0);
+      });
+  };
+
   const handleSprintChange = (projectId, sprint) => {
     setSelectedSprintByProject(prev => ({
       ...prev,
@@ -150,9 +262,9 @@ export default function UserHome() {
     toggleSprintDropdown(projectId);
     
     if (sprint.isAllSprints) {
-      fetchTasksForProject(projectId);
+      fetchTasksForUser();
     } else {
-      fetchTasksForSprint(sprint.sprintId);
+      fetchUserTasksForSprint(sprint.sprintId);
     }
   };
 
@@ -192,20 +304,10 @@ export default function UserHome() {
           finishDate: task.endDate || task.fechaFin || task.dueDate || task.finishDate || 'No date',
           priority: task.priority || task.prioridad || 'Normal'
         }));
-        
+                
         setTasks(processedTasks);
         
-        const overdue = processedTasks.filter(task => 
-          (new Date(task.finishDate) < new Date() && task.status !== 'Done' && task.status !== 'Completado')
-        ).length;
-        
-        const pending = processedTasks.filter(task => 
-          (task.status === 'Pending' || task.status === 'En progreso' || task.status === 'Pendiente')
-        ).length;
-        
-        const completed = processedTasks.filter(task => 
-          (task.status === 'Done' || task.status === 'Completado' || task.status === 'Finalizado')
-        ).length;
+        const { overdue, pending, completed } = calculateTaskStatistics(processedTasks);
         
         setOverdueTasks(overdue);
         setPendingTasks(pending);
@@ -245,17 +347,7 @@ export default function UserHome() {
         
         setTasks(processedTasks);
         
-        const overdue = processedTasks.filter(task => 
-          (new Date(task.finishDate) < new Date() && task.status !== 'Done' && task.status !== 'Completado')
-        ).length;
-        
-        const pending = processedTasks.filter(task => 
-          (task.status === 'Pending' || task.status === 'En progreso' || task.status === 'Pendiente')
-        ).length;
-        
-        const completed = processedTasks.filter(task => 
-          (task.status === 'Done' || task.status === 'Completado' || task.status === 'Finalizado')
-        ).length;
+        const { overdue, pending, completed } = calculateTaskStatistics(processedTasks);
         
         setOverdueTasks(overdue);
         setPendingTasks(pending);
@@ -327,17 +419,7 @@ export default function UserHome() {
         
         setTasks(processedTasks)
         
-        const overdue = processedTasks.filter(task => 
-          (new Date(task.finishDate) < new Date() && task.status !== 'Done' && task.status !== 'Completado')
-        ).length
-        
-        const pending = processedTasks.filter(task => 
-          (task.status === 'Pending' || task.status === 'En progreso' || task.status === 'Pendiente')
-        ).length
-        
-        const completed = processedTasks.filter(task => 
-          (task.status === 'Done' || task.status === 'Completado' || task.status === 'Finalizado')
-        ).length
+        const { overdue, pending, completed } = calculateTaskStatistics(processedTasks);
         
         setOverdueTasks(overdue)
         setPendingTasks(pending)
@@ -548,13 +630,13 @@ export default function UserHome() {
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           handleSprintChange(project.projectId, { 
-                                            name: "All Sprints", 
+                                            name: "All My Tasks", 
                                             isAllSprints: true,
                                             projectId: project.projectId
                                           });
                                         }}
                                       >
-                                        All Sprints
+                                        All My Tasks
                                       </div>
                                       
                                       {projectSprints[project.projectId].map(sprint => (

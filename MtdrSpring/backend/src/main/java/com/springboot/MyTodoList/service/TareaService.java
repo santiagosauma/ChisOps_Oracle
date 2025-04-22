@@ -215,4 +215,15 @@ public class TareaService {
     public List<Tarea> searchTareas(String searchTerm) {
         return tareaRepository.searchByTitleOrDescription(searchTerm);
     }
+    
+    /**
+     * Busca tareas por usuario y sprint
+     * 
+     * @param userId ID del usuario
+     * @param sprintId ID del sprint
+     * @return Lista de tareas asignadas al usuario en el sprint específico
+     */
+    public List<Tarea> getTareasByUsuarioAndSprint(int userId, int sprintId) {
+        return tareaRepository.findByUsuarioAndSprint(userId, sprintId);
+    }
 }

@@ -191,4 +191,16 @@ public class TareaController {
     public List<Tarea> searchTareas(@RequestParam("term") String searchTerm) {
         return tareaService.searchTareas(searchTerm);
     }
+    
+    /**
+     * BUSCAR TAREAS POR USUARIO Y SPRINT
+     * 
+     * Devuelve todas las tareas asignadas a un usuario específico en un sprint específico
+     * Endpoint: GET /tareas/usuario/{userId}/sprint/{sprintId}
+     */
+    //@CrossOrigin
+    @GetMapping(value = "/tareas/usuario/{userId}/sprint/{sprintId}")
+    public List<Tarea> getTareasByUsuarioAndSprint(@PathVariable int userId, @PathVariable int sprintId) {
+        return tareaService.getTareasByUsuarioAndSprint(userId, sprintId);
+    }
 }
