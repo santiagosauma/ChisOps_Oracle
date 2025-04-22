@@ -86,4 +86,14 @@ public interface TareaRepository extends JpaRepository<Tarea, Integer> {
      */
     @Query("SELECT t FROM Tarea t WHERE (LOWER(t.title) LIKE LOWER(CONCAT('%', :searchTerm, '%')) OR LOWER(t.description) LIKE LOWER(CONCAT('%', :searchTerm, '%'))) AND t.deleted = 0")
     List<Tarea> searchByTitleOrDescription(@Param("searchTerm") String searchTerm);
+
+    /**
+     * Busca tareas por usuario y sprint
+     * 
+     * userId ID del usuario
+     * sprintId ID del sprint
+     * return Lista de tareas asignadas al usuario en el sprint específico
+     */
+    @Query("SELECT t FROM Tarea t WHERE t.usuario.userId = :userId AND t.sprint.sprintId = :sprintId AND t.deleted = 0")
+    List<Tarea> findByUsuarioAndSprint(@Param("userId") int userId, @Param("sprintId") int sprintId);
 }
