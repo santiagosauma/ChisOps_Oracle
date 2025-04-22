@@ -43,13 +43,44 @@ export default function UserHome() {
   })
 
   const [currentUser, setCurrentUser] = useState(null)
-  const [userId, setUserId] = useState(1)
+  const [userId, setUserId] = useState(null)
 
   useEffect(() => {
-    setCurrentUser({ id: userId, name: "Current User" })
-  }, [userId])
+    try {
+      const userDataString = localStorage.getItem('user');
+      console.log("User data from localStorage:", userDataString);
+      
+      if (!userDataString) {
+        console.error("No user data found in localStorage");
+        setUserId(1);
+        setCurrentUser({ id: 1, name: "Default User" });
+        return;
+      }
+      
+      const userData = JSON.parse(userDataString);
+      console.log("Parsed user data:", userData);
+      
+      const id = userData.id || userData.userId || userData.usuarioId || userData.user_id || 1;
+      
+      setUserId(id);
+      setCurrentUser({
+        id: id,
+        name: userData.name || userData.firstName || userData.lastName || 
+              (userData.firstName && userData.lastName ? `${userData.firstName} ${userData.lastName}` : null) || 
+              userData.email || userData.username || "User"
+      });
+      
+      console.log("Set user ID to:", id);
+    } catch (error) {
+      console.error("Error parsing user data from localStorage:", error);
+      setUserId(1);
+      setCurrentUser({ id: 1, name: "Default User" });
+    }
+  }, []);
 
   useEffect(() => {
+    if (!userId) return;
+    
     setLoading(prev => ({ ...prev, projects: true }))
     
     fetch('/proyectos/activos')
@@ -73,9 +104,11 @@ export default function UserHome() {
         setError(prev => ({ ...prev, projects: err.message }))
         setLoading(prev => ({ ...prev, projects: false }))
       })
-  }, [])
+  }, [userId])
 
   const fetchProjectSprints = (projectId) => {
+    if (!userId) return;
+    
     fetch(`/sprints/proyecto/${projectId}`)
       .then(response => {
         if (!response.ok) {
@@ -135,7 +168,7 @@ export default function UserHome() {
             [projectId]: activeSprint
           }));
           
-          fetchTasksForSprint(activeSprint.sprintId);
+          fetchUserTasksForSprint(activeSprint.sprintId);
         }
       })
       .catch(err => {
@@ -395,49 +428,6 @@ export default function UserHome() {
       document.removeEventListener('click', handleClickOutside);
     };
   }, []);
-
-  useEffect(() => {
-    if (!userId) return
-    
-    setLoading(prev => ({ ...prev, tasks: true }))
-    
-    fetch(`/tareas/usuario/${userId}`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Error loading tasks')
-        }
-        return response.json()
-      })
-      .then(data => {
-        const processedTasks = data.map(task => ({
-          id: task.taskId,
-          name: task.title || task.name || task.nombre || task.descripcion || 'Untitled',
-          status: task.status || task.estado || 'Pending',
-          finishDate: task.endDate || task.fechaFin || task.dueDate || task.finishDate || 'No date',
-          priority: task.priority || task.prioridad || 'Normal'
-        }))
-        
-        setTasks(processedTasks)
-        
-        const { overdue, pending, completed } = calculateTaskStatistics(processedTasks);
-        
-        setOverdueTasks(overdue)
-        setPendingTasks(pending)
-        setCompletedTasks(completed)
-        
-        setLoading(prev => ({ ...prev, tasks: false }))
-      })
-      .catch(err => {
-        console.error('Error fetching tasks:', err)
-        setError(prev => ({ ...prev, tasks: err.message }))
-        setLoading(prev => ({ ...prev, tasks: false }))
-        
-        setTasks([])
-        setOverdueTasks(0)
-        setPendingTasks(0)
-        setCompletedTasks(0)
-      })
-  }, [userId])
 
   useEffect(() => {
     if (!tasks.length) {
