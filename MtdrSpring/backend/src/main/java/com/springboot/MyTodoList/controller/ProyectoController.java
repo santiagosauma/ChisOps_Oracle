@@ -2,13 +2,13 @@ package com.springboot.MyTodoList.controller;
 
 import com.springboot.MyTodoList.model.Proyecto;
 import com.springboot.MyTodoList.service.ProyectoService;
+import com.springboot.MyTodoList.model.Usuario;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
 
 /**
@@ -34,6 +34,25 @@ public class ProyectoController {
     @GetMapping(value = "/proyectos")
     public List<Proyecto> getAllProyectos() {
         return proyectoService.findAll();
+    }
+
+
+    /**
+     * OBTENER USUARIOS POR PROYECTO
+     * 
+     * Devuelve todos los usuarios asociados a un proyecto específico a través de sus tareas en los sprints
+     * Endpoint: GET /proyectos/{proyectoId}/usuarios
+     */
+    @GetMapping(value = "/proyectos/{proyectoId}/usuarios")
+    public ResponseEntity<?> getUsuariosByProyecto(@PathVariable int proyectoId) {
+        try {
+            List<Usuario> usuarios = proyectoService.getUsuariosByProyecto(proyectoId);
+            return new ResponseEntity<>(usuarios, HttpStatus.OK);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error al obtener usuarios del proyecto", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
     
     /**

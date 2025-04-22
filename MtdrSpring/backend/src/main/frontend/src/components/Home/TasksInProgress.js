@@ -43,16 +43,6 @@ function TasksInProgress() {
       width: '100%',
       height: '100%'
     }}>
-      <div style={{
-        fontSize: '12px',
-        marginBottom: '8px',
-        paddingBottom: '8px',
-        borderBottom: '1px solid #000',
-        lineHeight: '16px',
-        wordBreak: 'break-word'
-      }}>
-        Tasks in progress
-      </div>
       {error && <p>Error: {error.message}</p>}
       {isLoading && <p>Loading...</p>}
       {!isLoading && tasks.length > 0 && (
