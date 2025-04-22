@@ -6,7 +6,7 @@ import ManageTasks from './ManageTasks';
 import Projects from './pages/Projects';
 import Login from './pages/Login';
 import Register from './pages/Register';
-
+ 
 function App() {
   const [page, setPage] = useState('Home');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
