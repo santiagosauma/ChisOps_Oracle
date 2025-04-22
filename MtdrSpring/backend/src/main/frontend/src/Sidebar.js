@@ -34,10 +34,18 @@ function Sidebar({ currentPage, onNav, userRole, onLogout }) {
     }
   };
 
-  const items = [
-    { name: 'Home', iconExpanded: homeBlue, iconCollapsed: homeWhite },
-    { name: 'Projects', iconExpanded: folderBlue, iconCollapsed: folderWhite, navigateTo: 'ProjectsTrue' }
-  ];
+  let items = [];
+  
+  if (userRole === 'user') {
+    items = [
+      { name: 'Home', iconExpanded: homeBlue, iconCollapsed: homeWhite, navigateTo: 'UserHome' }
+    ];
+  } else {
+    items = [
+      { name: 'Home', iconExpanded: homeBlue, iconCollapsed: homeWhite },
+      { name: 'Projects', iconExpanded: folderBlue, iconCollapsed: folderWhite, navigateTo: 'ProjectsTrue' }
+    ];
+  }
 
   return (
     <div
