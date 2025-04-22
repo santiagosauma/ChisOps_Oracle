@@ -4,12 +4,16 @@ import { useState, useEffect } from "react"
 import "../styles/UserHome.css"
 import dropdownIcon from '../resources/dropdown.png';
 import dropupIcon from '../resources/dropup.png';
+import pencilIcon from '../resources/pencil.png';
 
 export default function UserHome() {
   const [currentMonth, setCurrentMonth] = useState(2)
   const months = ["January", "February", "March", "April", "May", "June"]
   
   const [projects, setProjects] = useState([])
+  const [projectSprints, setProjectSprints] = useState({}) // Map of projectId -> sprints array
+  const [selectedSprintByProject, setSelectedSprintByProject] = useState({}) // Map of projectId -> selected sprint
+  const [showSprintDropdown, setShowSprintDropdown] = useState({}) // Map of projectId -> dropdown visibility
   const [tasks, setTasks] = useState([])
   const [filteredTasks, setFilteredTasks] = useState([])
   const [overdueTasks, setOverdueTasks] = useState(0)
@@ -55,6 +59,12 @@ export default function UserHome() {
       })
       .then(data => {
         setProjects(data)
+        
+        // For each project, fetch its sprints
+        data.forEach(project => {
+          fetchProjectSprints(project.projectId);
+        });
+        
         setLoading(prev => ({ ...prev, projects: false }))
       })
       .catch(err => {
@@ -63,6 +73,260 @@ export default function UserHome() {
         setLoading(prev => ({ ...prev, projects: false }))
       })
   }, [])
+
+  const fetchProjectSprints = (projectId) => {
+    fetch(`/sprints/proyecto/${projectId}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(`Error loading sprints for project ${projectId}`)
+        }
+        return response.json()
+      })
+      .then(sprints => {
+        console.log(`Received ${sprints.length} sprints for project ${projectId}:`, sprints);
+        
+        if (sprints.length === 0) {
+          console.log("No sprints available for this project");
+          return;
+        }
+        
+        const currentDate = new Date();
+        console.log("Current date:", currentDate);
+        
+        // Try to find a sprint where today's date falls between start and end dates
+        let activeSprint = null;
+        
+        for (const sprint of sprints) {
+          // Ensure we're working with date objects
+          const startDate = new Date(sprint.startDate);
+          const endDate = new Date(sprint.endDate);
+          
+          console.log(`Sprint ${sprint.name} - startDate: ${startDate}, endDate: ${endDate}`);
+          
+          // Check if current date is between start and end dates
+          if (currentDate >= startDate && currentDate <= endDate) {
+            console.log(`Found active sprint by date: ${sprint.name}`);
+            activeSprint = sprint;
+            break;
+          }
+        }
+        
+        // If no sprint is active by date, try to find one with status='active'
+        if (!activeSprint) {
+          activeSprint = sprints.find(sprint => 
+            sprint.status && sprint.status.toLowerCase() === 'active'
+          );
+          
+          if (activeSprint) {
+            console.log(`Found active sprint by status: ${activeSprint.name}`);
+          }
+        }
+        
+        // If still no active sprint, use the first one
+        if (!activeSprint && sprints.length > 0) {
+          activeSprint = sprints[0];
+          console.log(`Using first sprint as active: ${activeSprint.name}`);
+        }
+        
+        // Store all sprints for this project
+        setProjectSprints(prev => ({
+          ...prev,
+          [projectId]: sprints
+        }));
+        
+        // Set the selected sprint
+        if (activeSprint) {
+          setSelectedSprintByProject(prev => ({
+            ...prev,
+            [projectId]: activeSprint
+          }));
+          
+          // Fetch tasks for the selected sprint when it's initially set
+          fetchTasksForSprint(activeSprint.sprintId);
+        }
+      })
+      .catch(err => {
+        console.error(`Error fetching sprints for project ${projectId}:`, err);
+      });
+  };
+
+  const handleSprintChange = (projectId, sprint) => {
+    setSelectedSprintByProject(prev => ({
+      ...prev,
+      [projectId]: sprint
+    }));
+    
+    // Close the dropdown
+    toggleSprintDropdown(projectId);
+    
+    // If "All Sprints" is selected, fetch tasks for all sprints in the project
+    if (sprint.isAllSprints) {
+      fetchTasksForProject(projectId);
+    } else {
+      // Otherwise fetch tasks for the specific sprint
+      fetchTasksForSprint(sprint.sprintId);
+    }
+  };
+
+  // New function to fetch tasks for all sprints in a project
+  const fetchTasksForProject = (projectId) => {
+    setLoading(prev => ({ ...prev, tasks: true }));
+    
+    // Get all sprint IDs for this project
+    const sprints = projectSprints[projectId] || [];
+    const sprintIds = sprints.map(sprint => sprint.sprintId);
+    
+    if (sprintIds.length === 0) {
+      setTasks([]);
+      setOverdueTasks(0);
+      setPendingTasks(0);
+      setCompletedTasks(0);
+      setLoading(prev => ({ ...prev, tasks: false }));
+      return;
+    }
+    
+    // Create an array of promises for fetching tasks from each sprint
+    const fetchPromises = sprintIds.map(sprintId => 
+      fetch(`/tareas/sprint/${sprintId}`)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error(`Error loading tasks for sprint ${sprintId}`);
+          }
+          return response.json();
+        })
+    );
+    
+    // Wait for all fetch operations to complete
+    Promise.all(fetchPromises)
+      .then(resultsArray => {
+        // Flatten the array of arrays
+        const allTasks = resultsArray.flat();
+        
+        // Process the tasks
+        const processedTasks = allTasks.map(task => ({
+          id: task.taskId,
+          name: task.title || task.name || task.nombre || task.descripcion || 'Untitled',
+          status: task.status || task.estado || 'Pending',
+          finishDate: task.endDate || task.fechaFin || task.dueDate || task.finishDate || 'No date',
+          priority: task.priority || task.prioridad || 'Normal'
+        }));
+        
+        setTasks(processedTasks);
+        
+        // Update task counts
+        const overdue = processedTasks.filter(task => 
+          (new Date(task.finishDate) < new Date() && task.status !== 'Done' && task.status !== 'Completado')
+        ).length;
+        
+        const pending = processedTasks.filter(task => 
+          (task.status === 'Pending' || task.status === 'En progreso' || task.status === 'Pendiente')
+        ).length;
+        
+        const completed = processedTasks.filter(task => 
+          (task.status === 'Done' || task.status === 'Completado' || task.status === 'Finalizado')
+        ).length;
+        
+        setOverdueTasks(overdue);
+        setPendingTasks(pending);
+        setCompletedTasks(completed);
+        
+        setLoading(prev => ({ ...prev, tasks: false }));
+      })
+      .catch(err => {
+        console.error('Error fetching tasks for project:', err);
+        setError(prev => ({ ...prev, tasks: err.message }));
+        setLoading(prev => ({ ...prev, tasks: false }));
+        setTasks([]);
+        setOverdueTasks(0);
+        setPendingTasks(0);
+        setCompletedTasks(0);
+      });
+  };
+
+  const fetchTasksForSprint = (sprintId) => {
+    setLoading(prev => ({ ...prev, tasks: true }));
+    
+    fetch(`/tareas/sprint/${sprintId}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Error loading tasks for sprint');
+        }
+        return response.json();
+      })
+      .then(data => {
+        const processedTasks = data.map(task => ({
+          id: task.taskId,
+          name: task.title || task.name || task.nombre || task.descripcion || 'Untitled',
+          status: task.status || task.estado || 'Pending',
+          finishDate: task.endDate || task.fechaFin || task.dueDate || task.finishDate || 'No date',
+          priority: task.priority || task.prioridad || 'Normal'
+        }));
+        
+        setTasks(processedTasks);
+        
+        // Update task counts
+        const overdue = processedTasks.filter(task => 
+          (new Date(task.finishDate) < new Date() && task.status !== 'Done' && task.status !== 'Completado')
+        ).length;
+        
+        const pending = processedTasks.filter(task => 
+          (task.status === 'Pending' || task.status === 'En progreso' || task.status === 'Pendiente')
+        ).length;
+        
+        const completed = processedTasks.filter(task => 
+          (task.status === 'Done' || task.status === 'Completado' || task.status === 'Finalizado')
+        ).length;
+        
+        setOverdueTasks(overdue);
+        setPendingTasks(pending);
+        setCompletedTasks(completed);
+        
+        setLoading(prev => ({ ...prev, tasks: false }));
+      })
+      .catch(err => {
+        console.error('Error fetching tasks for sprint:', err);
+        setError(prev => ({ ...prev, tasks: err.message }));
+        setLoading(prev => ({ ...prev, tasks: false }));
+      });
+  };
+
+  // Store reference to clicked element for positioning dropdowns
+  const [dropdownPosition, setDropdownPosition] = useState({});
+
+  const toggleSprintDropdown = (projectId, event) => {
+    if (event) {
+      event.stopPropagation();
+      const rect = event.currentTarget.getBoundingClientRect();
+      setDropdownPosition({
+        top: rect.bottom + window.scrollY + 5, // Position below the element with a small offset
+        left: rect.left + window.scrollX,
+        width: rect.width
+      });
+    }
+    
+    setShowSprintDropdown(prev => {
+      // Close all dropdowns first
+      const newState = {};
+      Object.keys(prev).forEach(key => {
+        newState[key] = false;
+      });
+      // Then toggle the current one
+      newState[projectId] = !prev[projectId];
+      return newState;
+    });
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => {
+      setShowSprintDropdown({});
+    };
+    
+    document.addEventListener('click', handleClickOutside);
+    return () => {
+      document.removeEventListener('click', handleClickOutside);
+    };
+  }, []);
 
   useEffect(() => {
     if (!userId) return
@@ -110,20 +374,10 @@ export default function UserHome() {
         setError(prev => ({ ...prev, tasks: err.message }))
         setLoading(prev => ({ ...prev, tasks: false }))
         
-        const exampleTasks = [
-          { id: 1, name: "Bug in set function", status: "Done", finishDate: "2023-12-01", priority: "High" },
-          { id: 2, name: "Fix login screen", status: "Done", finishDate: "2023-12-05", priority: "High" },
-          { id: 3, name: "Implement search", status: "Done", finishDate: "2023-12-10", priority: "Medium" },
-          { id: 4, name: "Update dependencies", status: "Done", finishDate: "2023-12-15", priority: "Low" },
-          { id: 5, name: "UI adjustments for mobile", status: "Pending", finishDate: "2023-12-20", priority: "High" },
-          { id: 6, name: "Database migration", status: "Pending", finishDate: "2023-12-25", priority: "High" },
-          { id: 7, name: "Documentation", status: "Pending", finishDate: "2023-12-30", priority: "Medium" },
-        ]
-        
-        setTasks(exampleTasks)
-        setOverdueTasks(3)
-        setPendingTasks(32)
-        setCompletedTasks(10)
+        setTasks([])
+        setOverdueTasks(0)
+        setPendingTasks(0)
+        setCompletedTasks(0)
       })
   }, [userId])
 
@@ -285,13 +539,65 @@ export default function UserHome() {
                               <tr key={project.projectId || index} className="table-row">
                                 <td className="table-cell">{project.name || project.nombre || 'Unnamed'}</td>
                                 <td className="table-cell">
-                                  {project.fechaFin ? new Date(project.fechaFin).toLocaleDateString() : 'No date'}
+                                  {project.endDate ? new Date(project.endDate).toLocaleDateString() : 'No date'}
                                 </td>
                                 <td className="table-cell">
-                                  <div className="sprint-selector">
-                                    <span>{project.sprint || 'Sprint 1'}</span>
+                                  <div 
+                                    className="sprint-selector" 
+                                    onClick={(event) => toggleSprintDropdown(project.projectId, event)}
+                                  >
+                                    <span>
+                                      {selectedSprintByProject[project.projectId]?.name || 'No Sprint'}
+                                    </span>
                                     <span className="dropdown-indicator">▼</span>
                                   </div>
+                                  
+                                  {/* Render dropdown outside of the component hierarchy */}
+                                  {showSprintDropdown[project.projectId] && projectSprints[project.projectId]?.length > 0 && (
+                                    <div 
+                                      className="sprint-dropdown" 
+                                      style={{
+                                        position: 'fixed',
+                                        top: `${dropdownPosition.top}px`,
+                                        left: `${dropdownPosition.left}px`,
+                                        width: `${dropdownPosition.width}px`,
+                                        maxHeight: '250px',
+                                        overflowY: 'auto',
+                                        zIndex: 9999
+                                      }}
+                                      onClick={(e) => e.stopPropagation()} // Prevent closing when clicking inside dropdown
+                                    >
+                                      {/* Add "All Sprints" option at the top */}
+                                      <div 
+                                        key="all-sprints" 
+                                        className={`sprint-option ${selectedSprintByProject[project.projectId]?.isAllSprints ? 'selected' : ''}`}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleSprintChange(project.projectId, { 
+                                            name: "All Sprints", 
+                                            isAllSprints: true,
+                                            projectId: project.projectId
+                                          });
+                                        }}
+                                      >
+                                        All Sprints
+                                      </div>
+                                      
+                                      {/* Regular sprint options */}
+                                      {projectSprints[project.projectId].map(sprint => (
+                                        <div 
+                                          key={sprint.sprintId} 
+                                          className={`sprint-option ${selectedSprintByProject[project.projectId]?.sprintId === sprint.sprintId ? 'selected' : ''}`}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleSprintChange(project.projectId, sprint);
+                                          }}
+                                        >
+                                          {sprint.name}
+                                        </div>
+                                      ))}
+                                    </div>
+                                  )}
                                 </td>
                                 <td className="table-cell">
                                   {project.usuario ? 
@@ -545,9 +851,9 @@ export default function UserHome() {
                                     {typeof task.finishDate === 'string' ? task.finishDate : 'No date'}
                                   </td>
                                   <td className="table-cell">{task.priority}</td>
-                                  <td className="table-cell text-right">
+                                  <td className="table-cell action-cell">
                                     <button className="edit-button">
-                                      <span className="edit-icon">✎</span>
+                                      <img src={pencilIcon} alt="Edit" className="edit-icon" />
                                     </button>
                                   </td>
                                 </tr>
@@ -569,9 +875,9 @@ export default function UserHome() {
                                     {typeof task.finishDate === 'string' ? task.finishDate : 'No date'}
                                   </td>
                                   <td className="table-cell">{task.priority}</td>
-                                  <td className="table-cell text-right">
+                                  <td className="table-cell action-cell">
                                     <button className="edit-button">
-                                      <span className="edit-icon">✎</span>
+                                      <img src={pencilIcon} alt="Edit" className="edit-icon" />
                                     </button>
                                   </td>
                                 </tr>
