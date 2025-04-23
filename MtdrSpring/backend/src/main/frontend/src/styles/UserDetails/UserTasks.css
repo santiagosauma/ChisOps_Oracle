@@ -1,0 +1,187 @@
+.user-tasks {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  
+  .user-tasks-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+  
+  .user-tasks-header h2 {
+    font-size: 16px;
+    margin: 0;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .add-task-btn {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 12px;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 12px;
+  }
+  
+  .add-task-btn:hover {
+    background-color: #2980b9;
+  }
+  
+  .tasks-table {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  
+  .table-header {
+    display: flex;
+    background-color: #f8f9fa;
+    padding: 10px 5px;
+    font-weight: 600;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 13px;
+    color: #34495e;
+  }
+  
+  .header-cell {
+    position: relative;
+    cursor: pointer;
+  }
+  
+  .header-cell:hover {
+    background-color: #e9ecef;
+  }
+  
+  .sort-icon {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    margin-left: 5px;
+    vertical-align: middle;
+  }
+  
+  .header-cell.sorted-asc .sort-icon {
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-bottom: 4px solid #7f8c8d;
+  }
+  
+  .header-cell.sorted-desc .sort-icon {
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 4px solid #7f8c8d;
+  }
+  
+  .table-body {
+    flex: 1;
+    overflow-y: auto;
+  }
+  
+  .table-row {
+    display: flex;
+    border-bottom: 1px solid #f0f0f0;
+    padding: 8px 5px;
+  }
+  
+  .header-cell, .cell {
+    padding: 0 5px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 13px;
+  }
+  
+  .header-cell.id, .cell.id {
+    flex: 3;
+    min-width: 150px;
+  }
+  
+  .header-cell.status, .cell.status,
+  .header-cell.priority, .cell.priority {
+    flex: 1;
+    min-width: 80px;
+    justify-content: center;
+  }
+  
+  .header-cell.date, .cell.date {
+    flex: 1;
+    min-width: 80px;
+    justify-content: center;
+  }
+  
+  .header-cell.hours, .cell.hours {
+    flex: 1;
+    min-width: 70px;
+    justify-content: center;
+  }
+  
+  .status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    text-align: center;
+    display: inline-block;
+    width: 80px;
+  }
+  
+  .status-badge.completed {
+    background-color: #d5f5e3;
+    color: #27ae60;
+  }
+  
+  .status-badge.doing {
+    background-color: #ebf5fb;
+    color: #3498db;
+  }
+  
+  .status-badge.overdue {
+    background-color: #fadbd8;
+    color: #e74c3c;
+  }
+  
+  .priority-badge {
+    padding: 3px 6px;
+    border-radius: 3px;
+    font-size: 11px;
+    font-weight: 500;
+    width: 60px;
+    text-align: center;
+    display: inline-block;
+  }
+  
+  .priority-badge.high {
+    background-color: #fadbd8;
+    color: #c0392b;
+  }
+  
+  .priority-badge.medium {
+    background-color: #fef9e7;
+    color: #d35400;
+  }
+  
+  .priority-badge.low {
+    background-color: #eaecee;
+    color: #7f8c8d;
+  }
+  
+  @media (max-width: 992px) {
+    .header-cell.hours, .cell.hours {
+      display: none;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .header-cell.date, .cell.date {
+      display: none;
+    }
+  }

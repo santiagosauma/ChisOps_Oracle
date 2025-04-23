@@ -1,0 +1,164 @@
+//UserDetails.jsx
+import React, { useState, useEffect } from 'react';
+import '../styles/UserDetails.css';
+import UserHeader from '../components/UserDetails/UserHeader';
+import UserInformation from '../components/UserDetails/UserInformation';
+import UserStatistics from '../components/UserDetails/UserStatistics';
+import UserProjectHistory from '../components/UserDetails/UserProjectHistory';
+import UserTasks from '../components/UserDetails/UserTasks';
+import UserPerformance from '../components/UserDetails/UserPerformance';
+import Loader from '../components/Loader';
+
+function UserDetails({ userId: propUserId, onBack }) {
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedProject, setSelectedProject] = useState(null);
+
+  useEffect(() => {
+    if (!propUserId) return;
+    
+    const loadUserData = async () => {
+      try {
+        setLoading(true);
+        
+        // In a real implementation, you would fetch this data from your API
+        // const userResponse = await fetch(`/usuarios/${propUserId}`);
+        // if (!userResponse.ok) throw new Error('Error fetching user');
+        // const userFull = await userResponse.json();
+        
+        // For now, using dummy data
+        setTimeout(() => {
+          const dummyUserData = {
+            userId: propUserId || "user1",
+            firstName: "Isaac",
+            lastName: "Rojas",
+            email: "isaacrojas@costco.com",
+            telephone: "(+52) 8181818181",
+            telegram: "IsaacRojas",
+            role: "Developer",
+            joinDate: "2020-01-01",
+            status: "Active",
+            projectHistory: [
+              { id: 1, name: "Fixed Class", startDate: "2020-01-01", endDate: "2020-01-01", status: "Cancelled" },
+              { id: 2, name: "Testing", startDate: "2020-01-02", endDate: "2020-01-02", status: "On Hold" },
+              { id: 3, name: "Proyecto 3", startDate: "2020-01-03", endDate: "2020-01-03", status: "Completed" },
+              { id: 4, name: "Proyecto 4", startDate: "2020-01-03", endDate: "2020-01-03", status: "In Review" },
+              { id: 5, name: "Proyecto 5", startDate: "2020-01-01", endDate: "2020-01-01", status: "In Progress" },
+              { id: 6, name: "Proyecto 6", startDate: "2020-01-02", endDate: "2020-01-02", status: "In Review" }
+            ],
+            tasks: [
+              { id: "01", name: "Bug in Set Function", status: "Completed", priority: "High", startDate: "01/12/24", dueDate: "01/12/24", estimatedHour: 4, realHours: 4 },
+              { id: "02", name: "Bug in Set Function", status: "Doing", priority: "Medium", startDate: "15/03/25", dueDate: "15/03/25", estimatedHour: 10, realHours: "-" },
+              { id: "03", name: "Bug in Set Function", status: "Overdue", priority: "Low", startDate: "01/12/24", dueDate: "01/12/24", estimatedHour: 15, realHours: 10 },
+              { id: "04", name: "Bug in Set Function", status: "Completed", priority: "High", startDate: "15/03/25", dueDate: "15/03/25", estimatedHour: 20, realHours: "-" },
+              { id: "05", name: "Bug in Set Function", status: "Doing", priority: "Medium", startDate: "15/03/25", dueDate: "15/03/25", estimatedHour: 3, realHours: "-" },
+              { id: "06", name: "Bug in Set Function", status: "Overdue", priority: "Low", startDate: "01/12/24", dueDate: "01/12/24", estimatedHour: 8, realHours: 7 }
+            ],
+            taskStatistics: {
+              overdue: 3,
+              pending: 32,
+              completed: 10
+            },
+            performanceData: {
+              assignedVsCompleted: [
+                { sprint: "Sprint 1", completed: 2, assigned: 18 },
+                { sprint: "Sprint 2", completed: 7, assigned: 3 },
+                { sprint: "Sprint 3", completed: 4, assigned: 8 },
+                { sprint: "Sprint 4", completed: 9, assigned: 15 }
+              ],
+              hoursData: [
+                { sprint: "Sprint 1", estimated: 2, real: 18 },
+                { sprint: "Sprint 2", estimated: 7, real: 3 },
+                { sprint: "Sprint 3", estimated: 4, real: 8 },
+                { sprint: "Sprint 4", estimated: 9, real: 15 }
+              ]
+            }
+          };
+          
+          setUserData(dummyUserData);
+          setSelectedProject(dummyUserData.projectHistory[0]?.id || null);
+          setLoading(false);
+        }, 1000); // Simulate network delay
+        
+      } catch (err) {
+        console.error('Error loading user data:', err);
+        setError(err.message);
+        setLoading(false);
+      }
+    };
+    
+    loadUserData();
+  }, [propUserId]);
+
+  const handleProjectChange = (projectId) => {
+    setSelectedProject(projectId);
+  };
+
+  if (loading && !userData) {
+    return (
+      <div className="loading-container">
+        <Loader />
+      </div>
+    );
+  }
+
+  if (error) {
+    return <div className="error">Error: {error}</div>;
+  }
+
+  if (!userData) {
+    return <div className="no-data">No user data available</div>;
+  }
+
+  return (
+    <div className="user-details-wrapper">
+      <UserHeader 
+        userName={`${userData.firstName} ${userData.lastName}`}
+        role={userData.role}
+        onBack={onBack}
+      />
+
+      <div className="user-details-container">
+        {loading && <div className="loading-overlay">Loading data...</div>}
+        
+        <div className="user-details-grid">
+          <div className="user-left-col">
+            <div className="user-information-container">
+              <UserInformation 
+                email={userData.email}
+                telephone={userData.telephone}
+                telegram={userData.telegram}
+                joinDate={userData.joinDate}
+                status={userData.status}
+              />
+            </div>
+            <div className="user-statistics-container">
+              <UserStatistics taskStats={userData.taskStatistics} />
+            </div>
+            <div className="user-project-history-container">
+              <UserProjectHistory 
+                projects={userData.projectHistory} 
+                selectedProject={selectedProject}
+                onProjectChange={handleProjectChange}
+              />
+            </div>
+          </div>
+          <div className="user-right-col">
+            <div className="user-tasks-container">
+              <UserTasks tasks={userData.tasks} />
+            </div>
+            <div className="user-performance-container">
+              <UserPerformance 
+                assignedVsCompleted={userData.performanceData.assignedVsCompleted} 
+                hoursData={userData.performanceData.hoursData} 
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default UserDetails;

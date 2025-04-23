@@ -1,0 +1,64 @@
+.user-statistics {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 100%;
+  }
+  
+  .stats-card {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 15px;
+    border-radius: 6px;
+    margin: 0 5px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  }
+  
+  .stats-number {
+    font-size: 38px;
+    font-weight: 600;
+    margin-bottom: 5px;
+  }
+  
+  .stats-label {
+    font-size: 12px;
+    color: #7f8c8d;
+    text-align: center;
+  }
+  
+  .stats-card.overdue {
+    background-color: #fdedec;
+  }
+  
+  .stats-card.overdue .stats-number {
+    color: #e74c3c;
+  }
+  
+  .stats-card.pending {
+    background-color: #eaecee;
+  }
+  
+  .stats-card.pending .stats-number {
+    color: #34495e;
+  }
+  
+  .stats-card.completed {
+    background-color: #e9f7ef;
+  }
+  
+  .stats-card.completed .stats-number {
+    color: #27ae60;
+  }
+  
+  @media (max-width: 480px) {
+    .stats-number {
+      font-size: 24px;
+    }
+    
+    .stats-label {
+      font-size: 10px;
+    }
+  }
