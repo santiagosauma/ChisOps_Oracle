@@ -1,6 +1,5 @@
 import React from 'react';
 import '../../styles/UserDetails/UserHeader.css';
-import '../../styles/UserDetails/'
 
 function UserHeader({ userName, role, onBack }) {
   return (

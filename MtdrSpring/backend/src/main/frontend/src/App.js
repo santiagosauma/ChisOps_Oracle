@@ -9,6 +9,8 @@ import Register from './pages/Register';
 import UserHome from './pages/UserHome';
 import ProjectDetails from './pages/ProjectDetails';
 
+import UsageExample from './pages/UsageExample';
+
 
 function App() {
   // al principio no mostramos nada hasta validar sesión
@@ -17,6 +19,36 @@ function App() {
   const [authMode, setAuthMode] = useState('login');
   const [userRole, setUserRole] = useState(null);
   const [selectedProjectId, setSelectedProjectId] = useState(null);
+
+
+  // BORRAR DESPUÉS DE PROBAR: Forzar modo de prueba sin login real
+  useEffect(() => {
+    // Comentar esta línea cuando termines de probar
+    setIsLoggedIn(true); // BORRAR DESPUÉS DE PROBAR
+    setUserRole('admin'); // BORRAR DESPUÉS DE PROBAR
+    setPage('UserDetails'); // BORRAR DESPUÉS DE PROBAR
+
+    // Descomentar la siguiente sección original después de probar
+    /*
+    const saved = localStorage.getItem('user');
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        if (data?.rol) {
+          const r = data.rol.toLowerCase();
+          setIsLoggedIn(true);
+          setUserRole(r);
+          // directamente definimos la página en base al rol
+          setPage(r === 'user' ? 'UserHome' : 'Home');
+        } else {
+          localStorage.removeItem('user');
+        }
+      } catch {
+        localStorage.removeItem('user');
+      }
+    }
+    */
+  }, []);
 
 
   useEffect(() => {
@@ -66,11 +98,14 @@ function App() {
   };
 
   const checkSession = () => {
+
+    /*
     const savedUser = localStorage.getItem('user');
     if (!savedUser) {
       handleLogout();
       return false;
     }
+      */
     return true;
   };
 
@@ -90,13 +125,23 @@ function App() {
     return <Component {...props} />;
   };
 
+    // Comentar esta sección cuando termines de probar
+    if (!isLoggedIn && page !== 'UserDetails') { // BORRAR DESPUÉS DE PROBAR
+      if (authMode === 'login') {
+        return <Login onLogin={handleLogin} toggleAuthMode={toggleAuthMode} />;
+      } else {
+        return <Register onLogin={handleLogin} toggleAuthMode={toggleAuthMode} />;
+      }
+    }
+/*  
+
   if (!isLoggedIn) {
     if (authMode === 'login') {
       return <Login onLogin={handleLogin} toggleAuthMode={toggleAuthMode} />;
     } else {
       return <Register onLogin={handleLogin} toggleAuthMode={toggleAuthMode} />;
     }
-  }
+  }*/
 
   return (
     <div style={{ display: 'flex' }}>
@@ -117,6 +162,8 @@ function App() {
           projectId: selectedProjectId,
           onBack: handleBackToProjects
         })}
+         {/* BORRAR DESPUÉS DE PROBAR: Añadido para probar el componente UserDetails */}
+         {page === 'UserDetails' && <UsageExample />}
       </div>
     </div>
   );
