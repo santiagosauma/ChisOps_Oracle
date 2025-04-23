@@ -121,6 +121,11 @@ export default function UserHome() {
         
         if (sprints.length === 0) {
           console.log("No sprints available for this project");
+          setProjects(prevProjects => {
+            return prevProjects.map(p => 
+              p.projectId === projectId ? {...p, progress: 0} : p
+            );
+          });
           return;
         }
         
@@ -168,11 +173,62 @@ export default function UserHome() {
             [projectId]: activeSprint
           }));
           
+          calculateProjectProgress(projectId, sprints);
+          
           fetchUserTasksForSprint(activeSprint.sprintId);
         }
       })
       .catch(err => {
         console.error(`Error fetching sprints for project ${projectId}:`, err);
+      });
+  };
+
+  const calculateProjectProgress = (projectId, sprints) => {
+    if (!sprints || sprints.length === 0) {
+      setProjects(prevProjects => {
+        return prevProjects.map(p => 
+          p.projectId === projectId ? {...p, progress: 0} : p
+        );
+      });
+      return;
+    }
+
+    const sprintIds = sprints.map(sprint => sprint.sprintId);
+    const fetchPromises = sprintIds.map(sprintId => 
+      fetch(`/tareas/sprint/${sprintId}`)
+        .then(response => response.ok ? response.json() : [])
+    );
+    
+    Promise.all(fetchPromises)
+      .then(sprintTasksArray => {
+        const allTasks = sprintTasksArray.flat();
+        
+        if (allTasks.length === 0) {
+          setProjects(prevProjects => {
+            return prevProjects.map(p => 
+              p.projectId === projectId ? {...p, progress: 0} : p
+            );
+          });
+          return;
+        }
+        
+        const completedTasks = allTasks.filter(task => 
+          task.status === 'Done' || 
+          task.status === 'Completado' || 
+          task.status === 'Finalizado'
+        ).length;
+        
+        const progress = Math.round((completedTasks / allTasks.length) * 100);
+        console.log(`Project ${projectId} progress: ${progress}% (${completedTasks}/${allTasks.length} tasks)`);
+        
+        setProjects(prevProjects => {
+          return prevProjects.map(p => 
+            p.projectId === projectId ? {...p, progress, taskCount: allTasks.length, completedCount: completedTasks} : p
+          );
+        });
+      })
+      .catch(err => {
+        console.error(`Error calculating progress for project ${projectId}:`, err);
       });
   };
 
