@@ -7,16 +7,23 @@ function CompletedTasksProject() {
 
   useEffect(() => {
     setLoading(true)
-    fetch('/tareas/estado/Completado')
+    console.log("CompletedTasksProject: Fetching all tasks...")
+    
+    fetch('/tareas')
       .then(response => {
         if (!response.ok) {
-          throw new Error('Something went wrong')
+          throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`)
         }
         return response.json()
       })
       .then(data => {
+        console.log("CompletedTasksProject data:", data)
+        
+        const completedTasks = data.filter(t => t.status === 'Done')
+        console.log("Filtered completed tasks:", completedTasks)
+        
         const map = {}
-        data.forEach(t => {
+        completedTasks.forEach(t => {
           const sprint = t.sprint
           if (sprint && sprint.proyecto) {
             const project = sprint.proyecto
@@ -26,15 +33,19 @@ function CompletedTasksProject() {
             map[project.projectId].count++
           }
         })
+        
         const result = Object.entries(map).map(([projectId, val]) => ({
           projectId,
           projectName: val.name,
           count: val.count
         }))
+        
+        console.log("CompletedTasksProject results:", result)
         setCounts(result)
         setLoading(false)
       })
       .catch(err => {
+        console.error("Error in CompletedTasksProject:", err)
         setError(err)
         setLoading(false)
       })
@@ -44,7 +55,6 @@ function CompletedTasksProject() {
 
   return (
     <div style={{ width: '100%', height: '100%' }}>
-      {/* NO TITLE HERE - Title is in the parent component */}
       {error && <p>Error: {error.message}</p>}
       {isLoading && <p>Loading...</p>}
       {!isLoading && counts.length > 0 && (

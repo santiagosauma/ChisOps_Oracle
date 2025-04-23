@@ -7,7 +7,7 @@ function TasksInProgress() {
 
   useEffect(() => {
     setLoading(true)
-    fetch('/tareas/estado/En%20Progreso')
+    fetch('/tareas/estado/In%20Progress')
       .then(response => {
         if (!response.ok) {
           throw new Error('Something went wrong')
@@ -29,13 +29,6 @@ function TasksInProgress() {
     return user.firstName.charAt(0) + '. ' + user.lastName
   }
 
-  function getProjectName(t) {
-    if (t.sprint && t.sprint.proyecto) {
-      return t.sprint.proyecto.name
-    }
-    return ''
-  }
-
   return (
     <div style={{
       display: 'flex',
@@ -53,7 +46,6 @@ function TasksInProgress() {
                 <th style={{ padding: '8px' }}>Task</th>
                 <th style={{ padding: '8px' }}>Due Date</th>
                 <th style={{ padding: '8px' }}>User Assigned</th>
-                <th style={{ padding: '8px' }}>Project</th>
               </tr>
             </thead>
             <tbody>
@@ -64,9 +56,6 @@ function TasksInProgress() {
                     {new Date(t.endDate).toLocaleDateString()}
                   </td>
                   <td style={{ padding: '8px' }}>{formatUserName(t.usuario)}</td>
-                  <td style={{ padding: '8px', wordBreak: 'break-word' }}>
-                    {getProjectName(t)}
-                  </td>
                 </tr>
               ))}
             </tbody>

@@ -7,7 +7,7 @@ function TicketsByPriority() {
 
   useEffect(() => {
     setLoading(true)
-    fetch('/tareas/estado/Pendiente')
+    fetch('/tareas/estado/Incomplete')
       .then(response => {
         if (!response.ok) {
           throw new Error('Something went wrong')
@@ -19,9 +19,9 @@ function TicketsByPriority() {
         let medium = 0
         let low = 0
         data.forEach(t => {
-          if (t.priority === 'Alta') high++
-          else if (t.priority === 'Media') medium++
-          else if (t.priority === 'Baja') low++
+          if (t.priority === 'High') high++
+          else if (t.priority === 'Medium') medium++
+          else if (t.priority === 'Low') low++
         })
         setCounts({ High: high, Medium: medium, Low: low })
         setLoading(false)

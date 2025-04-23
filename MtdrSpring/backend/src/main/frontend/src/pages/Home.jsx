@@ -31,7 +31,7 @@ function Home() {
               </div>
             </div>
             <div className="completed_projects">
-              <h2>Completed Tasks (Project)</h2>
+              <h2>Completed Tasks by Project</h2>
               <div className="content_wrapper">
                 <CompletedTasksProject />
               </div>
@@ -40,7 +40,7 @@ function Home() {
           <div className="right_col">
             <div className="top_right">
               <div className="priority_col">
-                <h2>Tickets By Priority</h2>
+                <h2>Tasks By Priority</h2>
                 <div className="content_wrapper">
                   <TicketsByPriority />
                 </div>

@@ -15,22 +15,25 @@ function OverdueTasks() {
         return response.json()
       })
       .then(data => {
-        const now = new Date()
-        let overdue = 0
-        data.forEach(t => {
-          const end = new Date(t.endDate)
-          if (end < now && t.status !== 'Completado') {
-            overdue++
-          }
-        })
-        setCount(overdue)
-        setLoading(false)
+        console.log("All tasks:", data);
+        
+        const now = new Date();
+        
+        const overdueTasks = data.filter(task => {
+          const endDate = new Date(task.endDate);
+          return endDate < now && task.status !== 'Done';
+        });
+        
+        console.log(`Found ${overdueTasks.length} overdue tasks`);
+        setCount(overdueTasks.length);
+        setLoading(false);
       })
       .catch(err => {
-        setError(err)
-        setLoading(false)
-      })
-  }, [])
+        console.error("Error fetching tasks for overdue calculation:", err);
+        setError(err);
+        setLoading(false);
+      });
+  }, []);
 
   return (
     <div style={{
@@ -48,7 +51,7 @@ function OverdueTasks() {
         </div>
       )}
     </div>
-  )
+  );
 }
 
 export default OverdueTasks
