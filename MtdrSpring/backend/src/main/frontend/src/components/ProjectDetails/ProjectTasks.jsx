@@ -3,7 +3,6 @@ import { Plus } from 'lucide-react';
 import '../../styles/ProjectDetails/ProjectTasks.css'
 
 const ProjectTasks = ({ tasks }) => {
-  // Helper function para aplicar clases según el estado
   const getStatusClass = (status) => {
     if (!status) return '';
     
@@ -51,7 +50,7 @@ const ProjectTasks = ({ tasks }) => {
         <table className="project-tasks-table">
           <thead>
             <tr>
-              <th>ID & Task</th>
+              <th>Task</th>
               <th>Status</th>
               <th>Priority</th>
               <th>Due Date</th>
@@ -63,7 +62,7 @@ const ProjectTasks = ({ tasks }) => {
           <tbody>
             {tasks && tasks.length > 0 ? tasks.map(task => (
               <tr key={task.id}>
-                <td>{task.id} - {task.name}</td>
+                <td>{task.name}</td>
                 <td>
                   <span className={`status-badge ${getStatusClass(task.status)}`}>
                     {task.status || 'Pending'}

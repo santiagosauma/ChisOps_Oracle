@@ -147,17 +147,28 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
   const formatTasks = (tasks) => {
     if (!tasks || !Array.isArray(tasks)) return [];
     
-    return tasks.map(task => ({
-      id: task.taskId,
-      name: task.title || task.name || 'Unnamed Task',
-      status: task.status || 'Pending',
-      priority: task.priority || 'Medium',
-      dueDate: task.endDate ? new Date(task.endDate).toLocaleDateString() : 'N/A',
-      assignedTo: task.usuario ? `${task.usuario.firstName || ''} ${task.usuario.lastName || ''}`.trim() : 'Unassigned',
-      estimatedHour: task.estimatedHours || 0,
-      realHours: task.actualHours || '-',
-      sprintId: task.sprintId
-    }));
+    return tasks.map(task => {
+      const userId = task.usuario?.userId || 
+                    task.usuario?.id || 
+                    task.user?.userId ||
+                    task.user?.id ||
+                    task.userId ||
+                    null;
+      
+      return {
+        id: task.taskId,
+        name: task.title || task.name || 'Unnamed Task',
+        status: task.status || 'Pending',
+        priority: task.priority || 'Medium',
+        dueDate: task.endDate ? new Date(task.endDate).toLocaleDateString() : 'N/A',
+        assignedTo: task.usuario ? `${task.usuario.firstName || ''} ${task.usuario.lastName || ''}`.trim() : 'Unassigned',
+        estimatedHour: task.estimatedHours || 0,
+        realHours: task.actualHours || '-',
+        sprintId: task.sprintId,
+        userId: userId,
+        usuario: task.usuario
+      };
+    });
   };
 
   const handleSprintChange = async (sprintId) => {
@@ -243,7 +254,7 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
               <ProjectOverview tasksInfo={projectData.tasksInfo} />
             </div>
             <div className="project-users-container">
-              <ProjectUsers users={projectData.users} />
+              <ProjectUsers users={projectData.users} tasks={projectData.formattedTasks} />
             </div>
           </div>
           <div className="project-right-col">
