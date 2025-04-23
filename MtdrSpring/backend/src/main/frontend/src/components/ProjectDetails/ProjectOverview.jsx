@@ -2,7 +2,6 @@ import React from 'react';
 import '../../styles/ProjectDetails/ProjectOverview.css';
 
 const ProjectOverview = ({ tasksInfo }) => {
-  // Ensure we have default values for all properties
   const info = {
     overdue: tasksInfo?.overdue || 0,
     progress: tasksInfo?.progress || '0%',
@@ -10,12 +9,10 @@ const ProjectOverview = ({ tasksInfo }) => {
     pending: tasksInfo?.pending || 0
   };
   
-  // Format progress as percentage if it's a number
   const progressDisplay = typeof info.progress === 'number' 
     ? `${info.progress}%` 
     : info.progress;
   
-  // Convert progress to percentage for styling
   let progressWidth = progressDisplay;
   if (typeof info.progress === 'number') {
     progressWidth = `${info.progress}%`;
@@ -38,12 +35,18 @@ const ProjectOverview = ({ tasksInfo }) => {
           <span className="card-value">{info.completed}/{info.pending}</span>
         </div>
       </div>
-      <div className="progress-bar-container">
-        <div 
-          className="progress-bar" 
-          style={{ width: progressWidth }}
-          title={`${progressDisplay} completed`}
-        ></div>
+      
+      <div className="project-progress-outer-container">
+        <div className="project-progress-label">
+          <span>Overall Progress</span>
+          <span className="project-progress-percentage">{progressDisplay}</span>
+        </div>
+        <div className="project-progress-bar-container">
+          <div 
+            className="project-progress-bar-indicator" 
+            style={{ width: progressWidth }}
+          ></div>
+        </div>
       </div>
     </div>
   );

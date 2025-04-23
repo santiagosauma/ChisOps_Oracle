@@ -27,7 +27,6 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
         
         setFullProjectData(projectFull);
         
-        // Load users
         let users = [];
         if (!projectFull.usuarios) {
           const usersResponse = await fetch(`/proyectos/${propProjectId}/usuarios`);
@@ -44,25 +43,20 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
           role: user.rol || 'Team Member'
         }));
         
-        // Fetch sprints for the project
         let projectSprints = [];
         try {
           const sprintsResponse = await fetch(`/sprints/proyecto/${propProjectId}`);
           if (sprintsResponse.ok) {
             projectSprints = await sprintsResponse.json();
-            console.log("Fetched sprints:", projectSprints);
           }
         } catch (err) {
           console.error("Error fetching sprints:", err);
         }
         
-        // Default to 'all' sprints
         setSelectedSprint('all');
         
-        // Fetch all tasks for all sprints
         let allTasks = [];
         if (projectSprints.length > 0) {
-          // Fetch tasks for each sprint and combine them
           try {
             const allTasksPromises = projectSprints.map(sprint => 
               fetch(`/tareas/sprint/${sprint.sprintId}`)
@@ -166,23 +160,16 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
     }));
   };
 
-  // Updated sprint change handler to handle 'all' sprints option
   const handleSprintChange = async (sprintId) => {
     setLoading(true);
-    console.log("Changing to sprint:", sprintId);
     
     try {
       let tasksToShow = [];
       
       if (sprintId === 'all') {
-        console.log("Fetching all tasks for all sprints");
-        // Use cached all tasks if available, otherwise fetch them
         if (allSprintTasks.length > 0) {
-          console.log("Using cached all tasks:", allSprintTasks.length);
           tasksToShow = allSprintTasks;
         } else if (projectData?.sprints?.length > 0) {
-          console.log("Fetching tasks for each sprint");
-          // Fetch tasks for each sprint and combine them
           const allTasksPromises = projectData.sprints.map(sprint => 
             fetch(`/tareas/sprint/${sprint.sprintId}`)
               .then(res => res.ok ? res.json() : [])
@@ -190,19 +177,15 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
           
           const tasksArrays = await Promise.all(allTasksPromises);
           tasksToShow = tasksArrays.flat();
-          console.log("Fetched all tasks:", tasksToShow.length);
           setAllSprintTasks(tasksToShow);
         }
       } else {
-        console.log("Fetching tasks for sprint:", sprintId);
-        // Fetch tasks for the selected sprint
         const response = await fetch(`/tareas/sprint/${sprintId}`);
         if (!response.ok) {
           throw new Error(`Error loading tasks for sprint ${sprintId}`);
         }
         
         tasksToShow = await response.json();
-        console.log("Fetched sprint tasks:", tasksToShow.length);
       }
       
       setProjectData(prev => ({

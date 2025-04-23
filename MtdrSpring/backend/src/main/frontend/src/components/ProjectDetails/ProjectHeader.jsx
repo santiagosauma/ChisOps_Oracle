@@ -7,23 +7,18 @@ const ProjectHeader = ({ projectName, sprint, sprints = [], onSprintChange, onBa
   const dropdownRef = useRef(null);
   const [dropdownPosition, setDropdownPosition] = useState({});
 
-  // Ensure we have valid sprints data
   const validSprints = Array.isArray(sprints) ? sprints : [];
   
-  // Add "All Sprints" option if not already present
   useEffect(() => {
     if (onSprintChange && validSprints.length > 0 && !sprint) {
-      // If no sprint is selected, default to "All Sprints"
       onSprintChange('all');
     }
   }, [validSprints, sprint, onSprintChange]);
   
-  // Encontrar el nombre del sprint actual
   const currentSprintName = sprint === 'all' 
     ? 'All Sprints' 
     : validSprints.find(s => s.sprintId === sprint)?.name || `Sprint ${sprint || 'Current'}`;
 
-  // Cerrar el dropdown al hacer clic fuera de él
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -39,14 +34,12 @@ const ProjectHeader = ({ projectName, sprint, sprints = [], onSprintChange, onBa
 
   const handleSprintSelect = (sprintId, e) => {
     if (e) e.stopPropagation();
-    console.log("Sprint selected:", sprintId); // Debug log
     if (onSprintChange) {
       onSprintChange(sprintId);
     }
     setDropdownOpen(false);
   };
 
-  // Handle back button click
   const handleBackClick = () => {
     if (onBack) {
       onBack();
@@ -54,9 +47,8 @@ const ProjectHeader = ({ projectName, sprint, sprints = [], onSprintChange, onBa
   };
 
   const toggleDropdown = (e) => {
-    e.stopPropagation(); // Prevent event bubbling
+    e.stopPropagation();
     
-    // Calculate position based on the clicked element
     if (dropdownRef.current) {
       const rect = dropdownRef.current.getBoundingClientRect();
       setDropdownPosition({
@@ -115,7 +107,6 @@ const ProjectHeader = ({ projectName, sprint, sprints = [], onSprintChange, onBa
                 padding: '4px 0'
               }}
             >
-              {/* Add All Sprints option */}
               <div 
                 key="all-sprints" 
                 className={`sprint-option ${sprint === 'all' ? 'active' : ''}`}
