@@ -7,6 +7,8 @@ import Projects from './pages/Projects';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import UserHome from './pages/UserHome';
+import ProjectDetails from './pages/ProjectDetails';
+
 
 function App() {
   // al principio no mostramos nada hasta validar sesión
@@ -14,6 +16,8 @@ function App() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authMode, setAuthMode] = useState('login');
   const [userRole, setUserRole] = useState(null);
+  const [selectedProjectId, setSelectedProjectId] = useState(null);
+
 
   useEffect(() => {
     const saved = localStorage.getItem('user');
@@ -70,6 +74,15 @@ function App() {
     return true;
   };
 
+   const handleSelectProject = (projectId) => {
+    setSelectedProjectId(projectId);
+  };
+
+  const handleBackToProjects = () => {
+    setSelectedProjectId(null);
+  };
+
+
   const requireAuth = (Component, props) => {
     if (!checkSession()) {
       return <Login onLogin={handleLogin} toggleAuthMode={toggleAuthMode} />;
@@ -93,11 +106,17 @@ function App() {
         userRole={userRole}
         onLogout={handleLogout}
       />
-      <div style={{ marginLeft: '60px', flex: 1, padding: '0px' }}>
+       <div style={{ marginLeft: '60px', flex: 1, padding: '0px' }}>
         {page === 'UserHome' && requireAuth(UserHome, {})}
         {page === 'Home' && requireAuth(Home, {})}
         {page === 'Projects' && userRole === 'admin' && requireAuth(ManageTasks, {})}
-        {page === 'ProjectsTrue' && requireAuth(Projects, {})}
+        {page === 'ProjectsTrue' && !selectedProjectId && requireAuth(Projects, { 
+          onSelectProject: handleSelectProject 
+        })}
+        {page === 'ProjectsTrue' && selectedProjectId && requireAuth(ProjectDetails, {
+          projectId: selectedProjectId,
+          onBack: handleBackToProjects
+        })}
       </div>
     </div>
   );

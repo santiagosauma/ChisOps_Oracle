@@ -3,13 +3,13 @@ import '../styles/Projects.css'
 import ProjectsTable from '../components/Projects/ProjectsTable'
 
 
-function Projects() {
+function Projects({ onSelectProject }) {
   return (
     <div className="home-wrapper">
       <header className="home-header">
         <h1>All Projects</h1>
       </header>
-        <ProjectsTable/>
+      <ProjectsTable onSelectProject={onSelectProject} />
 
       <div>
 
