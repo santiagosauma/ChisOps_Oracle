@@ -2,70 +2,31 @@ import { useState, useEffect } from "react";
 import pencilIcon from '../resources/pencil.png';
 import dropupIcon from '../resources/dropup.png';
 import dropdownIcon from '../resources/dropdown.png';
+import { StatusBadge, PriorityBadge } from './StatusBadge';
 
 const TasksTable = ({ 
   tasks, 
   loading, 
   error, 
-  onUpdateTask,
-  filters,
-  activeFilters,
-  onFilterChange,
-  onFilterRemove,
-  onClearFilters,
-  onShowFiltersToggle,
-  showFilters
+  onUpdateTask, 
+  filters, 
+  activeFilters, 
+  onFilterChange, 
+  onFilterRemove, 
+  onClearFilters, 
+  onShowFiltersToggle, 
+  showFilters 
 }) => {
-  const [filteredTasks, setFilteredTasks] = useState([]);
   const [sortField, setSortField] = useState('name');
   const [sortDirection, setSortDirection] = useState('asc');
 
-  // Unique values for filter dropdowns
-  const uniqueStatuses = [...new Set(tasks.map(task => task.status))];
-  const uniquePriorities = [...new Set(tasks.map(task => task.priority))];
+  const filteredTasks = tasks.filter(task => {
+    if (filters.status && task.status !== filters.status) return false;
+    if (filters.priority && task.priority !== filters.priority) return false;
+    if (filters.searchTerm && !task.name.toLowerCase().includes(filters.searchTerm.toLowerCase())) return false;
+    return true;
+  });
 
-  // Filter tasks based on active filters
-  useEffect(() => {
-    if (!tasks.length) {
-      setFilteredTasks([]);
-      return;
-    }
-
-    console.log("Filtering tasks:", tasks);
-    let result = [...tasks];
-
-    if (filters.status) {
-      result = result.filter(task => {
-        const taskStatus = task.status;
-        console.log(`Checking if task status "${taskStatus}" matches filter "${filters.status}"`);
-        
-        if (filters.status === 'Pending') {
-          return ['Incomplete', 'In Progress', 'Pending', 'En Progreso', 'Pendiente'].includes(taskStatus);
-        } else if (filters.status === 'Done') {
-          return ['Done', 'Completado', 'Finalizado'].includes(taskStatus);
-        }
-        return taskStatus === filters.status;
-      });
-    }
-
-    if (filters.priority) {
-      result = result.filter(task => 
-        task.priority.toLowerCase() === filters.priority.toLowerCase()
-      );
-    }
-
-    if (filters.searchTerm) {
-      const term = filters.searchTerm.toLowerCase();
-      result = result.filter(task => 
-        task.name.toLowerCase().includes(term)
-      );
-    }
-
-    console.log("Filtered result:", result);
-    setFilteredTasks(result);
-  }, [tasks, filters]);
-
-  // Sort handlers
   const handleSort = (field) => {
     if (field === sortField) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
@@ -101,7 +62,6 @@ const TasksTable = ({
     });
   };
 
-  // Filter handlers
   const applyFilter = (filterType, value) => {
     onFilterChange(filterType, value);
   };
@@ -186,7 +146,7 @@ const TasksTable = ({
                 <div className="filter-section">
                   <h3>Priority</h3>
                   <div className="filter-options">
-                    {uniquePriorities.map((priority, index) => (
+                    {['High', 'Medium', 'Low'].map((priority, index) => (
                       <div 
                         key={index} 
                         className={`filter-option ${filters.priority === priority ? 'selected' : ''}`}
@@ -292,54 +252,32 @@ const TasksTable = ({
                 </tr>
               </thead>
               <tbody>
-                {activeFilters.length > 0 ? (
-                  filteredTasks.length > 0 ? (
-                    getSortedTasks(filteredTasks).map((task, index) => (
-                      <tr key={task.id || index} className="table-row">
-                        <td className="table-cell">{task.name}</td>
-                        <td className="table-cell">{task.status}</td>
-                        <td className="table-cell">
-                          {typeof task.finishDate === 'string' ? task.finishDate : 'No date'}
-                        </td>
-                        <td className="table-cell">{task.priority}</td>
-                        <td className="table-cell action-cell">
-                          <button className="edit-button" onClick={() => onUpdateTask(task)}>
-                            <img src={pencilIcon} alt="Edit" className="edit-icon" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="5" className="table-cell no-data">
-                        No tasks match the applied filters. Try different criteria or remove some filters.
+                {filteredTasks.length > 0 ? (
+                  getSortedTasks(filteredTasks).map((task, index) => (
+                    <tr key={task.id || index} className="table-row">
+                      <td className="table-cell">{task.name}</td>
+                      <td className="table-cell">
+                        <StatusBadge status={task.status} />
+                      </td>
+                      <td className="table-cell">
+                        {typeof task.finishDate === 'string' ? task.finishDate : 'No date'}
+                      </td>
+                      <td className="table-cell">
+                        <PriorityBadge priority={task.priority} />
+                      </td>
+                      <td className="table-cell action-cell">
+                        <button className="edit-button" onClick={() => onUpdateTask(task)}>
+                          <img src={pencilIcon} alt="Edit" className="edit-icon" />
+                        </button>
                       </td>
                     </tr>
-                  )
+                  ))
                 ) : (
-                  tasks.length > 0 ? (
-                    getSortedTasks(tasks).map((task, index) => (
-                      <tr key={task.id || index} className="table-row">
-                        <td className="table-cell">{task.name}</td>
-                        <td className="table-cell">{task.status}</td>
-                        <td className="table-cell">
-                          {typeof task.finishDate === 'string' ? task.finishDate : 'No date'}
-                        </td>
-                        <td className="table-cell">{task.priority}</td>
-                        <td className="table-cell action-cell">
-                          <button className="edit-button" onClick={() => onUpdateTask(task)}>
-                            <img src={pencilIcon} alt="Edit" className="edit-icon" />
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan="5" className="table-cell no-data">
-                        You have no assigned tasks at this time
-                      </td>
-                    </tr>
-                  )
+                  <tr>
+                    <td colSpan="5" className="table-cell no-data">
+                      No tasks match the applied filters. Try different criteria or remove some filters.
+                    </td>
+                  </tr>
                 )}
               </tbody>
             </table>
