@@ -737,9 +737,12 @@ export default function UserHome() {
                       onChange={handleUpdateFormChange}
                       min="0"
                       step="0.5"
+                      className="hours-input"
                     />
                   ) : (
-                    <div className="disabled-input hours-placeholder">-</div>
+                    <div className="hours-input disabled-input" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      -
+                    </div>
                   )}
                 </div>
                 {updateTaskForm.status !== 'Done' && (
@@ -811,6 +814,7 @@ export default function UserHome() {
                                   <div 
                                     className="sprint-selector" 
                                     onClick={(event) => toggleSprintDropdown(project.projectId, event)}
+                                    style={{ backgroundColor: "#fff", borderColor: "#ddd", color: "#000" }}
                                   >
                                     <span>
                                       {selectedSprintByProject[project.projectId]?.name || 'No Sprint'}
@@ -825,16 +829,30 @@ export default function UserHome() {
                                         position: 'fixed',
                                         top: `${dropdownPosition.top}px`,
                                         left: `${dropdownPosition.left}px`,
-                                        width: `${dropdownPosition.width}px`,
+                                        width: '180px',
                                         maxHeight: '250px',
                                         overflowY: 'auto',
-                                        zIndex: 9999
+                                        zIndex: 9999,
+                                        backgroundColor: '#fff',
+                                        border: '1px solid #e0e0e0',
+                                        borderRadius: '6px',
+                                        boxShadow: '0 3px 8px rgba(0,0,0,0.1)',
+                                        padding: '4px 0'
                                       }}
                                       onClick={(e) => e.stopPropagation()}
                                     >
                                       <div 
                                         key="all-sprints" 
-                                        className={`sprint-option ${selectedSprintByProject[project.projectId]?.isAllSprints ? 'selected' : ''}`}
+                                        className="sprint-option"
+                                        style={{
+                                          padding: '8px 12px',
+                                          cursor: 'pointer',
+                                          backgroundColor: selectedSprintByProject[project.projectId]?.isAllSprints ? '#f5f5f5' : 'transparent',
+                                          fontWeight: selectedSprintByProject[project.projectId]?.isAllSprints ? '500' : 'normal',
+                                          borderRadius: '4px',
+                                          margin: '2px 4px',
+                                          transition: 'background-color 0.2s'
+                                        }}
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           handleSprintChange(project.projectId, { 
@@ -850,7 +868,16 @@ export default function UserHome() {
                                       {projectSprints[project.projectId].map(sprint => (
                                         <div 
                                           key={sprint.sprintId} 
-                                          className={`sprint-option ${selectedSprintByProject[project.projectId]?.sprintId === sprint.sprintId ? 'selected' : ''}`}
+                                          className="sprint-option"
+                                          style={{
+                                            padding: '8px 12px',
+                                            cursor: 'pointer',
+                                            backgroundColor: selectedSprintByProject[project.projectId]?.sprintId === sprint.sprintId ? '#f5f5f5' : 'transparent',
+                                            fontWeight: selectedSprintByProject[project.projectId]?.sprintId === sprint.sprintId ? '500' : 'normal',
+                                            borderRadius: '4px',
+                                            margin: '2px 4px',
+                                            transition: 'background-color 0.2s'
+                                          }}
                                           onClick={(e) => {
                                             e.stopPropagation();
                                             handleSprintChange(project.projectId, sprint);

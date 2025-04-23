@@ -117,15 +117,32 @@ h2.card-title {
 }
 
 .sprint-selector {
-    position: relative;
-    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 6px 10px;
+    border: 1px solid #ddd;
     border-radius: 4px;
-    background-color: #f3f4f6;
-    min-width: 120px;
+    padding: 6px 10px;
+    cursor: pointer;
+    background-color: #fff !important;
+    transition: all 0.2s;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.sprint-selector:hover {
+    background-color: #f9f9f9;
+    border-color: #ccc;
+}
+
+.dropdown-indicator {
+    font-size: 10px;
+    color: #777;
+    margin-left: 6px;
+    flex-shrink: 0;
 }
 
 .sprint-dropdown {
@@ -136,27 +153,33 @@ h2.card-title {
     border-radius: 4px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     z-index: 9999;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .sprint-option {
-    padding: 10px 12px;
+    padding: 8px 12px;
     cursor: pointer;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    transition: background-color 0.15s ease;
-    font-size: 14px;
+    transition: background-color 0.2s;
 }
 
 .sprint-option:hover {
-    background-color: #f3f4f6;
+    background-color: transparent !important;
 }
 
 .sprint-option.selected {
-    background-color: #e5edff;
+    background-color: #e6e6e6;
     font-weight: 500;
-    border-left: 3px solid #3b82f6;
-    padding-left: 9px;
 }
 
 .progress-bar {
@@ -327,7 +350,7 @@ h2.card-title {
     opacity: 1;
 }
 
-.sortable-header {
+sortable-header {
     display: flex;
     align-items: center;
 }
@@ -561,44 +584,6 @@ h2.card-title {
     color: #4b5563;
 }
 
-.sprint-selector {
-    position: relative;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 4px 8px;
-    border-radius: 4px;
-    background-color: #f3f4f6;
-}
-
-.sprint-dropdown {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
-    z-index: 10;
-    background-color: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 4px;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    margin-top: 4px;
-}
-
-.sprint-option {
-    padding: 8px 12px;
-    cursor: pointer;
-}
-
-.sprint-option:hover {
-    background-color: #f3f4f6;
-}
-
-.sprint-option.selected {
-    background-color: #dbeafe;
-    font-weight: 500;
-}
-
 .edit-button {
     border: none;
     background: transparent;
@@ -782,4 +767,14 @@ h2.card-title {
   border-radius: 4px;
   height: 20px;
   line-height: 20px;
+}
+
+.hours-input {
+  width: 100%;
+  height: 38px;
+  padding: 8px 12px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-sizing: border-box;
 }
