@@ -729,16 +729,18 @@ export default function UserHome() {
               <div className="form-group">
                 <label>Hours Taken</label>
                 <div className="select-wrapper">
-                  <input
-                    type="number"
-                    name="hoursTaken"
-                    value={updateTaskForm.hoursTaken}
-                    onChange={handleUpdateFormChange}
-                    min="0"
-                    step="0.5"
-                    disabled={updateTaskForm.status !== 'Done'}
-                    className={updateTaskForm.status !== 'Done' ? 'disabled-input' : ''}
-                  />
+                  {updateTaskForm.status === 'Done' ? (
+                    <input
+                      type="number"
+                      name="hoursTaken"
+                      value={updateTaskForm.hoursTaken}
+                      onChange={handleUpdateFormChange}
+                      min="0"
+                      step="0.5"
+                    />
+                  ) : (
+                    <div className="disabled-input hours-placeholder">-</div>
+                  )}
                 </div>
                 {updateTaskForm.status !== 'Done' && (
                   <small className="helper-text">Hours can only be entered when status is "Done"</small>

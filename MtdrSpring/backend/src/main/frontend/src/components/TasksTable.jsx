@@ -171,13 +171,7 @@ const TasksTable = ({
                 <div className="filter-section">
                   <h3>Status</h3>
                   <div className="filter-options">
-                    {['Pending', 'Done', ...uniqueStatuses]
-                      .filter((value, index, self) => 
-                        self.indexOf(value) === index && 
-                        !['Pending', 'Done'].includes(value) || 
-                        index < 2
-                      )
-                      .map((status, index) => (
+                    {['Done', 'Incomplete', 'In Progress'].map((status, index) => (
                       <div 
                         key={index} 
                         className={`filter-option ${filters.status === status ? 'selected' : ''}`}
