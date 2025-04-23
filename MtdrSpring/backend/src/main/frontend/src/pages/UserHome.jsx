@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import "../styles/UserHome.css"
 import dropdownIcon from '../resources/dropdown.png';
 import dropupIcon from '../resources/dropup.png';
-import pencilIcon from '../resources/pencil.png';
+import TasksTable from '../components/TasksTable';
 
 export default function UserHome() {
   const [currentMonth, setCurrentMonth] = useState(2)
@@ -15,7 +15,6 @@ export default function UserHome() {
   const [selectedSprintByProject, setSelectedSprintByProject] = useState({})
   const [showSprintDropdown, setShowSprintDropdown] = useState({})
   const [tasks, setTasks] = useState([])
-  const [filteredTasks, setFilteredTasks] = useState([])
   const [overdueTasks, setOverdueTasks] = useState(0)
   const [pendingTasks, setPendingTasks] = useState(0)
   const [completedTasks, setCompletedTasks] = useState(0)
@@ -29,9 +28,6 @@ export default function UserHome() {
   const [activeFilters, setActiveFilters] = useState([])
 
   const [currentSelectedSprint, setCurrentSelectedSprint] = useState(null)
-
-  const [sortField, setSortField] = useState('name')
-  const [sortDirection, setSortDirection] = useState('asc')
   
   const [loading, setLoading] = useState({
     projects: false,
@@ -44,6 +40,19 @@ export default function UserHome() {
 
   const [currentUser, setCurrentUser] = useState(null)
   const [userId, setUserId] = useState(null)
+
+  const [showUpdatePopup, setShowUpdatePopup] = useState(false);
+  const [currentTask, setCurrentTask] = useState(null);
+  const [updateTaskForm, setUpdateTaskForm] = useState({
+    status: '',
+    hoursTaken: 0
+  });
+  
+  const [toast, setToast] = useState({
+    show: false,
+    message: '',
+    type: 'success'
+  });
 
   useEffect(() => {
     try {
@@ -235,20 +244,38 @@ export default function UserHome() {
   const calculateTaskStatistics = (tasks) => {
     const overdue = tasks.filter(task => 
       (new Date(task.finishDate) < new Date() && 
-       task.status !== 'Done' && 
-       task.status !== 'Completado' && 
-       task.status !== 'Finalizado')
+       !['Done', 'Completado', 'Finalizado'].includes(task.status))
     ).length;
     
     const pending = tasks.filter(task => 
-      ['pending', 'en progreso', 'pendiente'].includes(task.status.toLowerCase())
+      ['Incomplete', 'In Progress', 'Pending', 'En Progreso', 'Pendiente'].includes(task.status)
     ).length;
     
     const completed = tasks.filter(task => 
-      ['done', 'completado', 'finalizado'].includes(task.status.toLowerCase())
+      ['Done', 'Completado', 'Finalizado'].includes(task.status)
     ).length;
     
     return { overdue, pending, completed };
+  };
+
+  const mapTaskStatus = (status) => {
+    console.log("Original status from backend:", status);
+    
+    if (!status) return 'Incomplete';
+    
+    if (status === 'Incomplete' || status === 'In Progress' || status === 'Done') {
+      return status;
+    }
+    
+    const statusLower = status.toLowerCase();
+    
+    if (['done', 'completado', 'finalizado'].includes(statusLower)) {
+      return 'Done';
+    } else if (['in progress', 'en progreso', 'in-progress', 'in_progress'].includes(statusLower)) {
+      return 'In Progress';
+    } else {
+      return 'Incomplete';
+    }
   };
 
   const fetchUserTasksForSprint = (sprintId) => {
@@ -265,20 +292,32 @@ export default function UserHome() {
         return response.json();
       })
       .then(data => {
-        console.log(`Found ${data.length} user tasks in sprint ${sprintId}`);
+        console.log(`Found ${data.length} user tasks in sprint ${sprintId}:`, data);
         
-        const processedTasks = data.map(task => ({
-          id: task.taskId,
-          name: task.title || task.name || task.nombre || task.descripcion || 'Untitled',
-          status: task.status || task.estado || 'Pending',
-          finishDate: task.endDate || task.fechaFin || task.dueDate || task.finishDate || 'No date',
-          priority: task.priority || task.prioridad || 'Normal',
-          sprintId: task.sprint?.sprintId
-        }));
+        const processedTasks = data.map(task => {
+          const mappedStatus = mapTaskStatus(task.status || task.estado);
+          console.log(`Mapped task "${task.title}" status from "${task.status}" to "${mappedStatus}"`);
+          
+          return {
+            id: task.taskId,
+            name: task.title || task.name || task.nombre || task.descripcion || 'Untitled',
+            status: mappedStatus,
+            finishDate: task.endDate || task.fechaFin || task.dueDate || task.finishDate || 'No date',
+            priority: task.priority || task.prioridad || 'Normal',
+            sprintId: task.sprint?.sprintId,
+            description: task.description,
+            startDate: task.startDate,
+            storyPoints: task.storyPoints,
+            hoursTaken: task.actualHours || 0,
+            type: task.type
+          };
+        });
         
+        console.log("Processed tasks with mapped statuses:", processedTasks);
         setTasks(processedTasks);
         
         const { overdue, pending, completed } = calculateTaskStatistics(processedTasks);
+        console.log(`Task statistics: overdue=${overdue}, pending=${pending}, completed=${completed}`);
         
         setOverdueTasks(overdue);
         setPendingTasks(pending);
@@ -312,17 +351,32 @@ export default function UserHome() {
         return response.json();
       })
       .then(data => {
-        const processedTasks = data.map(task => ({
-          id: task.taskId,
-          name: task.title || task.name || task.nombre || task.descripcion || 'Untitled',
-          status: task.status || task.estado || 'Pending',
-          finishDate: task.endDate || task.fechaFin || task.dueDate || task.finishDate || 'No date',
-          priority: task.priority || task.prioridad || 'Normal'
-        }));
+        console.log(`Found ${data.length} user tasks:`, data);
         
+        const processedTasks = data.map(task => {
+          const mappedStatus = mapTaskStatus(task.status || task.estado);
+          console.log(`Mapped task "${task.title}" status from "${task.status}" to "${mappedStatus}"`);
+          
+          return {
+            id: task.taskId,
+            name: task.title || task.name || task.nombre || task.descripcion || 'Untitled',
+            status: mappedStatus,
+            finishDate: task.endDate || task.fechaFin || task.dueDate || task.finishDate || 'No date',
+            priority: task.priority || task.prioridad || 'Normal',
+            sprintId: task.sprint?.sprintId,
+            description: task.description,
+            startDate: task.startDate,
+            storyPoints: task.storyPoints,
+            hoursTaken: task.actualHours || 0,
+            type: task.type
+          };
+        });
+        
+        console.log("Processed tasks with mapped statuses:", processedTasks);
         setTasks(processedTasks);
         
         const { overdue, pending, completed } = calculateTaskStatistics(processedTasks);
+        console.log(`Task statistics: overdue=${overdue}, pending=${pending}, completed=${completed}`);
         
         setOverdueTasks(overdue);
         setPendingTasks(pending);
@@ -389,7 +443,7 @@ export default function UserHome() {
         const processedTasks = allTasks.map(task => ({
           id: task.taskId,
           name: task.title || task.name || task.nombre || task.descripcion || 'Untitled',
-          status: task.status || task.estado || 'Pending',
+          status: mapTaskStatus(task.status || task.estado),
           finishDate: task.endDate || task.fechaFin || task.dueDate || task.finishDate || 'No date',
           priority: task.priority || task.prioridad || 'Normal'
         }));
@@ -429,7 +483,7 @@ export default function UserHome() {
         const processedTasks = data.map(task => ({
           id: task.taskId,
           name: task.title || task.name || task.nombre || task.descripcion || 'Untitled',
-          status: task.status || task.estado || 'Pending',
+          status: mapTaskStatus(task.status || task.estado),
           finishDate: task.endDate || task.fechaFin || task.dueDate || task.finishDate || 'No date',
           priority: task.priority || task.prioridad || 'Normal'
         }));
@@ -485,50 +539,6 @@ export default function UserHome() {
     };
   }, []);
 
-  useEffect(() => {
-    if (!tasks.length) {
-      setFilteredTasks([]);
-      return;
-    }
-
-    let result = [...tasks];
-
-    if (filters.status) {
-      result = result.filter(task => {
-        const taskStatus = task.status.toLowerCase();
-        if (filters.status.toLowerCase() === 'pending') {
-          return ['pending', 'en progreso', 'pendiente'].includes(taskStatus);
-        } else if (filters.status.toLowerCase() === 'done') {
-          return ['done', 'completado', 'finalizado'].includes(taskStatus);
-        }
-        return taskStatus === filters.status.toLowerCase();
-      });
-    }
-
-    if (filters.priority) {
-      result = result.filter(task => 
-        task.priority.toLowerCase() === filters.priority.toLowerCase()
-      );
-    }
-
-    if (filters.searchTerm) {
-      const term = filters.searchTerm.toLowerCase();
-      result = result.filter(task => 
-        task.name.toLowerCase().includes(term)
-      );
-    }
-
-    setFilteredTasks(result);
-    
-    const newActiveFilters = [];
-    if (filters.status) newActiveFilters.push({ type: 'status', value: filters.status });
-    if (filters.priority) newActiveFilters.push({ type: 'priority', value: filters.priority });
-    if (filters.searchTerm) newActiveFilters.push({ type: 'search', value: filters.searchTerm });
-    
-    setActiveFilters(newActiveFilters);
-    
-  }, [tasks, filters]);
-
   const applyFilter = (filterType, value) => {
     setFilters(prev => {
       if (prev[filterType] === value) {
@@ -540,11 +550,6 @@ export default function UserHome() {
     if (filterType !== 'searchTerm') {
       setShowFilters(false);
     }
-  };
-
-  const handleSearchChange = (e) => {
-    const value = e.target.value;
-    setFilters(prev => ({ ...prev, searchTerm: value }));
   };
 
   const removeFilter = (filterType) => {
@@ -562,46 +567,201 @@ export default function UserHome() {
     });
   };
 
-  const handleSort = (field) => {
-    if (field === sortField) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
-    } else {
-      setSortField(field)
-      setSortDirection('asc')
-    }
-  }
+  const toggleShowFilters = () => {
+    setShowFilters(!showFilters);
+  };
 
-  const getSortedTasks = (taskList) => {
-    if (!taskList.length) return []
+  useEffect(() => {
+    const newActiveFilters = [];
+    if (filters.status) newActiveFilters.push({ type: 'status', value: filters.status });
+    if (filters.priority) newActiveFilters.push({ type: 'priority', value: filters.priority });
+    if (filters.searchTerm) newActiveFilters.push({ type: 'search', value: filters.searchTerm });
     
-    return [...taskList].sort((a, b) => {
-      let valueA = a[sortField]
-      let valueB = b[sortField]
-      
-      if (sortField === 'finishDate') {
-        valueA = new Date(valueA)
-        valueB = new Date(valueB)
-        
-        if (isNaN(valueA)) valueA = new Date(0)
-        if (isNaN(valueB)) valueB = new Date(0)
-      }
-      
-      if (typeof valueA === 'string' && typeof valueB === 'string') {
-        valueA = valueA.toLowerCase()
-        valueB = valueB.toLowerCase()
-      }
-      
-      if (valueA < valueB) return sortDirection === 'asc' ? -1 : 1
-      if (valueA > valueB) return sortDirection === 'asc' ? 1 : -1
-      return 0
-    })
-  }
+    setActiveFilters(newActiveFilters);
+  }, [filters]);
 
-  const uniqueStatuses = [...new Set(tasks.map(task => task.status))];
-  const uniquePriorities = [...new Set(tasks.map(task => task.priority))];
+  const openUpdatePopup = (task) => {
+    setCurrentTask(task);
+    setUpdateTaskForm({
+      status: task.status || 'Incomplete',
+      hoursTaken: task.hoursTaken || 0
+    });
+    setShowUpdatePopup(true);
+  };
+
+  const closeUpdatePopup = () => {
+    setShowUpdatePopup(false);
+    setCurrentTask(null);
+  };
+
+  const handleUpdateFormChange = (e) => {
+    const { name, value } = e.target;
+    setUpdateTaskForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleUpdateTask = () => {
+    if (!currentTask) return;
+    
+    const updateData = {
+      taskId: currentTask.id,
+      title: currentTask.name,
+      description: currentTask.description || "Task description",
+      status: updateTaskForm.status,
+      priority: currentTask.priority || "Normal",
+      type: currentTask.type || "Task",
+      startDate: currentTask.startDate || new Date(),
+      endDate: currentTask.finishDate || new Date(),
+      storyPoints: currentTask.storyPoints || 0,
+      sprint: { sprintId: currentTask.sprintId },
+      usuario: { userId: userId },
+      estimatedHours: currentTask.estimatedHours,
+      actualHours: updateTaskForm.status === 'Done' ? parseFloat(updateTaskForm.hoursTaken) : null
+    };
+    
+    console.log("Sending task update:", updateData);
+    
+    fetch(`/tareas/${currentTask.id}`)
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Error fetching original task data');
+        }
+        return response.json();
+      })
+      .then(originalTask => {
+        const completeUpdateData = {
+          ...originalTask,
+          status: updateTaskForm.status,
+          actualHours: updateTaskForm.status === 'Done' ? parseFloat(updateTaskForm.hoursTaken) : originalTask.actualHours
+        };
+        
+        return fetch(`/tareas/${currentTask.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(completeUpdateData)
+        });
+      })
+      .then(response => {
+        if (!response.ok) {
+          return response.text().then(text => {
+            throw new Error(text || 'Error updating task');
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        console.log("Task updated successfully:", data);
+        
+        if (currentSelectedSprint) {
+          fetchUserTasksForSprint(currentSelectedSprint);
+        } else {
+          fetchTasksForUser();
+        }
+        
+        // Show toast notification
+        setToast({
+          show: true,
+          message: 'Task updated successfully!',
+          type: 'success'
+        });
+        
+        // Auto-hide toast after 3 seconds
+        setTimeout(() => {
+          setToast(prev => ({ ...prev, show: false }));
+        }, 3000);
+        
+        closeUpdatePopup();
+      })
+      .catch(err => {
+        console.error('Error updating task:', err);
+        
+        // Show error toast
+        setToast({
+          show: true,
+          message: `Failed to update the task: ${err.message}`,
+          type: 'error'
+        });
+        
+        // Auto-hide toast after 4 seconds for errors
+        setTimeout(() => {
+          setToast(prev => ({ ...prev, show: false }));
+        }, 4000);
+      });
+  };
 
   return (
     <div className="main-container">
+      {/* Toast notification */}
+      {toast.show && (
+        <div className={`toast-notification ${toast.type}`}>
+          <div className="toast-content">
+            <span>{toast.message}</span>
+          </div>
+          <div className="toast-timeline"></div>
+        </div>
+      )}
+      
+      {showUpdatePopup && currentTask && (
+        <div className="popup-overlay">
+          <div className="popup-container" style={{ backgroundColor: '#D4D7E3' }}>
+            <h2 className="popup-title">Update Task</h2>
+            
+            <div className="popup-form">
+              <div className="form-group">
+                <label>Status</label>
+                <div className="select-wrapper">
+                  <select
+                    name="status"
+                    value={updateTaskForm.status}
+                    onChange={handleUpdateFormChange}
+                  >
+                    <option value="Incomplete">Incomplete</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Done">Done</option>
+                  </select>
+                </div>
+              </div>
+              
+              <div className="form-group">
+                <label>Hours Taken</label>
+                <div className="select-wrapper">
+                  <input
+                    type="number"
+                    name="hoursTaken"
+                    value={updateTaskForm.hoursTaken}
+                    onChange={handleUpdateFormChange}
+                    min="0"
+                    step="0.5"
+                    disabled={updateTaskForm.status !== 'Done'}
+                    className={updateTaskForm.status !== 'Done' ? 'disabled-input' : ''}
+                  />
+                </div>
+                {updateTaskForm.status !== 'Done' && (
+                  <small className="helper-text">Hours can only be entered when status is "Done"</small>
+                )}
+              </div>
+              
+              <div className="popup-buttons">
+                <button className="add-button" onClick={handleUpdateTask}>
+                  Update
+                </button>
+                <button 
+                  className="cancel-button" 
+                  onClick={closeUpdatePopup}
+                  style={{ backgroundColor: '#C74634' }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="content-wrapper">
         <header className="page-header">
           <h1 className="page-title">
@@ -756,247 +916,20 @@ export default function UserHome() {
                 </div>
               </div>
 
-              <div className="card">
-                <div className="card-header-with-actions">
-                  <h2 className="card-title">Tasks</h2>
-                  <div className="action-buttons">
-                    {activeFilters.length > 0 && (
-                      <div className="active-filters">
-                        {activeFilters.map((filter, index) => (
-                          <div key={index} className="active-filter">
-                            <span>{filter.type}: {filter.value}</span>
-                            <button 
-                              className="remove-filter-btn" 
-                              onClick={() => removeFilter(filter.type)}
-                            >
-                              ×
-                            </button>
-                          </div>
-                        ))}
-                        {activeFilters.length > 1 && (
-                          <button 
-                            className="clear-filters-btn"
-                            onClick={clearAllFilters}
-                          >
-                            Clear all
-                          </button>
-                        )}
-                      </div>
-                    )}
-                    <div className="filter-wrapper">
-                      <div 
-                        className="filter-badge"
-                        onClick={() => setShowFilters(!showFilters)}
-                      >
-                        <span className="filter-icon">◎</span>
-                        <span>Filter</span>
-                        {activeFilters.length > 0 && (
-                          <span className="filter-count">{activeFilters.length}</span>
-                        )}
-                        <span className="close-icon">
-                          {showFilters ? '△' : '▽'}
-                        </span>
-                      </div>
-                      
-                      {showFilters && (
-                        <div className="filter-dropdown">
-                          <div className="filter-section">
-                            <h3>Search</h3>
-                            <div className="filter-search">
-                              <input 
-                                type="text" 
-                                placeholder="Search tasks..." 
-                                value={filters.searchTerm}
-                                onChange={handleSearchChange}
-                              />
-                            </div>
-                          </div>
-                          
-                          <div className="filter-section">
-                            <h3>Status</h3>
-                            <div className="filter-options">
-                              {['Pending', 'Done', ...uniqueStatuses]
-                                .filter((value, index, self) => 
-                                  self.indexOf(value) === index && 
-                                  !['Pending', 'Done'].includes(value) || 
-                                  index < 2
-                                )
-                                .map((status, index) => (
-                                <div 
-                                  key={index} 
-                                  className={`filter-option ${filters.status === status ? 'selected' : ''}`}
-                                  onClick={() => applyFilter('status', status)}
-                                >
-                                  <span>{status}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                          
-                          <div className="filter-section">
-                            <h3>Priority</h3>
-                            <div className="filter-options">
-                              {uniquePriorities.map((priority, index) => (
-                                <div 
-                                  key={index} 
-                                  className={`filter-option ${filters.priority === priority ? 'selected' : ''}`}
-                                  onClick={() => applyFilter('priority', priority)}
-                                >
-                                  <span>{priority}</span>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                          
-                          <div className="filter-actions">
-                            <button 
-                              className="clear-filter-btn"
-                              onClick={() => {
-                                clearAllFilters();
-                                setShowFilters(false);
-                              }}
-                            >
-                              Clear Filters
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                </div>
-                <div className="card-content">
-                  {loading.tasks ? (
-                    <p className="loading-message">Loading tasks...</p>
-                  ) : error.tasks ? (
-                    <p className="error-message">{error.tasks}</p>
-                  ) : (
-                    <div className="table-container">
-                      <table className="data-table">
-                        <thead>
-                          <tr className="table-header-row">
-                            <th 
-                              className="table-header-cell sortable" 
-                              onClick={() => handleSort('name')}
-                              data-active-sort={sortField === 'name' ? "true" : "false"}
-                            >
-                              <div className="sortable-header">
-                                <span>Name</span>
-                                {sortField === 'name' && (
-                                  <img 
-                                    src={sortDirection === 'asc' ? dropupIcon : dropdownIcon} 
-                                    alt="sort" 
-                                    className="sort-indicator" 
-                                  />
-                                )}
-                              </div>
-                            </th>
-                            <th 
-                              className="table-header-cell sortable" 
-                              onClick={() => handleSort('status')}
-                              data-active-sort={sortField === 'status' ? "true" : "false"}
-                            >
-                              <div className="sortable-header">
-                                <span>Status</span>
-                                {sortField === 'status' && (
-                                  <img 
-                                    src={sortDirection === 'asc' ? dropupIcon : dropdownIcon} 
-                                    alt="sort" 
-                                    className="sort-indicator" 
-                                  />
-                                )}
-                              </div>
-                            </th>
-                            <th 
-                              className="table-header-cell sortable" 
-                              onClick={() => handleSort('finishDate')}
-                              data-active-sort={sortField === 'finishDate' ? "true" : "false"}
-                            >
-                              <div className="sortable-header">
-                                <span>Finish Date</span>
-                                {sortField === 'finishDate' && (
-                                  <img 
-                                    src={sortDirection === 'asc' ? dropupIcon : dropdownIcon} 
-                                    alt="sort" 
-                                    className="sort-indicator" 
-                                  />
-                                )}
-                              </div>
-                            </th>
-                            <th 
-                              className="table-header-cell sortable" 
-                              onClick={() => handleSort('priority')}
-                              data-active-sort={sortField === 'priority' ? "true" : "false"}
-                            >
-                              <div className="sortable-header">
-                                <span>Priority</span>
-                                {sortField === 'priority' && (
-                                  <img 
-                                    src={sortDirection === 'asc' ? dropupIcon : dropdownIcon} 
-                                    alt="sort" 
-                                    className="sort-indicator" 
-                                  />
-                                )}
-                              </div>
-                            </th>
-                            <th className="table-header-cell">Actions</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {activeFilters.length > 0 ? (
-                            filteredTasks.length > 0 ? (
-                              getSortedTasks(filteredTasks).map((task, index) => (
-                                <tr key={task.id || index} className="table-row">
-                                  <td className="table-cell">{task.name}</td>
-                                  <td className="table-cell">{task.status}</td>
-                                  <td className="table-cell">
-                                    {typeof task.finishDate === 'string' ? task.finishDate : 'No date'}
-                                  </td>
-                                  <td className="table-cell">{task.priority}</td>
-                                  <td className="table-cell action-cell">
-                                    <button className="edit-button">
-                                      <img src={pencilIcon} alt="Edit" className="edit-icon" />
-                                    </button>
-                                  </td>
-                                </tr>
-                              ))
-                            ) : (
-                              <tr>
-                                <td colSpan="5" className="table-cell no-data">
-                                  No tasks match the applied filters. Try different criteria or remove some filters.
-                                </td>
-                              </tr>
-                            )
-                          ) : (
-                            tasks.length > 0 ? (
-                              getSortedTasks(tasks).map((task, index) => (
-                                <tr key={task.id || index} className="table-row">
-                                  <td className="table-cell">{task.name}</td>
-                                  <td className="table-cell">{task.status}</td>
-                                  <td className="table-cell">
-                                    {typeof task.finishDate === 'string' ? task.finishDate : 'No date'}
-                                  </td>
-                                  <td className="table-cell">{task.priority}</td>
-                                  <td className="table-cell action-cell">
-                                    <button className="edit-button">
-                                      <img src={pencilIcon} alt="Edit" className="edit-icon" />
-                                    </button>
-                                  </td>
-                                </tr>
-                              ))
-                            ) : (
-                              <tr>
-                                <td colSpan="5" className="table-cell no-data">
-                                  You have no assigned tasks at this time
-                                </td>
-                              </tr>
-                            )
-                          )}
-                        </tbody>
-                      </table>
-                    </div>
-                  )}
-                </div>
-              </div>
+              {/* Reemplazar la tabla de tareas con el nuevo componente */}
+              <TasksTable 
+                tasks={tasks}
+                loading={loading.tasks}
+                error={error.tasks}
+                onUpdateTask={openUpdatePopup}
+                filters={filters}
+                activeFilters={activeFilters}
+                onFilterChange={applyFilter}
+                onFilterRemove={removeFilter}
+                onClearFilters={clearAllFilters}
+                onShowFiltersToggle={toggleShowFilters}
+                showFilters={showFilters}
+              />
             </div>
           )}
         </div>
