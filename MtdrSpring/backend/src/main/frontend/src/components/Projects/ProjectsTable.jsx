@@ -7,7 +7,7 @@ import searchIcon from '../../resources/search.png';
 import settingIcon from '../../resources/setting.png';
 import plusIcon from '../../resources/plus.png';
 
-function ProjectsTable() {
+function ProjectsTable({ onSelectProject }) {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sortField, setSortField] = useState('projectId');
@@ -155,6 +155,13 @@ function ProjectsTable() {
       });
     }
   };
+
+  const handleProjectClick = (projectId) => {
+    if (onSelectProject) {
+      onSelectProject(projectId);
+    }
+  };
+
 
   const filteredProjects = projects.sort((a, b) => {
     if (sortDirection === 'asc') {
@@ -373,7 +380,16 @@ function ProjectsTable() {
                   return (
                     <tr key={project.projectId}>
                       <td>{project.projectId}</td>
-                      <td>{project.name}</td>
+                      <td> <a 
+                          href="#" 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleProjectClick(project.projectId);
+                          }}
+                          className="project-name-link"
+                        >
+                          {project.name}
+                        </a></td>
                       <td>{project.startDate ? new Date(project.startDate).toLocaleDateString() : 'N/A'}</td>
                       <td>{project.endDate ? new Date(project.endDate).toLocaleDateString() : 'N/A'}</td>
                       <td>{project.status || 'Unknown'}</td>

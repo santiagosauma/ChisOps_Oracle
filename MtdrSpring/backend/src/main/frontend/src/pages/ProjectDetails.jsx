@@ -1,3 +1,4 @@
+//ProjectDetails
 import React, { useState, useEffect } from 'react';
 import '../styles/ProjectDetails.css';
 import ProjectHeader from '../components/ProjectDetails/ProjectHeader';
@@ -8,7 +9,7 @@ import ProjectTasks from '../components/ProjectDetails/ProjectTasks';
 import ProjectTimeline from '../components/ProjectDetails/ProjectTimeline';
 import Loader from '../components/Loader';
 
-function ProjectDetails({ projectId: propProjectId }) {
+function ProjectDetails({ projectId: propProjectId, onBack }) {
   const [fullProjectData, setFullProjectData] = useState(null);
   const [projectData, setProjectData] = useState(null);
   const [selectedSprint, setSelectedSprint] = useState(null);
@@ -207,6 +208,15 @@ function ProjectDetails({ projectId: propProjectId }) {
     });
   };
 
+
+   // Add a back button handler
+   const handleBackClick = () => {
+    if (onBack) {
+      onBack();
+    }
+  };
+
+
   if (loading && !projectData) {
     return (
       <div className="loading-container">
@@ -225,11 +235,13 @@ function ProjectDetails({ projectId: propProjectId }) {
 
   return (
     <div className="project-details-wrapper">
+
       <ProjectHeader 
         projectName={projectData.name} 
         sprint={selectedSprint}
         sprints={projectData.sprints}
         onSprintChange={handleSprintChange}
+         onBack={onBack}
       />
 
       <div className="project-details-container">
