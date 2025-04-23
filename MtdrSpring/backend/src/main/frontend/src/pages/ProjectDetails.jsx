@@ -1,4 +1,3 @@
-//ProjectDetails
 import React, { useState, useEffect } from 'react';
 import '../styles/ProjectDetails.css';
 import ProjectHeader from '../components/ProjectDetails/ProjectHeader';
@@ -6,33 +5,29 @@ import ProjectDescription from '../components/ProjectDetails/ProjectDescription'
 import ProjectOverview from '../components/ProjectDetails/ProjectOverview';
 import ProjectUsers from '../components/ProjectDetails/ProjectUsers';
 import ProjectTasks from '../components/ProjectDetails/ProjectTasks';
-import ProjectTimeline from '../components/ProjectDetails/ProjectTimeline';
 import Loader from '../components/Loader';
 
 function ProjectDetails({ projectId: propProjectId, onBack }) {
   const [fullProjectData, setFullProjectData] = useState(null);
   const [projectData, setProjectData] = useState(null);
   const [selectedSprint, setSelectedSprint] = useState(null);
+  const [allSprintTasks, setAllSprintTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Cargar todos los datos del proyecto de una sola vez
   useEffect(() => {
     if (!propProjectId) return;
     
     const loadProjectData = async () => {
       try {
         setLoading(true);
-        
-        // Usar el endpoint completo para obtener todos los datos del proyecto
         const projectResponse = await fetch(`/proyectos/${propProjectId}`);
         if (!projectResponse.ok) throw new Error('Error fetching project');
         const projectFull = await projectResponse.json();
         
-        // Guardar todos los datos del proyecto
         setFullProjectData(projectFull);
         
-        // Obtener usuarios del proyecto si no están incluidos en el endpoint completo
+        // Load users
         let users = [];
         if (!projectFull.usuarios) {
           const usersResponse = await fetch(`/proyectos/${propProjectId}/usuarios`);
@@ -43,25 +38,47 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
           users = projectFull.usuarios;
         }
         
-        // Formatear usuarios
         const formattedUsers = users.map(user => ({
-          id: user.userId,
+          id: user.userId || user.id,
           name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
           role: user.rol || 'Team Member'
         }));
         
-        // Seleccionar el primer sprint por defecto
-        const initialSprintId = projectFull.sprints && projectFull.sprints.length > 0 
-          ? projectFull.sprints[0].sprintId 
-          : null;
+        // Fetch sprints for the project
+        let projectSprints = [];
+        try {
+          const sprintsResponse = await fetch(`/sprints/proyecto/${propProjectId}`);
+          if (sprintsResponse.ok) {
+            projectSprints = await sprintsResponse.json();
+            console.log("Fetched sprints:", projectSprints);
+          }
+        } catch (err) {
+          console.error("Error fetching sprints:", err);
+        }
+        
+        // Default to 'all' sprints
+        setSelectedSprint('all');
+        
+        // Fetch all tasks for all sprints
+        let allTasks = [];
+        if (projectSprints.length > 0) {
+          // Fetch tasks for each sprint and combine them
+          try {
+            const allTasksPromises = projectSprints.map(sprint => 
+              fetch(`/tareas/sprint/${sprint.sprintId}`)
+                .then(res => res.ok ? res.json() : [])
+            );
+            
+            const tasksArrays = await Promise.all(allTasksPromises);
+            allTasks = tasksArrays.flat();
+            setAllSprintTasks(allTasks);
+          } catch (err) {
+            console.error("Error fetching all tasks:", err);
+          }
+        }
           
-        // Filtrar tareas para el sprint inicial
-        const initialTasks = filterTasksForSprint(projectFull, initialSprintId);
+        const tasksInfo = calculateTasksInfo(allTasks);
         
-        // Calcular estadísticas de tareas para el sprint inicial
-        const tasksInfo = calculateTasksInfo(initialTasks);
-        
-        // Formatear datos para el estado
         setProjectData({
           id: projectFull.projectId,
           name: projectFull.name,
@@ -69,13 +86,12 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
           startDate: projectFull.startDate,
           endDate: projectFull.endDate,
           status: projectFull.status,
-          sprints: projectFull.sprints,
+          sprints: projectSprints,
           users: formattedUsers,
           tasksInfo,
-          formattedTasks: formatTasks(initialTasks)
+          formattedTasks: formatTasks(allTasks)
         });
         
-        setSelectedSprint(initialSprintId);
         setLoading(false);
       } catch (err) {
         console.error('Error loading project data:', err);
@@ -87,65 +103,47 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
     loadProjectData();
   }, [propProjectId]);
 
-  // Función para filtrar tareas por sprint del conjunto completo de datos
-  const filterTasksForSprint = (projectData, sprintId) => {
-    if (!projectData || !projectData.sprints) return [];
-    
-    const sprint = projectData.sprints.find(s => s.sprintId === sprintId);
-    return sprint ? sprint.tareas || [] : [];
-  };
-
-  // Función para manejar cambio de sprint sin hacer nuevos fetch
-  const handleSprintChange = (sprintId) => {
-    setLoading(true);
-    
-    // Filtrar tareas para el sprint seleccionado de los datos ya cargados
-    const sprintTasks = filterTasksForSprint(fullProjectData, sprintId);
-    
-    // Actualizar el estado con los datos del sprint seleccionado
-    setProjectData(prev => ({
-      ...prev,
-      tasksInfo: calculateTasksInfo(sprintTasks),
-      formattedTasks: formatTasks(sprintTasks)
-    }));
-    
-    setSelectedSprint(sprintId);
-    setLoading(false);
-  };
-
-  // Funciones helper
   const calculateTasksInfo = (tasks) => {
-    if (!tasks) return { overdue: 0, progress: '0%', completed: 0, pending: 0, total: 0 };
+    if (!tasks || !Array.isArray(tasks)) return { overdue: 0, progress: '0%', completed: 0, pending: 0, total: 0 };
     
-    // Contar tareas por estado
-    const completed = tasks.filter(t => 
-      t.status?.toLowerCase() === 'completed' || 
-      t.status?.toLowerCase() === 'finalizada'
-    ).length;
+    const currentDate = new Date();
     
-    const overdue = tasks.filter(t => 
-      t.status?.toLowerCase() === 'overdue' || 
-      t.status?.toLowerCase() === 'vencida'
-    ).length;
+    const completed = tasks.filter(t => {
+      const status = t.status?.toLowerCase() || '';
+      return status === 'completed' || 
+             status === 'done' || 
+             status === 'finalizada' || 
+             status === 'completado';
+    }).length;
     
-    const pending = tasks.filter(t => 
-      t.status?.toLowerCase() === 'pending' || 
-      t.status?.toLowerCase() === 'pendiente'
-    ).length;
+    const overdue = tasks.filter(t => {
+      const dueDate = new Date(t.endDate || t.dueDate);
+      const status = t.status?.toLowerCase() || '';
+      return dueDate < currentDate && 
+             !['completed', 'done', 'finalizada', 'completado'].includes(status);
+    }).length;
     
-    const inProgress = tasks.filter(t => 
-      t.status?.toLowerCase() === 'doing' || 
-      t.status?.toLowerCase() === 'in progress' ||
-      t.status?.toLowerCase() === 'en progreso'
-    ).length;
+    const inProgress = tasks.filter(t => {
+      const status = t.status?.toLowerCase() || '';
+      return status === 'doing' || 
+             status === 'in progress' || 
+             status === 'en progreso';
+    }).length;
+    
+    const pending = tasks.filter(t => {
+      const status = t.status?.toLowerCase() || '';
+      return status === 'pending' || 
+             status === 'to do' || 
+             status === 'pendiente' ||
+             status === '';
+    }).length;
     
     const total = tasks.length;
-    // Calcular porcentaje de progreso
-    const progress = total > 0 ? Math.round((completed / total) * 100) + '%' : '0%';
+    const progressPercent = total > 0 ? Math.round((completed / total) * 100) : 0;
     
     return {
       overdue,
-      progress,
+      progress: progressPercent,
       completed,
       pending: pending + inProgress,
       total
@@ -153,69 +151,73 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
   };
 
   const formatTasks = (tasks) => {
-    if (!tasks) return [];
+    if (!tasks || !Array.isArray(tasks)) return [];
     
     return tasks.map(task => ({
       id: task.taskId,
-      name: task.title || 'Unnamed Task',
+      name: task.title || task.name || 'Unnamed Task',
       status: task.status || 'Pending',
       priority: task.priority || 'Medium',
-      startDate: task.startDate ? new Date(task.startDate).toLocaleDateString() : 'N/A',
       dueDate: task.endDate ? new Date(task.endDate).toLocaleDateString() : 'N/A',
       assignedTo: task.usuario ? `${task.usuario.firstName || ''} ${task.usuario.lastName || ''}`.trim() : 'Unassigned',
       estimatedHour: task.estimatedHours || 0,
-      realHours: task.actualHours || '-'
+      realHours: task.actualHours || '-',
+      sprintId: task.sprintId
     }));
   };
 
-  // Generar datos para la línea de tiempo basados en el sprint seleccionado
-  const generateTimelineData = () => {
-    if (!projectData || !selectedSprint) return [];
+  // Updated sprint change handler to handle 'all' sprints option
+  const handleSprintChange = async (sprintId) => {
+    setLoading(true);
+    console.log("Changing to sprint:", sprintId);
     
-    const monthNames = ["January", "February", "March", "April", "May", "June", "July", 
-                       "August", "September", "October", "November", "December"];
-    
-    // Filtrar tareas del sprint seleccionado
-    const sprintTasks = filterTasksForSprint(fullProjectData, selectedSprint);
-    if (!sprintTasks || sprintTasks.length === 0) return [];
-    
-    // Obtener sprint seleccionado para contexto
-    const currentSprint = fullProjectData.sprints.find(s => s.sprintId === selectedSprint);
-    if (!currentSprint) return [];
-    
-    // Crear elementos de línea de tiempo basados en las tareas del sprint
-    return sprintTasks.map(task => {
-      const startDate = new Date(task.startDate);
-      const endDate = new Date(task.endDate);
+    try {
+      let tasksToShow = [];
       
-      let status = 'upcoming';
-      if (task.status?.toLowerCase().includes('complete') || 
-          task.status?.toLowerCase() === 'finalizada') {
-        status = 'completed';
-      } else if (task.status?.toLowerCase().includes('progress') || 
-                 task.status?.toLowerCase() === 'en progreso' ||
-                 task.status?.toLowerCase() === 'doing') {
-        status = 'in-progress';
+      if (sprintId === 'all') {
+        console.log("Fetching all tasks for all sprints");
+        // Use cached all tasks if available, otherwise fetch them
+        if (allSprintTasks.length > 0) {
+          console.log("Using cached all tasks:", allSprintTasks.length);
+          tasksToShow = allSprintTasks;
+        } else if (projectData?.sprints?.length > 0) {
+          console.log("Fetching tasks for each sprint");
+          // Fetch tasks for each sprint and combine them
+          const allTasksPromises = projectData.sprints.map(sprint => 
+            fetch(`/tareas/sprint/${sprint.sprintId}`)
+              .then(res => res.ok ? res.json() : [])
+          );
+          
+          const tasksArrays = await Promise.all(allTasksPromises);
+          tasksToShow = tasksArrays.flat();
+          console.log("Fetched all tasks:", tasksToShow.length);
+          setAllSprintTasks(tasksToShow);
+        }
+      } else {
+        console.log("Fetching tasks for sprint:", sprintId);
+        // Fetch tasks for the selected sprint
+        const response = await fetch(`/tareas/sprint/${sprintId}`);
+        if (!response.ok) {
+          throw new Error(`Error loading tasks for sprint ${sprintId}`);
+        }
+        
+        tasksToShow = await response.json();
+        console.log("Fetched sprint tasks:", tasksToShow.length);
       }
       
-      return {
-        id: task.taskId,
-        name: task.title,
-        startMonth: monthNames[startDate.getMonth()],
-        endMonth: monthNames[endDate.getMonth()],
-        status: status
-      };
-    });
-  };
-
-
-   // Add a back button handler
-   const handleBackClick = () => {
-    if (onBack) {
-      onBack();
+      setProjectData(prev => ({
+        ...prev,
+        tasksInfo: calculateTasksInfo(tasksToShow),
+        formattedTasks: formatTasks(tasksToShow)
+      }));
+      
+      setSelectedSprint(sprintId);
+    } catch (error) {
+      console.error("Error fetching sprint tasks:", error);
+    } finally {
+      setLoading(false);
     }
   };
-
 
   if (loading && !projectData) {
     return (
@@ -235,18 +237,15 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
 
   return (
     <div className="project-details-wrapper">
-
       <ProjectHeader 
-        projectName={projectData.name} 
+        projectName={projectData?.name} 
         sprint={selectedSprint}
-        sprints={projectData.sprints}
+        sprints={projectData?.sprints}
         onSprintChange={handleSprintChange}
-         onBack={onBack}
+        onBack={onBack}
       />
-
       <div className="project-details-container">
         {loading && <div className="loading-overlay">Loading data...</div>}
-        
         <div className="project-details-grid">
           <div className="project-left-col">
             <div className="project-description-container">
@@ -267,9 +266,6 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
           <div className="project-right-col">
             <div className="project-tasks-container">
               <ProjectTasks tasks={projectData.formattedTasks} />
-            </div>
-            <div className="project-timeline-container">
-              <ProjectTimeline timeline={generateTimelineData()} />
             </div>
           </div>
         </div>

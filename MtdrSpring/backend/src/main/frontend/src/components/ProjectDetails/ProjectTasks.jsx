@@ -1,25 +1,46 @@
 import React from 'react';
-import { UserPlus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import '../../styles/ProjectDetails/ProjectTasks.css'
 
 const ProjectTasks = ({ tasks }) => {
   // Helper function para aplicar clases según el estado
   const getStatusClass = (status) => {
+    if (!status) return '';
+    
     switch(status.toLowerCase()) {
-      case 'completed': return 'status-completed';
-      case 'doing': return 'status-doing';
-      case 'overdue': return 'status-overdue';
-      default: return '';
+      case 'completed':
+      case 'done':
+      case 'finalizada':
+      case 'completado':
+        return 'status-completed';
+      case 'doing':
+      case 'in progress':
+      case 'en progreso':
+        return 'status-doing';
+      case 'overdue':
+      case 'vencida':
+        return 'status-overdue';
+      default:
+        return '';
     }
   };
   
   // Helper function para aplicar clases según la prioridad
   const getPriorityClass = (priority) => {
+    if (!priority) return '';
+    
     switch(priority.toLowerCase()) {
-      case 'high': return 'priority-high';
-      case 'medium': return 'priority-medium';
-      case 'low': return 'priority-low';
-      default: return '';
+      case 'high':
+      case 'alta':
+        return 'priority-high';
+      case 'medium':
+      case 'media':
+        return 'priority-medium';
+      case 'low':
+      case 'baja':
+        return 'priority-low';
+      default:
+        return '';
     }
   };
 
@@ -33,7 +54,6 @@ const ProjectTasks = ({ tasks }) => {
               <th>ID & Task</th>
               <th>Status</th>
               <th>Priority</th>
-              <th>Start Date</th>
               <th>Due Date</th>
               <th>User Assigned</th>
               <th>Estimated Hour</th>
@@ -41,32 +61,37 @@ const ProjectTasks = ({ tasks }) => {
             </tr>
           </thead>
           <tbody>
-            {tasks.map(task => (
+            {tasks && tasks.length > 0 ? tasks.map(task => (
               <tr key={task.id}>
                 <td>{task.id} - {task.name}</td>
                 <td>
                   <span className={`status-badge ${getStatusClass(task.status)}`}>
-                    {task.status}
+                    {task.status || 'Pending'}
                   </span>
                 </td>
                 <td>
                   <span className={`priority-badge ${getPriorityClass(task.priority)}`}>
-                    {task.priority}
+                    {task.priority || 'Medium'}
                   </span>
                 </td>
-                <td>{task.startDate}</td>
-                <td>{task.dueDate}</td>
-                <td>{task.assignedTo}</td>
-                <td>{task.estimatedHour}</td>
-                <td>{task.realHours}</td>
+                <td>{task.dueDate || 'N/A'}</td>
+                <td>{task.assignedTo || 'Unassigned'}</td>
+                <td>{task.estimatedHour || '0'}</td>
+                <td>{task.realHours || '-'}</td>
               </tr>
-            ))}
+            )) : (
+              <tr>
+                <td colSpan="7" style={{textAlign: 'center', padding: '20px'}}>
+                  No tasks available for this sprint
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
       <button className="add-task-button">
-        <UserPlus size={16} />
-        Add
+        <Plus size={16} />
+        Add Task
       </button>
     </div>
   );
