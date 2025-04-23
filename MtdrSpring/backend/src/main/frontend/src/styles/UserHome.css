@@ -188,12 +188,15 @@ h2.card-title {
     height: 8px;
     border-radius: 4px;
     overflow: hidden;
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
 
 .progress-indicator {
     height: 100%;
     background-color: #4caf50;
     border-radius: 4px;
+    min-width: 4px; /* Ensures very small percentages are still visible */
 }
 
 .task-summary-grid {

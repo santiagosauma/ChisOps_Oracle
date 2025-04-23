@@ -895,8 +895,29 @@ export default function UserHome() {
                                    'Unassigned'}
                                 </td>
                                 <td className="table-cell">
-                                  <div className="progress-bar">
-                                    <div className="progress-indicator" style={{ width: `${project.progress || 0}%` }}></div>
+                                  <div 
+                                    style={{ 
+                                      width: '100%', 
+                                      backgroundColor: '#e0e0e0', 
+                                      height: '12px', 
+                                      borderRadius: '6px',
+                                      overflow: 'hidden',
+                                      margin: '5px 0',
+                                      position: 'relative'
+                                    }}
+                                  >
+                                    <div 
+                                      style={{ 
+                                        width: `${Math.max(project.progress || 0, 3)}%`,
+                                        backgroundColor: '#4caf50',
+                                        height: '100%',
+                                        borderRadius: '6px',
+                                        position: 'absolute',
+                                        top: 0,
+                                        left: 0,
+                                        transition: 'width 0.3s ease-in-out'
+                                      }}
+                                    ></div>
                                   </div>
                                 </td>
                               </tr>
