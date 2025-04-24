@@ -15,20 +15,20 @@ function GeneralOverview() {
         return response.json()
       })
       .then(data => {
-        console.log("GeneralOverview data:", data); 
+        //console.log("GeneralOverview data:", data); 
         
         let incompleteCount = 0
         let inProgressCount = 0
         let completedCount = 0
 
         data.forEach(t => {
-          console.log(`Task ${t.title}: Status ${t.status}`);
+          //console.log(`Task ${t.title}: Status ${t.status}`);
           if (t.status === 'Incomplete') incompleteCount++
           else if (t.status === 'In Progress') inProgressCount++
           else if (t.status === 'Done') completedCount++
         })
 
-        console.log(`Counts - Incomplete: ${incompleteCount}, In Progress: ${inProgressCount}, Done: ${completedCount}`);
+       // console.log(`Counts - Incomplete: ${incompleteCount}, In Progress: ${inProgressCount}, Done: ${completedCount}`);
         
         setCounts({ 
           newCount: incompleteCount, 
