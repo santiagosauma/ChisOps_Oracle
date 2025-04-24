@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Edit, ChevronDown } from 'lucide-react';
 import '../../styles/ProjectDetails/ProjectHeader.css';
 
-const ProjectHeader = ({ projectName, sprint, sprints = [], onSprintChange, onBack, onAddSprint }) => {
+const ProjectHeader = ({ projectName, sprint, sprints = [], onSprintChange, onBack, onAddSprint, onEditSprint }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const [dropdownPosition, setDropdownPosition] = useState({});
@@ -69,6 +69,18 @@ const ProjectHeader = ({ projectName, sprint, sprints = [], onSprintChange, onBa
     setDropdownOpen(false);
   };
 
+  const handleEditClick = (e) => {
+    e.stopPropagation();
+    
+    // Only allow editing if a specific sprint is selected (not "All Sprints")
+    if (sprint !== 'all') {
+      const currentSprint = validSprints.find(s => s.sprintId === sprint);
+      if (currentSprint && onEditSprint) {
+        onEditSprint(currentSprint);
+      }
+    }
+  };
+
   return (
     <div className="project-header">
       <div className="project-header-left">
@@ -87,7 +99,12 @@ const ProjectHeader = ({ projectName, sprint, sprints = [], onSprintChange, onBa
           <div className="sprint-display">
             <span>{currentSprintName}</span>
             <div className="sprint-actions">
-              <button className="edit-button" onClick={(e) => e.stopPropagation()}>
+              <button 
+                className="edit-button" 
+                onClick={handleEditClick}
+                disabled={sprint === 'all'}
+                style={{ opacity: sprint === 'all' ? 0.5 : 1 }}
+              >
                 <Edit size={16} color="white" />
               </button>
               <button className="dropdown-button" onClick={(e) => toggleDropdown(e)}>
@@ -168,7 +185,7 @@ const ProjectHeader = ({ projectName, sprint, sprints = [], onSprintChange, onBa
                 onClick={handleAddSprintClick}
                 style={{ 
                   borderTop: '1px solid #e0e0e0',
-                  paddingTop: '8px',
+                  padding: '8px 12px',
                   marginTop: '5px',
                   color: '#0066cc',
                   fontWeight: '500'

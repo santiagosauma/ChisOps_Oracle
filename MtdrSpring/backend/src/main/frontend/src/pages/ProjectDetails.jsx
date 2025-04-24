@@ -8,6 +8,7 @@ import ProjectTasks from '../components/ProjectDetails/ProjectTasks';
 import AddTaskPopup from '../components/ProjectDetails/AddTaskPopup';
 import EditTaskPopup from '../components/ProjectDetails/EditTaskPopup';
 import AddSprintPopup from '../components/ProjectDetails/AddSprintPopup';
+import EditSprintPopup from '../components/ProjectDetails/EditSprintPopup';
 import Loader from '../components/Loader';
 
 function ProjectDetails({ projectId: propProjectId, onBack }) {
@@ -51,6 +52,17 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
     startDate: '',
     endDate: ''
   });
+
+  // Edit Sprint popup state
+  const [showEditSprintPopup, setShowEditSprintPopup] = useState(false);
+  const [editSprintForm, setEditSprintForm] = useState({
+    id: '',
+    name: '',
+    startDate: '',
+    endDate: '',
+    status: ''
+  });
+  const [currentSprint, setCurrentSprint] = useState(null);
 
   useEffect(() => {
     if (!propProjectId) return;
@@ -467,6 +479,198 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
     }
   };
 
+  const openEditSprintPopup = (sprint) => {
+    let startDate = '';
+    let endDate = '';
+    
+    if (sprint.startDate) {
+      try {
+        const startDateObj = new Date(sprint.startDate);
+        if (!isNaN(startDateObj.getTime())) {
+          startDate = startDateObj.toISOString().split('T')[0];
+        }
+      } catch (e) {
+        console.error("Error parsing start date:", e);
+        startDate = '';
+      }
+    }
+    
+    if (sprint.endDate) {
+      try {
+        const endDateObj = new Date(sprint.endDate);
+        if (!isNaN(endDateObj.getTime())) {
+          endDate = endDateObj.toISOString().split('T')[0];
+        }
+      } catch (e) {
+        console.error("Error parsing end date:", e);
+        endDate = '';
+      }
+    }
+    
+    setCurrentSprint(sprint);
+    setEditSprintForm({
+      id: sprint.sprintId,
+      name: sprint.name,
+      status: sprint.status || 'Active',
+      startDate: startDate,
+      endDate: endDate
+    });
+    setShowEditSprintPopup(true);
+  };
+
+  const closeEditSprintPopup = () => {
+    setShowEditSprintPopup(false);
+    setCurrentSprint(null);
+  };
+
+  const handleEditSprintChange = (e) => {
+    const { name, value } = e.target;
+    setEditSprintForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleUpdateSprint = async () => {
+    if (!editSprintForm.name || !editSprintForm.startDate || !editSprintForm.endDate || !editSprintForm.status) {
+      setToast({
+        show: true,
+        message: 'Please fill in all required fields',
+        type: 'error'
+      });
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 3000);
+      return;
+    }
+
+    try {
+      const response = await fetch(`/sprints/${editSprintForm.id}`);
+      if (!response.ok) {
+        throw new Error('Error fetching sprint');
+      }
+      
+      const originalSprint = await response.json();
+      
+      const updatedSprint = {
+        ...originalSprint,
+        name: editSprintForm.name,
+        status: editSprintForm.status,
+        startDate: editSprintForm.startDate,
+        endDate: editSprintForm.endDate
+      };
+      
+      console.log("Updating sprint with data:", updatedSprint);
+      
+      const updateResponse = await fetch(`/sprints/${editSprintForm.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedSprint)
+      });
+      
+      if (!updateResponse.ok) {
+        const errorText = await updateResponse.text();
+        console.error("Server error response:", errorText);
+        throw new Error(`Error updating sprint: ${errorText}`);
+      }
+      
+      setToast({
+        show: true,
+        message: 'Sprint updated successfully!',
+        type: 'success'
+      });
+      
+      const sprintsResponse = await fetch(`/sprints/proyecto/${propProjectId}`);
+      if (sprintsResponse.ok) {
+        const updatedSprints = await sprintsResponse.json();
+        setProjectData(prev => ({
+          ...prev,
+          sprints: updatedSprints
+        }));
+        
+        if (selectedSprint === editSprintForm.id) {
+          handleSprintChange(selectedSprint);
+        }
+      }
+      
+      closeEditSprintPopup();
+      
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 3000);
+    } catch (error) {
+      console.error('Error updating sprint:', error);
+      
+      setToast({
+        show: true,
+        message: `Failed to update sprint: ${error.message}`,
+        type: 'error'
+      });
+      
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 4000);
+    }
+  };
+  
+  const handleDeleteSprint = async () => {
+    if (!currentSprint || !editSprintForm.id) return;
+    
+    if (!window.confirm('Are you sure you want to delete this sprint? This action cannot be undone and will affect all tasks in this sprint.')) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/sprints/${editSprintForm.id}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Error deleting sprint: ${errorText}`);
+      }
+      
+      setToast({
+        show: true,
+        message: 'Sprint deleted successfully!',
+        type: 'success'
+      });
+      
+      const sprintsResponse = await fetch(`/sprints/proyecto/${propProjectId}`);
+      if (sprintsResponse.ok) {
+        const updatedSprints = await sprintsResponse.json();
+        setProjectData(prev => ({
+          ...prev,
+          sprints: updatedSprints
+        }));
+        
+        if (selectedSprint === editSprintForm.id) {
+          handleSprintChange('all');
+        }
+      }
+      
+      closeEditSprintPopup();
+      
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 3000);
+    } catch (error) {
+      console.error('Error deleting sprint:', error);
+      
+      setToast({
+        show: true,
+        message: `Failed to delete sprint: ${error.message}`,
+        type: 'error'
+      });
+      
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 4000);
+    }
+  };
+
   const openEditTaskPopup = (task) => {
     let dueDate = '';
     if (task.dueDate) {
@@ -696,6 +900,15 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
         onSubmit={handleAddSprint}
       />
       
+      <EditSprintPopup 
+        show={showEditSprintPopup}
+        onClose={closeEditSprintPopup}
+        formData={editSprintForm}
+        onChange={handleEditSprintChange}
+        onUpdate={handleUpdateSprint}
+        onDelete={handleDeleteSprint}
+      />
+      
       <ProjectHeader 
         projectName={projectData?.name} 
         sprint={selectedSprint}
@@ -703,6 +916,7 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
         onSprintChange={handleSprintChange}
         onBack={onBack}
         onAddSprint={openAddSprintPopup}
+        onEditSprint={openEditSprintPopup}
       />
       <div className="project-details-container">
         {loading && <div className="loading-overlay">Loading data...</div>}
