@@ -93,6 +93,89 @@
   min-width: 5px;
 }
 
+/* Task Breakdown Styles */
+.task-breakdown-section {
+  margin-top: 15px;
+}
+
+.task-breakdown-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 13px;
+  color: #555;
+}
+
+.task-breakdown-container {
+  width: 100%;
+  height: 8px;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.task-breakdown-bar {
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+.breakdown-segment {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.breakdown-segment.completed {
+  background-color: #4caf50; /* Green */
+}
+
+.breakdown-segment.pending {
+  background-color: #ff9800; /* Orange */
+}
+
+.breakdown-segment.overdue {
+  background-color: #f44336; /* Red */
+}
+
+.task-breakdown-legend {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+  margin-bottom: 3px;
+}
+
+.legend-color {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  margin-right: 5px;
+}
+
+.legend-color.completed {
+  background-color: #4caf50;
+}
+
+.legend-color.pending {
+  background-color: #ff9800;
+}
+
+.legend-color.overdue {
+  background-color: #f44336;
+}
+
+.legend-label {
+  font-size: 11px;
+  color: #555;
+}
+
 @media screen and (max-width: 500px) {
   .project-overview-cards {
     flex-direction: column;

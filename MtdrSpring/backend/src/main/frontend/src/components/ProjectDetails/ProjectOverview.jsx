@@ -6,7 +6,8 @@ const ProjectOverview = ({ tasksInfo }) => {
     overdue: tasksInfo?.overdue || 0,
     progress: tasksInfo?.progress || '0%',
     completed: tasksInfo?.completed || 0,
-    pending: tasksInfo?.pending || 0
+    pending: tasksInfo?.pending || 0,
+    total: tasksInfo?.total || 0
   };
   
   const progressDisplay = typeof info.progress === 'number' 
@@ -17,6 +18,23 @@ const ProjectOverview = ({ tasksInfo }) => {
   if (typeof info.progress === 'number') {
     progressWidth = `${info.progress}%`;
   }
+
+  // Calculate the task status distribution for visualization
+  const calculateDistribution = () => {
+    const total = Math.max(1, info.total); // Avoid division by zero
+    
+    const completedPercent = (info.completed / total) * 100;
+    const pendingPercent = (info.pending / total) * 100;
+    const overduePercent = (info.overdue / total) * 100;
+    
+    return {
+      completed: completedPercent,
+      pending: pendingPercent,
+      overdue: overduePercent
+    };
+  };
+
+  const distribution = calculateDistribution();
 
   return (
     <div className="project-overview">
@@ -43,9 +61,49 @@ const ProjectOverview = ({ tasksInfo }) => {
         </div>
         <div className="project-progress-bar-container">
           <div 
-            className="project-progress-bar-indicator" 
+            className="project-progress-bar" 
             style={{ width: progressWidth }}
           ></div>
+        </div>
+      </div>
+      
+      {/* Task Breakdown Section */}
+      <div className="task-breakdown-section">
+        <div className="task-breakdown-label">
+          <span>Tasks Breakdown</span>
+        </div>
+        <div className="task-breakdown-container">
+          <div className="task-breakdown-bar">
+            <div 
+              className="breakdown-segment completed" 
+              style={{ width: `${distribution.completed}%` }}
+              title={`Completed: ${info.completed} tasks (${distribution.completed.toFixed(0)}%)`}
+            ></div>
+            <div 
+              className="breakdown-segment pending" 
+              style={{ width: `${distribution.pending}%` }}
+              title={`In Progress: ${info.pending} tasks (${distribution.pending.toFixed(0)}%)`}
+            ></div>
+            <div 
+              className="breakdown-segment overdue" 
+              style={{ width: `${distribution.overdue}%` }}
+              title={`Overdue: ${info.overdue} tasks (${distribution.overdue.toFixed(0)}%)`}
+            ></div>
+          </div>
+        </div>
+        <div className="task-breakdown-legend">
+          <div className="legend-item">
+            <div className="legend-color completed"></div>
+            <span className="legend-label">Completed</span>
+          </div>
+          <div className="legend-item">
+            <div className="legend-color pending"></div>
+            <span className="legend-label">In Progress</span>
+          </div>
+          <div className="legend-item">
+            <div className="legend-color overdue"></div>
+            <span className="legend-label">Overdue</span>
+          </div>
         </div>
       </div>
     </div>
