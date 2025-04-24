@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Edit, ChevronDown } from 'lucide-react';
 import '../../styles/ProjectDetails/ProjectHeader.css';
 
-const ProjectHeader = ({ projectName, sprint, sprints = [], onSprintChange, onBack }) => {
+const ProjectHeader = ({ projectName, sprint, sprints = [], onSprintChange, onBack, onAddSprint }) => {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
   const [dropdownPosition, setDropdownPosition] = useState({});
@@ -59,6 +59,14 @@ const ProjectHeader = ({ projectName, sprint, sprints = [], onSprintChange, onBa
     }
     
     setDropdownOpen(!dropdownOpen);
+  };
+
+  const handleAddSprintClick = (e) => {
+    e.stopPropagation();
+    if (onAddSprint) {
+      onAddSprint();
+    }
+    setDropdownOpen(false);
   };
 
   return (
@@ -155,6 +163,19 @@ const ProjectHeader = ({ projectName, sprint, sprints = [], onSprintChange, onBa
                   No sprints available
                 </div>
               )}
+              <div 
+                className="sprint-option add-sprint"
+                onClick={handleAddSprintClick}
+                style={{ 
+                  borderTop: '1px solid #e0e0e0',
+                  paddingTop: '8px',
+                  marginTop: '5px',
+                  color: '#0066cc',
+                  fontWeight: '500'
+                }}
+              >
+                <span style={{ marginRight: '5px' }}>+</span> Add Sprint
+              </div>
             </div>
           )}
         </div>

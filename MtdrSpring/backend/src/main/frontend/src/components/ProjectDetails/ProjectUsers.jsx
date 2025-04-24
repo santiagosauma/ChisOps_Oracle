@@ -3,17 +3,13 @@ import { Plus } from 'lucide-react';
 import '../../styles/ProjectDetails/ProjectUsers.css';
 
 const ProjectUsers = ({ users, tasks = [] }) => {
-  // Calculate task statistics for each user
   const getUserStats = (userId) => {
-    // Filter tasks assigned to this user
     const userTasks = tasks.filter(task => {
-      // Compare both as strings to handle different data types
       return task.userId === userId || 
              String(task.userId) === String(userId) ||
              (task.usuario && (task.usuario.userId === userId || String(task.usuario.userId) === String(userId)));
     });
     
-    // Count completed tasks
     const completedTasks = userTasks.filter(task => {
       const status = task.status?.toLowerCase() || '';
       return status === 'completed' || 
@@ -22,13 +18,11 @@ const ProjectUsers = ({ users, tasks = [] }) => {
              status === 'completado';
     }).length;
     
-    // Calculate total estimated hours (handle missing or non-numeric values)
     const estimatedHours = userTasks.reduce((sum, task) => {
       const hours = Number(task.estimatedHour || task.estimatedHours || 0);
       return isNaN(hours) ? sum : sum + hours;
     }, 0);
     
-    // Calculate total actual/real hours (handle missing or non-numeric values)
     const actualHours = userTasks.reduce((sum, task) => {
       const hours = Number(task.realHours || task.actualHours || 0);
       return isNaN(hours) ? sum : sum + hours;

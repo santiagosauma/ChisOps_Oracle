@@ -7,6 +7,7 @@ import ProjectUsers from '../components/ProjectDetails/ProjectUsers';
 import ProjectTasks from '../components/ProjectDetails/ProjectTasks';
 import AddTaskPopup from '../components/ProjectDetails/AddTaskPopup';
 import EditTaskPopup from '../components/ProjectDetails/EditTaskPopup';
+import AddSprintPopup from '../components/ProjectDetails/AddSprintPopup';
 import Loader from '../components/Loader';
 
 function ProjectDetails({ projectId: propProjectId, onBack }) {
@@ -17,7 +18,6 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
-  // Add Task popup state
   const [showAddTaskPopup, setShowAddTaskPopup] = useState(false);
   const [addTaskForm, setAddTaskForm] = useState({
     title: '',
@@ -43,6 +43,14 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
     userId: ''
   });
   const [currentTask, setCurrentTask] = useState(null);
+
+  // Add Sprint popup state
+  const [showAddSprintPopup, setShowAddSprintPopup] = useState(false);
+  const [addSprintForm, setAddSprintForm] = useState({
+    name: '',
+    startDate: '',
+    endDate: ''
+  });
 
   useEffect(() => {
     if (!propProjectId) return;
@@ -357,6 +365,108 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
     }
   };
 
+  // Add Sprint popup handlers
+  const openAddSprintPopup = () => {
+    setAddSprintForm({
+      name: '',
+      startDate: '',
+      endDate: ''
+    });
+    setShowAddSprintPopup(true);
+  };
+
+  const closeAddSprintPopup = () => {
+    setShowAddSprintPopup(false);
+  };
+
+  const handleAddSprintChange = (e) => {
+    const { name, value } = e.target;
+    setAddSprintForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleAddSprint = async () => {
+    if (!addSprintForm.name || !addSprintForm.startDate || !addSprintForm.endDate) {
+      setToast({
+        show: true,
+        message: 'Please fill in all required fields',
+        type: 'error'
+      });
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 3000);
+      return;
+    }
+
+    try {
+      const newSprint = {
+        name: addSprintForm.name,
+        startDate: addSprintForm.startDate,
+        endDate: addSprintForm.endDate,
+        status: "Active",
+        deleted: 0,
+        proyecto: {
+          projectId: propProjectId 
+        }
+      };
+      
+      console.log("Sending sprint data:", JSON.stringify(newSprint, null, 2));
+      
+      const response = await fetch('/sprints', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newSprint)
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Server error response:", errorText);
+        throw new Error(`Error creating sprint: ${errorText}`);
+      }
+      
+      const location = response.headers.get('location');
+      console.log("Sprint created successfully, ID:", location);
+      
+      setToast({
+        show: true,
+        message: 'Sprint added successfully!',
+        type: 'success'
+      });
+      
+      // Refresh sprints list
+      const sprintsResponse = await fetch(`/sprints/proyecto/${propProjectId}`);
+      if (sprintsResponse.ok) {
+        const updatedSprints = await sprintsResponse.json();
+        setProjectData(prev => ({
+          ...prev,
+          sprints: updatedSprints
+        }));
+      }
+      
+      closeAddSprintPopup();
+      
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 3000);
+    } catch (error) {
+      console.error('Error adding sprint:', error);
+      
+      setToast({
+        show: true,
+        message: `Failed to add sprint: ${error.message}`,
+        type: 'error'
+      });
+      
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 4000);
+    }
+  };
+
   const openEditTaskPopup = (task) => {
     let dueDate = '';
     if (task.dueDate) {
@@ -578,12 +688,21 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
         users={projectData.users}
       />
       
+      <AddSprintPopup 
+        show={showAddSprintPopup}
+        onClose={closeAddSprintPopup}
+        formData={addSprintForm}
+        onChange={handleAddSprintChange}
+        onSubmit={handleAddSprint}
+      />
+      
       <ProjectHeader 
         projectName={projectData?.name} 
         sprint={selectedSprint}
         sprints={projectData?.sprints}
         onSprintChange={handleSprintChange}
         onBack={onBack}
+        onAddSprint={openAddSprintPopup}
       />
       <div className="project-details-container">
         {loading && <div className="loading-overlay">Loading data...</div>}
