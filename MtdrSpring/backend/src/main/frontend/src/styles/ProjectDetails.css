@@ -64,6 +64,17 @@
     flex-direction: column;
     gap: 20px;
   }
+
+  .project-left-col {
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    gap: 20px;
+    height: 100%;
+  }
+
+  .project-right-col {
+    height: auto;
+  }
   
   .project-details-wrapper .project-description-container,
   .project-details-wrapper .project-overview-container,
@@ -74,6 +85,40 @@
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     padding: 15px;
+  }
+
+  .project-description-container,
+  .project-overview-container {
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 15px;
+    /*Hola*/
+    height: 300px;
+  }
+
+  .project-users-container {
+    display: flex;
+    flex-direction: column;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 15px;
+    flex-grow: 1;
+    min-height: 300px;
+  }
+
+  .project-tasks-container {
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    padding: 15px;
+    /*Hola*/
+    min-height: 620px;
+    height: auto;
+    margin-bottom: auto;
   }
   
   .loading-overlay {

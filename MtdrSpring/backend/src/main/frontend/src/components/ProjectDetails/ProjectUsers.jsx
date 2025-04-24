@@ -1,4 +1,5 @@
 import React from 'react';
+import { Plus } from 'lucide-react';
 import '../../styles/ProjectDetails/ProjectUsers.css';
 
 const ProjectUsers = ({ users, tasks = [] }) => {
@@ -76,6 +77,10 @@ const ProjectUsers = ({ users, tasks = [] }) => {
           </tbody>
         </table>
       </div>
+      <button className="add-user-button">
+        <Plus size={16} />
+        Add User
+      </button>
     </div>
   );
 };
