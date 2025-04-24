@@ -19,7 +19,6 @@ function Login({ onLogin, toggleAuthMode }) {
 
     setIsLoading(true);
     setError('');
-
     try {
       const response = await fetch('/usuarios/login', {
         method: 'POST',
@@ -28,32 +27,28 @@ function Login({ onLogin, toggleAuthMode }) {
         },
         body: JSON.stringify({ email, password }),
       });
-
+    
       if (response.ok) {
         const userData = await response.json();
-
-        if (!userData || !userData.rol) {
-          setError('Error: Respuesta del servidor inválida');
-          return;
-        }
-
-        localStorage.setItem('user', JSON.stringify(userData));
-        onLogin(userData);
-
-        return;
+        // Resto del código...
       } else {
+        const errorData = await response.text();
+        console.error('Error response:', response.status, errorData);
+        
         if (response.status === 401) {
           setError('Email o contraseña incorrectos');
         } else if (response.status === 400) {
           setError('Datos de inicio de sesión inválidos');
+        } else if (response.status === 500) {
+          setError('Error interno del servidor. Por favor intente más tarde.');
         } else {
-          const errorText = await response.text();
-          setError(errorText || 'Error al iniciar sesión');
+          setError(errorData || 'Error al iniciar sesión');
         }
       }
     } catch (err) {
-      setError('Error de conexión. Por favor, intente más tarde.');
-    } finally {
+      console.error('Error completo:', err);
+      setError('Error de conexión. Verifique su conexión a internet o intente más tarde.');
+    }finally {
       setIsLoading(false);
     }
   };
