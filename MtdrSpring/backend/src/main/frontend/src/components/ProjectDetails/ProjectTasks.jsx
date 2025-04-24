@@ -2,7 +2,7 @@ import React from 'react';
 import { Plus } from 'lucide-react';
 import '../../styles/ProjectDetails/ProjectTasks.css'
 
-const ProjectTasks = ({ tasks }) => {
+const ProjectTasks = ({ tasks, onAddTask }) => {
   const getStatusClass = (status) => {
     if (!status) return '';
     
@@ -88,7 +88,7 @@ const ProjectTasks = ({ tasks }) => {
           </tbody>
         </table>
       </div>
-      <button className="add-task-button">
+      <button className="add-task-button" onClick={onAddTask}>
         <Plus size={16} />
         Add Task
       </button>

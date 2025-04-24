@@ -5,6 +5,7 @@ import ProjectDescription from '../components/ProjectDetails/ProjectDescription'
 import ProjectOverview from '../components/ProjectDetails/ProjectOverview';
 import ProjectUsers from '../components/ProjectDetails/ProjectUsers';
 import ProjectTasks from '../components/ProjectDetails/ProjectTasks';
+import AddTaskPopup from '../components/ProjectDetails/AddTaskPopup';
 import Loader from '../components/Loader';
 
 function ProjectDetails({ projectId: propProjectId, onBack }) {
@@ -14,6 +15,21 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
   const [allSprintTasks, setAllSprintTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Add Task popup state
+  const [showAddTaskPopup, setShowAddTaskPopup] = useState(false);
+  const [addTaskForm, setAddTaskForm] = useState({
+    title: '',
+    priority: '',
+    dueDate: '',
+    estimatedHours: '',
+    userId: ''
+  });
+  const [toast, setToast] = useState({
+    show: false,
+    message: '',
+    type: 'success'
+  });
 
   useEffect(() => {
     if (!propProjectId) return;
@@ -212,6 +228,121 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
       setLoading(false);
     }
   };
+  
+  // Add Task popup handlers
+  const openAddTaskPopup = () => {
+    setAddTaskForm({
+      title: '',
+      priority: '',
+      dueDate: '',
+      estimatedHours: '',
+      userId: ''
+    });
+    setShowAddTaskPopup(true);
+  };
+
+  const closeAddTaskPopup = () => {
+    setShowAddTaskPopup(false);
+  };
+
+  const handleAddFormChange = (e) => {
+    const { name, value } = e.target;
+    setAddTaskForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleAddTask = async () => {
+    if (!addTaskForm.title || !addTaskForm.priority || !addTaskForm.dueDate) {
+      setToast({
+        show: true,
+        message: 'Please fill in all required fields',
+        type: 'error'
+      });
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 3000);
+      return;
+    }
+
+    try {
+      const sprintId = selectedSprint === 'all' && projectData.sprints.length > 0 
+        ? projectData.sprints[0].sprintId 
+        : selectedSprint;
+      
+      if (!sprintId) {
+        throw new Error('No valid sprint selected');
+      }
+      
+      const today = new Date().toISOString().split('T')[0];
+      
+      const newTask = {
+        title: addTaskForm.title,
+        description: `Task: ${addTaskForm.title}`,
+        priority: addTaskForm.priority,
+        status: "Incomplete",
+        type: "Task",
+        startDate: today,
+        endDate: addTaskForm.dueDate,
+        storyPoints: 0,
+        estimatedHours: parseFloat(addTaskForm.estimatedHours) || 0,
+        actualHours: null,
+        deleted: 0,
+        sprint: { 
+          sprintId: sprintId 
+        },
+        usuario: addTaskForm.userId ? { 
+          userId: addTaskForm.userId 
+        } : null
+      };
+      
+      console.log("Sending task data:", JSON.stringify(newTask, null, 2));
+      
+      const response = await fetch('/tareas', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newTask)
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Server error response:", errorText);
+        throw new Error(`Error creating task: ${errorText}`);
+      }
+      
+      const location = response.headers.get('location');
+      console.log("Task created successfully, ID:", location);
+      
+      setToast({
+        show: true,
+        message: 'Task added successfully!',
+        type: 'success'
+      });
+      
+      handleSprintChange(selectedSprint);
+      
+      closeAddTaskPopup();
+      
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 3000);
+    } catch (error) {
+      console.error('Error adding task:', error);
+      
+      setToast({
+        show: true,
+        message: `Failed to add task: ${error.message}`,
+        type: 'error'
+      });
+      
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 4000);
+    }
+  };
 
   if (loading && !projectData) {
     return (
@@ -231,6 +362,25 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
 
   return (
     <div className="project-details-wrapper">
+      {toast.show && (
+        <div className={`toast-notification ${toast.type}`}>
+          <div className="toast-content">
+            <span>{toast.message}</span>
+          </div>
+          <div className="toast-timeline"></div>
+        </div>
+      )}
+      
+      <AddTaskPopup 
+        show={showAddTaskPopup}
+        onClose={closeAddTaskPopup}
+        formData={addTaskForm}
+        onChange={handleAddFormChange}
+        onSubmit={handleAddTask}
+        users={projectData.users}
+        selectedSprint={selectedSprint}
+      />
+      
       <ProjectHeader 
         projectName={projectData?.name} 
         sprint={selectedSprint}
@@ -263,7 +413,10 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
           </div>
           <div className="project-right-col">
             <div className="project-tasks-container">
-              <ProjectTasks tasks={projectData.formattedTasks} />
+              <ProjectTasks 
+                tasks={projectData.formattedTasks} 
+                onAddTask={openAddTaskPopup}
+              />
             </div>
           </div>
         </div>
