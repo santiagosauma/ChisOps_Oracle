@@ -53,6 +53,17 @@ function UserTasks({ tasks }) {
     });
   };
 
+  const getStatusClass = (status) => {
+    const statusLower = status.toLowerCase();
+    if (statusLower === 'done' || statusLower === 'completed' || statusLower === 'finalizada') {
+      return 'status-done';
+    } else if (statusLower === 'doing' || statusLower === 'in progress' || statusLower === 'en progreso') {
+      return 'status-progress';
+    } else {
+      return 'status-incomplete';
+    }
+  };
+
   const sortedTasks = getSortedTasks();
 
   return (
@@ -63,10 +74,10 @@ function UserTasks({ tasks }) {
       <div className="tasks-table">
         <div className="table-header">
           <div 
-            className={`header-cell id ${sortField === 'taskId' ? 'sorted-' + sortDirection : ''}`}
-            onClick={() => handleSort('taskId')}
+            className={`header-cell task ${sortField === 'title' ? 'sorted-' + sortDirection : ''}`}
+            onClick={() => handleSort('title')}
           >
-            ID & Task
+            Task
             <span className="sort-icon"></span>
           </div>
           <div 
@@ -115,11 +126,11 @@ function UserTasks({ tasks }) {
         <div className="table-body">
           {sortedTasks.map((task) => (
             <div key={task.taskId} className="table-row">
-              <div className="cell id">
-                <div>{task.taskId} - {task.title}</div>
+              <div className="cell task">
+                {task.title}
               </div>
               <div className="cell status">
-                <span className={`status-badge ${task.status.toLowerCase()}`}>
+                <span className={`status-badge ${getStatusClass(task.status)}`}>
                   {task.status}
                 </span>
               </div>
