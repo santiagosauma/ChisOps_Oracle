@@ -90,7 +90,7 @@
 
 .pending_tasks {
   height: 50%;
-}
+} 
 
 .tasks_in_progress {
   height: 35%;
@@ -274,7 +274,7 @@ h2,
   }
   .grid_container {
     /* gap removed */
-  }
+  } 
   .active_project,
   .general_overview,
   .completed_projects,

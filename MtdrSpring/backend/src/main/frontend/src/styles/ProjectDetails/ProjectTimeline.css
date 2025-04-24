@@ -4,6 +4,14 @@
     height: 200px;
   }
   
+  .project-timeline h2 {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 8px;
+  }
+  
   .timeline-header {
     display: flex;
     width: 100%;
@@ -120,6 +128,15 @@
     background-color: #f44336;
     top: -5px;
     left: -4px;
+  }
+  
+  .timeline-empty {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 150px;
+    color: #757575;
+    font-style: italic;
   }
   
   @media screen and (max-width: 768px) {

@@ -1,6 +1,10 @@
 package com.springboot.MyTodoList.controller;
 
+import com.springboot.MyTodoList.model.Proyecto;
+import com.springboot.MyTodoList.model.Sprint;
 import com.springboot.MyTodoList.model.Tarea;
+import com.springboot.MyTodoList.repository.ProyectoRepository;
+import com.springboot.MyTodoList.service.SprintService;
 import com.springboot.MyTodoList.service.TareaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -9,8 +13,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * CONTROLADOR REST PARA GESTIÓN DE TAREAS
@@ -24,6 +33,12 @@ public class TareaController {
     
     @Autowired
     private TareaService tareaService;
+    @Autowired
+    private SprintService sprintService;
+
+    @Autowired
+    private ProyectoRepository proyectoRepository;
+    
     
     /**
      * LISTAR TODAS LAS TAREAS
@@ -191,4 +206,86 @@ public class TareaController {
     public List<Tarea> searchTareas(@RequestParam("term") String searchTerm) {
         return tareaService.searchTareas(searchTerm);
     }
+    
+    /**
+     * BUSCAR TAREAS POR USUARIO Y SPRINT
+     * 
+     * Devuelve todas las tareas asignadas a un usuario específico en un sprint específico
+     * Endpoint: GET /tareas/usuario/{userId}/sprint/{sprintId}
+     */
+    //@CrossOrigin
+    @GetMapping(value = "/tareas/usuario/{userId}/sprint/{sprintId}")
+    public List<Tarea> getTareasByUsuarioAndSprint(@PathVariable int userId, @PathVariable int sprintId) {
+        return tareaService.getTareasByUsuarioAndSprint(userId, sprintId);
+    }
+
+    /**
+ * OBTENER TAREAS DE USUARIO POR PROYECTO ORGANIZADAS POR SPRINT
+ * 
+ * Devuelve un mapa de sprints con sus tareas para un usuario en un proyecto específico
+ * Endpoint: GET /tareas/usuario/{userId}/proyecto/{proyectoId}/organizadas
+ */
+        @GetMapping(value = "/tareas/usuario/{userId}/proyecto/{proyectoId}/organizadas")
+        public ResponseEntity<Map<String, Object>> getTareasOrganizadasPorSprint(
+                @PathVariable int userId, 
+                @PathVariable int proyectoId) {
+            
+            try {
+                // 1. Obtener todos los sprints del proyecto
+                List<Sprint> sprints = sprintService.getSprintsByProyecto(proyectoId);
+                
+                // 2. Estructura para la respuesta
+                Map<String, Object> response = new HashMap<>();
+                List<Map<String, Object>> sprintsData = new ArrayList<>();
+                
+                // 3. Procesar cada sprint
+                for (Sprint sprint : sprints) {
+                    if (sprint.getDeleted() == 0) { // Solo sprints activos
+                        // Obtener tareas del usuario en este sprint
+                        List<Tarea> tareas = tareaService.getTareasByUsuarioAndSprint(userId, sprint.getSprintId());
+                        
+                        // Convertir tareas a formato simplificado
+                        List<Map<String, Object>> tareasSimplificadas = tareas.stream()
+                            .filter(t -> t.getDeleted() == 0) // Solo tareas activas
+                            .map(t -> {
+                                Map<String, Object> tareaMap = new HashMap<>();
+                                tareaMap.put("taskId", t.getTaskId());
+                                tareaMap.put("title", t.getTitle());
+                                tareaMap.put("description", t.getDescription());
+                                tareaMap.put("status", t.getStatus());
+                                tareaMap.put("priority", t.getPriority());
+                                tareaMap.put("type", t.getType());
+                                tareaMap.put("startDate", t.getStartDate());
+                                tareaMap.put("endDate", t.getEndDate());
+                                tareaMap.put("storyPoints", t.getStoryPoints());
+                                tareaMap.put("estimatedHours", t.getEstimatedHours());
+                                tareaMap.put("actualHours", t.getActualHours());
+                                return tareaMap;
+                            })
+                            .collect(Collectors.toList());
+                        
+                        // Agregar datos del sprint
+                        Map<String, Object> sprintData = new HashMap<>();
+                        sprintData.put("sprintId", sprint.getSprintId());
+                        sprintData.put("sprintName", sprint.getName());
+                        sprintData.put("tasks", tareasSimplificadas);
+                        sprintsData.add(sprintData);
+                    }
+                }
+                
+                // 4. Agregar información del proyecto
+                Optional<Proyecto> proyecto = proyectoRepository.findById(proyectoId);
+                if (proyecto.isPresent() && proyecto.get().getDeleted() == 0) {
+                    response.put("projectId", proyectoId);
+                    response.put("projectName", proyecto.get().getName());
+                }
+                
+                response.put("sprints", sprintsData);
+                
+                return new ResponseEntity<>(response, HttpStatus.OK);
+                
+            } catch (Exception e) {
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
 }

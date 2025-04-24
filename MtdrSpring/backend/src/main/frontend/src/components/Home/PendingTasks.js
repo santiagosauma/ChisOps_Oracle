@@ -7,7 +7,7 @@ function PendingTasks() {
 
   useEffect(() => {
     setLoading(true)
-    fetch('/tareas/estado/Pendiente')
+    fetch('/tareas/estado/Incomplete')
       .then(response => {
         if (!response.ok) {
           throw new Error('Something went wrong')

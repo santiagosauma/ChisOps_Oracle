@@ -7,26 +7,62 @@ function ActiveProjects() {
 
   useEffect(() => {
     setLoading(true)
+    
     fetch('/proyectos')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Something went wrong')
-        }
-        return response.json()
-      })
-      .then(data => {
-        // Filter only active projects
-        const activeProjects = data.filter(p => 
+      .then(res => res.ok ? res.json() : Promise.reject('Failed to fetch projects'))
+      .then(projectsData => {
+        const activeProjects = projectsData.filter(p => 
           p.status === 'En progreso' || p.status === 'Activo'
         );
-        setProjects(activeProjects)
-        setLoading(false)
+        
+        if (activeProjects.length === 0) {
+          setProjects([]);
+          setLoading(false);
+          return;
+        }
+        
+        const projectPromises = activeProjects.map(project => {
+          return fetch(`/sprints/proyecto/${project.projectId}`)
+            .then(res => res.ok ? res.json() : [])
+            .then(sprints => {
+              if (sprints.length === 0) {
+                return { ...project, progress: 0 };
+              }
+              
+              const sprintPromises = sprints.map(sprint => 
+                fetch(`/tareas/sprint/${sprint.sprintId}`)
+                  .then(res => res.ok ? res.json() : [])
+              );
+              
+              return Promise.all(sprintPromises)
+                .then(sprintTasksArray => {
+                  const allTasks = sprintTasksArray.flat();
+                  
+                  if (allTasks.length === 0) {
+                    return { ...project, progress: 0 };
+                  }
+                  
+                  const completedTasks = allTasks.filter(task => task.status === 'Done').length;
+                  const progress = Math.round((completedTasks / allTasks.length) * 100);
+                  
+                  return { ...project, progress, taskCount: allTasks.length, completedCount: completedTasks };
+                });
+            });
+        });
+        
+        Promise.all(projectPromises)
+          .then(projectsWithProgress => {
+            console.log("Projects with progress:", projectsWithProgress);
+            setProjects(projectsWithProgress);
+            setLoading(false);
+          });
       })
       .catch(err => {
-        setError(err)
-        setLoading(false)
-      })
-  }, [])
+        console.error("Error in ActiveProjects:", err);
+        setError(typeof err === 'string' ? new Error(err) : err);
+        setLoading(false);
+      });
+  }, []);
 
   return (
     <div style={{ width: '100%', height: '100%' }}>

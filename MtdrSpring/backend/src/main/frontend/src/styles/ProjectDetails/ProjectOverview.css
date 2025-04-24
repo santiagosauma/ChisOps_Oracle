@@ -1,83 +1,199 @@
+.project-overview {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 .project-overview h2 {
-    font-size: 16px;
-    font-weight: 500;
-    margin-bottom: 15px;
-    border-bottom: 1px solid #e0e0e0;
-    padding-bottom: 8px;
-  }
-  
+  font-size: 18px;
+  font-weight: 600;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 8px;
+}
+
+.project-overview-cards {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.overview-card {
+  flex: 1;
+  padding: 10px;
+  border-radius: 5px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 90px;
+}
+
+.overview-card h3 {
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 5px;
+  text-align: center;
+}
+
+.card-value {
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.overview-card.overdue {
+  background-color: #ffebee;
+  color: #c62828;
+}
+
+.overview-card.progress {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.overview-card.completed-pending {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.project-progress-outer-container {
+  margin-top: 15px;
+}
+
+.project-progress-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 14px;
+  color: #555;
+}
+
+.project-progress-percentage {
+  font-weight: 600;
+}
+
+.project-progress-bar-container {
+  width: 100%;
+  height: 10px;
+  background-color: #e0e0e0;
+  border-radius: 5px;
+  overflow: hidden;
+  position: relative;
+}
+
+.project-progress-bar-indicator {
+  height: 100%;
+  background-color: #4caf50;
+  border-radius: 5px;
+  position: absolute;
+  top: 0;
+  left: 0;
+  transition: width 0.3s ease;
+  min-width: 5px;
+}
+
+.project-progress-bar {
+  height: 100%;
+  background-color: #4caf50;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.task-breakdown-section {
+  margin-top: 15px;
+}
+
+.task-breakdown-label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  font-size: 13px;
+  color: #555;
+}
+
+.task-breakdown-container {
+  width: 100%;
+  height: 8px;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+}
+
+.task-breakdown-bar {
+  width: 100%;
+  height: 100%;
+  display: flex;
+}
+
+.breakdown-segment {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.breakdown-segment.completed {
+  background-color: #4caf50; /* Green */
+}
+
+.breakdown-segment.pending {
+  background-color: #ff9800; /* Orange */
+}
+
+.breakdown-segment.overdue {
+  background-color: #f44336; /* Red */
+}
+
+.task-breakdown-legend {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  margin-right: 10px;
+  margin-bottom: 3px;
+}
+
+.legend-color {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  margin-right: 5px;
+}
+
+.legend-color.completed {
+  background-color: #4caf50;
+}
+
+.legend-color.pending {
+  background-color: #ff9800;
+}
+
+.legend-color.overdue {
+  background-color: #f44336;
+}
+
+.legend-label {
+  font-size: 11px;
+  color: #555;
+}
+
+@media screen and (max-width: 500px) {
   .project-overview-cards {
-    display: flex;
-    justify-content: space-between;
-    gap: 10px;
-    margin-bottom: 15px;
+    flex-direction: column;
   }
   
   .overview-card {
-    flex: 1;
-    padding: 10px;
-    border-radius: 5px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-width: 90px;
+    flex-direction: row;
+    justify-content: space-between;
+    padding: 8px 15px;
   }
   
   .overview-card h3 {
-    font-size: 14px;
-    font-weight: 500;
-    margin-bottom: 5px;
-    text-align: center;
+    margin-bottom: 0;
   }
-  
-  .card-value {
-    font-size: 24px;
-    font-weight: 600;
-  }
-  
-  .overview-card.overdue {
-    background-color: #ffebee;
-    color: #c62828;
-  }
-  
-  .overview-card.progress {
-    background-color: #e3f2fd;
-    color: #1565c0;
-  }
-  
-  .overview-card.completed-pending {
-    background-color: #e8f5e9;
-    color: #2e7d32;
-  }
-  
-  .progress-bar-container {
-    width: 100%;
-    height: 10px;
-    background-color: #e0e0e0;
-    border-radius: 5px;
-    overflow: hidden;
-    margin-top: 10px;
-  }
-  
-  .progress-bar {
-    height: 100%;
-    background-color: #4caf50;
-    border-radius: 5px;
-  }
-  
-  @media screen and (max-width: 500px) {
-    .project-overview-cards {
-      flex-direction: column;
-    }
-    
-    .overview-card {
-      flex-direction: row;
-      justify-content: space-between;
-      padding: 8px 15px;
-    }
-    
-    .overview-card h3 {
-      margin-bottom: 0;
-    }
-  }
+}

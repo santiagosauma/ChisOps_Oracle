@@ -43,19 +43,29 @@
 }
 
 .sprint-selector {
-  background-color: #c25a44;
-  color: white;
+  background-color: #c25a44 !important;
+  color: white !important;
   padding: 8px 15px;
   border-radius: 5px;
   position: relative;
   min-width: 150px;
   cursor: pointer;
+  display: inline-block;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  border: none;
+  font-size: 14px;
 }
 
 .sprint-display {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  width: 100%;
+}
+
+.sprint-display span {
+  color: white;
+  font-weight: 500;
 }
 
 .sprint-actions {
@@ -82,7 +92,6 @@
   background-color: rgba(255,255,255,0.15);
 }
 
-/* Estilo para el dropdown */
 .sprint-dropdown {
   position: absolute;
   top: 100%;
@@ -92,7 +101,7 @@
   border-radius: 5px;
   box-shadow: 0 3px 8px rgba(0,0,0,0.15);
   width: 200px;
-  z-index: 100;
+  z-index: 1000;
   max-height: 300px;
   overflow-y: auto;
   border: 1px solid #eaeaea;
@@ -118,7 +127,11 @@
   background-color: rgba(194, 90, 68, 0.05);
 }
 
-/* Añadir check al sprint activo */
+.sprint-option.disabled {
+  color: #999;
+  cursor: not-allowed;
+}
+
 .sprint-option.active::after {
   content: "";
   display: block;

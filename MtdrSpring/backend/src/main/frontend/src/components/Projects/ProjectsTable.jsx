@@ -7,7 +7,7 @@ import searchIcon from '../../resources/search.png';
 import settingIcon from '../../resources/setting.png';
 import plusIcon from '../../resources/plus.png';
 
-function ProjectsTable() {
+function ProjectsTable({ onSelectProject }) {
   const [projects, setProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [sortField, setSortField] = useState('projectId');
@@ -156,12 +156,24 @@ function ProjectsTable() {
     }
   };
 
+  const handleProjectClick = (projectId) => {
+    if (onSelectProject) {
+      onSelectProject(projectId);
+    }
+  };
+
   const filteredProjects = projects.sort((a, b) => {
     if (sortDirection === 'asc') {
       return a[sortField] > b[sortField] ? 1 : -1;
     } else {
       return a[sortField] < b[sortField] ? 1 : -1;
     }
+  }).map(project => {
+    return {
+      ...project,
+      progress: 85,
+      users: project.users ? project.users.slice(0, 4) : Array(4).fill({ id: 1 })
+    };
   });
 
   const statusOptions = ['All', ...new Set(allProjects.map(p => p.status).filter(Boolean))];
@@ -368,12 +380,24 @@ function ProjectsTable() {
               </thead>
               <tbody>
                 {filteredProjects.map((project) => {
-                  const userCount = project.users ? project.users.length : 0;
+                  // Hard-code the user count to always be 4
+                  const userCount = 4;
+                  // Hard-code progress to 85%
+                  const progress = 85;
                   
                   return (
                     <tr key={project.projectId}>
                       <td>{project.projectId}</td>
-                      <td>{project.name}</td>
+                      <td> <a 
+                          href="#" 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            handleProjectClick(project.projectId);
+                          }}
+                          className="project-name-link"
+                        >
+                          {project.name}
+                        </a></td>
                       <td>{project.startDate ? new Date(project.startDate).toLocaleDateString() : 'N/A'}</td>
                       <td>{project.endDate ? new Date(project.endDate).toLocaleDateString() : 'N/A'}</td>
                       <td>{project.status || 'Unknown'}</td>
@@ -382,8 +406,11 @@ function ProjectsTable() {
                         <div className="progress-bar">
                           <div 
                             className={`progress-fill ${project.status === 'Cancelled' ? 'cancelled' : ''}`}
-                            style={{ width: `${project.progress || 0}%` }}
+                            style={{ width: `${progress}%` }}
                           ></div>
+                        </div>
+                        <div className="progress-text">
+                          {progress}%
                         </div>
                       </td>
                       <td>

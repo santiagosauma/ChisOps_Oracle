@@ -15,47 +15,34 @@ function GeneralOverview() {
         return response.json()
       })
       .then(data => {
-        const now = new Date()
-        const startOfWeek = getStartOfCurrentWeek(now)
-        const endOfWeek = getEndOfCurrentWeek(startOfWeek)
-
-        let newCount = 0
+        console.log("GeneralOverview data:", data); 
+        
+        let incompleteCount = 0
         let inProgressCount = 0
         let completedCount = 0
 
         data.forEach(t => {
-          if (t.status === 'En Progreso') inProgressCount++
-          if (t.status === 'Completado') completedCount++
-
-          const taskStart = new Date(t.startDate)
-          if (taskStart >= startOfWeek && taskStart <= endOfWeek) {
-            newCount++
-          }
+          console.log(`Task ${t.title}: Status ${t.status}`);
+          if (t.status === 'Incomplete') incompleteCount++
+          else if (t.status === 'In Progress') inProgressCount++
+          else if (t.status === 'Done') completedCount++
         })
 
-        setCounts({ newCount, inProgressCount, completedCount })
+        console.log(`Counts - Incomplete: ${incompleteCount}, In Progress: ${inProgressCount}, Done: ${completedCount}`);
+        
+        setCounts({ 
+          newCount: incompleteCount, 
+          inProgressCount, 
+          completedCount 
+        })
         setLoading(false)
       })
       .catch(err => {
+        console.error("Error in GeneralOverview:", err);
         setError(err)
         setLoading(false)
       })
   }, [])
-
-  function getStartOfCurrentWeek(date) {
-    const day = date.getDay() === 0 ? 7 : date.getDay()
-    const start = new Date(date)
-    start.setHours(0, 0, 0, 0)
-    start.setDate(start.getDate() - (day - 1))
-    return start
-  }
-
-  function getEndOfCurrentWeek(startOfWeek) {
-    const end = new Date(startOfWeek)
-    end.setDate(end.getDate() + 6)
-    end.setHours(23, 59, 59, 999)
-    return end
-  }
 
   return (
     <div style={{ height: '100%' }}>
@@ -72,7 +59,7 @@ function GeneralOverview() {
           }}
         >
           <div style={{ textAlign: 'center' }}>
-            <p style={{ color: '#666', marginBottom: '8px' }}>New</p>
+            <p style={{ color: '#666', marginBottom: '8px' }}>Incomplete</p>
             <div style={{ fontSize: '48px' }}>{counts.newCount}</div>
           </div>
           <div style={{ textAlign: 'center' }}>
