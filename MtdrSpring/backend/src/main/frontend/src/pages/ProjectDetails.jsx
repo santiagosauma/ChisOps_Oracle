@@ -251,6 +251,7 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
                 currentSprint={selectedSprint === 'all' 
                   ? 'all' 
                   : projectData.sprints?.find(s => s.sprintId === selectedSprint)}
+                allSprints={projectData.sprints || []}
               />
             </div>
             <div className="project-overview-container">

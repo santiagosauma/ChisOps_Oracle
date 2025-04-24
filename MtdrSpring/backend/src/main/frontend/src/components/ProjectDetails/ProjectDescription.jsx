@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import '../../styles/ProjectDetails/ProjectDescription.css';
 
-const ProjectDescription = ({ description, startDate, dueDate, status, currentSprint }) => {
+const ProjectDescription = ({ description, startDate, dueDate, status, currentSprint, allSprints = [] }) => {
   const getStatusBadgeClass = (status) => {
     if (!status) return 'status-badge-default';
     
@@ -25,6 +25,38 @@ const ProjectDescription = ({ description, startDate, dueDate, status, currentSp
     }
   };
 
+  // Determine the current active sprint based on date
+  const activeSprintByDate = useMemo(() => {
+    const today = new Date();
+    
+    // Find a sprint where today is between startDate and endDate
+    const currentActiveSprint = allSprints.find(sprint => {
+      if (!sprint.startDate || !sprint.endDate) return false;
+      
+      const startDate = new Date(sprint.startDate);
+      const endDate = new Date(sprint.endDate);
+      
+      return today >= startDate && today <= endDate;
+    });
+    
+    if (currentActiveSprint) {
+      return currentActiveSprint;
+    }
+    
+    // If no current sprint is found, find the next upcoming sprint
+    const upcomingSprints = allSprints
+      .filter(sprint => {
+        if (!sprint.startDate) return false;
+        const startDate = new Date(sprint.startDate);
+        return startDate > today;
+      })
+      .sort((a, b) => new Date(a.startDate) - new Date(b.startDate));
+    
+    return upcomingSprints.length > 0 
+      ? { name: `${upcomingSprints[0].name} (Upcoming)`, upcoming: true }
+      : null;
+  }, [allSprints]);
+
   return (
     <div className="project-description">
       <h2>Project Information</h2>
@@ -44,9 +76,9 @@ const ProjectDescription = ({ description, startDate, dueDate, status, currentSp
           <div className="project-detail-item">
             <span className="detail-label">Current Sprint:</span>
             <span className="detail-value">
-              {currentSprint === 'all' 
-                ? 'All Sprints' 
-                : currentSprint?.name || 'None'}
+              {activeSprintByDate 
+                ? activeSprintByDate.name 
+                : 'No active sprint'}
             </span>
           </div>
           <div className="project-detail-item">
