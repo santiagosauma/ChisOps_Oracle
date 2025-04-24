@@ -93,7 +93,13 @@
   min-width: 5px;
 }
 
-/* Task Breakdown Styles */
+.project-progress-bar {
+  height: 100%;
+  background-color: #4caf50;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
 .task-breakdown-section {
   margin-top: 15px;
 }
