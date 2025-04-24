@@ -61,7 +61,7 @@ const ProjectOverview = ({ tasksInfo }) => {
         </div>
         <div className="project-progress-bar-container">
           <div 
-            className="project-progress-bar-indicator" 
+            className="project-progress-bar" 
             style={{ width: progressWidth }}
           ></div>
         </div>
