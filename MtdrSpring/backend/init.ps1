@@ -290,39 +290,7 @@ function Invoke-Main {
     # Removed unused variable $SHOW_LOGS
     # Removed unused variable $CLEAN_INSTALL
 
-<<<<<<< HEAD
-    Write-Host "Limpiando contenedor '$containerName'..." -ForegroundColor Yellow
-    docker stop $containerName *>$null
-    docker rm -f $containerName *>$null
-    Write-Host "✔" -ForegroundColor Green
-
-    Write-Host "Limpiando imagen '$imageName'..." -ForegroundColor Yellow
-    docker rmi $imageName *>$null
-    Write-Host "✔" -ForegroundColor Green
-}
-
-# Función para compilar la aplicación y construir la imagen Docker
-function Build {
-    $mavenIcon = "🜨"
-    $dockerIcon = "🐳"
-
-    Show-Spinner "Compilando con Maven ($mavenIcon)" { mvn verify }
-    Show-Spinner "Construyendo imagen Docker ($dockerIcon)" { docker build -f Dockerfile --platform linux/amd64 -t "chisops-bot" . }
-}
-
-# Función para desplegar el contenedor Docker
-function Deploy {
-    $containerName = "chisops-container"
-    $imageName = "chisops-bot"
-
-    Show-Spinner "Desplegando contenedor Docker" { docker run --name $containerName -p 8080:8080 --env-file .env -d $imageName }
-}
-
-# Función principal 
-function Main {
-=======
     $startTime = Get-Date
->>>>>>> 88243c0f594a230c3e13b614109a3f673e46cfa9
     Show-Header
     Test-Environment
     Invoke-Cleanup
