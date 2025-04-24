@@ -3,6 +3,7 @@ package com.springboot.MyTodoList.service;
 import com.springboot.MyTodoList.model.Sprint;
 import com.springboot.MyTodoList.model.Tarea;
 import com.springboot.MyTodoList.model.Usuario;
+import com.springboot.MyTodoList.repository.ProyectoRepository;
 import com.springboot.MyTodoList.repository.SprintRepository;
 import com.springboot.MyTodoList.repository.TareaRepository;
 import com.springboot.MyTodoList.repository.UsuarioRepository;
@@ -34,7 +35,13 @@ public class TareaService {
     
     @Autowired
     private SprintRepository sprintRepository;
-    
+
+    @Autowired
+    private SprintService sprintService;
+
+    @Autowired
+    private ProyectoRepository proyectoRepository;
+        
     /**
      * Obtiene todas las tareas activas del sistema
      * 

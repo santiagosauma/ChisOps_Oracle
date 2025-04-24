@@ -31,6 +31,8 @@ public class ProyectoService {
     
     @Autowired
     private ProyectoRepository proyectoRepository;
+
+
     
     @Autowired
     private UsuarioRepository usuarioRepository;

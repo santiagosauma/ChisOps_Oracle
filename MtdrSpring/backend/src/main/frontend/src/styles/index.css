@@ -12,12 +12,12 @@ body {
   align-items: flex-start;
   margin: 0;
   padding: 1rem;
-}
+} 
 
 .itemlist {
   border-collapse: collapse;
   width: 100%;
-}
+} 
 
 .itemlist td {
   border-bottom: 1px solid #ccc;

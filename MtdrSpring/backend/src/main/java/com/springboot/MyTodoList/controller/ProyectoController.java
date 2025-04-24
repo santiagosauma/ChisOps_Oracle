@@ -9,7 +9,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * CONTROLADOR REST PARA GESTIÓN DE PROYECTOS
@@ -54,6 +58,8 @@ public class ProyectoController {
             return new ResponseEntity<>("Error al obtener usuarios del proyecto", HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+
     
     /**
      * BUSCAR PROYECTO POR ID
@@ -149,6 +155,32 @@ public class ProyectoController {
     public List<Proyecto> getProyectosByUsuario(@PathVariable int userId) {
         return proyectoService.getProyectosByUsuario(userId);
     }
+
+    /**
+ * OBTENER PROYECTOS SIMPLIFICADOS POR USUARIO
+ * 
+ * Devuelve una lista de proyectos asociados a un usuario con solo información básica
+ * Endpoint: GET /proyectos/usuario/{userId}/simplificados
+ */
+   @GetMapping(value = "/proyectos/usuario/{userId}/simplificados")
+public ResponseEntity<List<Map<String, Object>>> getProyectosSimplificadosByUsuario(@PathVariable int userId) {
+    List<Proyecto> proyectos = proyectoService.getProyectosByUsuario(userId);
+    List<Map<String, Object>> proyectosSimplificados = proyectos.stream()
+        .map((Proyecto proyecto) -> {
+            Map<String, Object> proyectoMap = new HashMap<String, Object>();
+            proyectoMap.put("projectId", proyecto.getProjectId());
+            proyectoMap.put("name", proyecto.getName());
+            proyectoMap.put("startDate", proyecto.getStartDate());
+            proyectoMap.put("endDate", proyecto.getEndDate());
+            proyectoMap.put("status", proyecto.getStatus());
+            return proyectoMap;
+        })
+        .collect(Collectors.toList());
+    return new ResponseEntity<>(proyectosSimplificados, HttpStatus.OK);
+}
+
+
+
     
     /**
      * BUSCAR PROYECTOS POR ESTADO
