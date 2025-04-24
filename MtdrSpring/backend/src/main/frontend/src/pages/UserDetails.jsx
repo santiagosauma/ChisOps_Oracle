@@ -1,4 +1,3 @@
-//UserDetails.jsx
 import React, { useState, useEffect } from 'react';
 import '../styles/UserDetails.css';
 import UserHeader from '../components/UserDetails/UserHeader';
@@ -14,6 +13,10 @@ function UserDetails({ userId: propUserId, onBack }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [selectedSprint, setSelectedSprint] = useState("all");
+  const [filteredTasks, setFilteredTasks] = useState([]);
+  const [filteredTaskStats, setFilteredTaskStats] = useState({});
+  const [sprints, setSprints] = useState([]);
 
   useEffect(() => {
     if (!propUserId) return;
@@ -22,12 +25,7 @@ function UserDetails({ userId: propUserId, onBack }) {
       try {
         setLoading(true);
         
-        // In a real implementation, you would fetch this data from your API
-        // const userResponse = await fetch(`/usuarios/${propUserId}`);
-        // if (!userResponse.ok) throw new Error('Error fetching user');
-        // const userFull = await userResponse.json();
-        
-        // For now, using dummy data
+        // En una implementación real, obtendrías estos datos de tu API
         setTimeout(() => {
           const dummyUserData = {
             userId: propUserId || "user1",
@@ -48,12 +46,12 @@ function UserDetails({ userId: propUserId, onBack }) {
               { id: 6, name: "Proyecto 6", startDate: "2020-01-02", endDate: "2020-01-02", status: "In Review" }
             ],
             tasks: [
-              { id: "01", name: "Bug in Set Function", status: "Completed", priority: "High", startDate: "01/12/24", dueDate: "01/12/24", estimatedHour: 4, realHours: 4 },
-              { id: "02", name: "Bug in Set Function", status: "Doing", priority: "Medium", startDate: "15/03/25", dueDate: "15/03/25", estimatedHour: 10, realHours: "-" },
-              { id: "03", name: "Bug in Set Function", status: "Overdue", priority: "Low", startDate: "01/12/24", dueDate: "01/12/24", estimatedHour: 15, realHours: 10 },
-              { id: "04", name: "Bug in Set Function", status: "Completed", priority: "High", startDate: "15/03/25", dueDate: "15/03/25", estimatedHour: 20, realHours: "-" },
-              { id: "05", name: "Bug in Set Function", status: "Doing", priority: "Medium", startDate: "15/03/25", dueDate: "15/03/25", estimatedHour: 3, realHours: "-" },
-              { id: "06", name: "Bug in Set Function", status: "Overdue", priority: "Low", startDate: "01/12/24", dueDate: "01/12/24", estimatedHour: 8, realHours: 7 }
+              { id: "01", name: "Fix login authentication bug", status: "Completed", priority: "High", startDate: "01/12/24", dueDate: "01/12/24", estimatedHour: 4, realHours: 4, sprintId: "sprint1" },
+              { id: "02", name: "Implement user profile page", status: "Doing", priority: "Medium", startDate: "15/03/25", dueDate: "15/03/25", estimatedHour: 10, realHours: "-", sprintId: "sprint1" },
+              { id: "03", name: "Update API documentation", status: "Overdue", priority: "Low", startDate: "01/12/24", dueDate: "01/12/24", estimatedHour: 15, realHours: 10, sprintId: "sprint2" },
+              { id: "04", name: "Create unit tests for cart module", status: "Completed", priority: "High", startDate: "15/03/25", dueDate: "15/03/25", estimatedHour: 20, realHours: "-", sprintId: "sprint2" },
+              { id: "05", name: "Design mobile responsive layout", status: "Doing", priority: "Medium", startDate: "15/03/25", dueDate: "15/03/25", estimatedHour: 3, realHours: "-", sprintId: "sprint3" },
+              { id: "06", name: "Fix payment gateway integration", status: "Overdue", priority: "Low", startDate: "01/12/24", dueDate: "01/12/24", estimatedHour: 8, realHours: 7, sprintId: "sprint4" }
             ],
             taskStatistics: {
               overdue: 3,
@@ -73,13 +71,23 @@ function UserDetails({ userId: propUserId, onBack }) {
                 { sprint: "Sprint 3", estimated: 4, real: 8 },
                 { sprint: "Sprint 4", estimated: 9, real: 15 }
               ]
-            }
+            },
+            // Añadiendo datos de sprints
+            sprints: [
+              { id: "sprint1", name: "Sprint 1" },
+              { id: "sprint2", name: "Sprint 2" },
+              { id: "sprint3", name: "Sprint 3" },
+              { id: "sprint4", name: "Sprint 4" }
+            ]
           };
           
           setUserData(dummyUserData);
+          setSprints(dummyUserData.sprints);
           setSelectedProject(dummyUserData.projectHistory[0]?.id || null);
+          setFilteredTasks(dummyUserData.tasks);
+          setFilteredTaskStats(dummyUserData.taskStatistics);
           setLoading(false);
-        }, 1000); // Simulate network delay
+        }, 1000); 
         
       } catch (err) {
         console.error('Error loading user data:', err);
@@ -91,8 +99,38 @@ function UserDetails({ userId: propUserId, onBack }) {
     loadUserData();
   }, [propUserId]);
 
+  // Función para filtrar tareas por sprint
+  useEffect(() => {
+    if (!userData) return;
+
+    let tasksToShow = userData.tasks;
+    
+    // Filtrar las tareas si se seleccionó un sprint específico
+    if (selectedSprint !== "all") {
+      tasksToShow = userData.tasks.filter(task => task.sprintId === selectedSprint);
+    }
+    
+    setFilteredTasks(tasksToShow);
+    
+    // Recalcular estadísticas basadas en las tareas filtradas
+    const overdue = tasksToShow.filter(task => task.status === "Overdue").length;
+    const doing = tasksToShow.filter(task => task.status === "Doing").length;
+    const completed = tasksToShow.filter(task => task.status === "Completed").length;
+    
+    setFilteredTaskStats({
+      overdue,
+      pending: doing,
+      completed
+    });
+    
+  }, [userData, selectedSprint]);
+
   const handleProjectChange = (projectId) => {
     setSelectedProject(projectId);
+  };
+
+  const handleSprintChange = (sprintId) => {
+    setSelectedSprint(sprintId);
   };
 
   if (loading && !userData) {
@@ -117,6 +155,9 @@ function UserDetails({ userId: propUserId, onBack }) {
         userName={`${userData.firstName} ${userData.lastName}`}
         role={userData.role}
         onBack={onBack}
+        sprints={sprints}
+        selectedSprint={selectedSprint}
+        onSprintChange={handleSprintChange}
       />
 
       <div className="user-details-container">
@@ -134,7 +175,7 @@ function UserDetails({ userId: propUserId, onBack }) {
               />
             </div>
             <div className="user-statistics-container">
-              <UserStatistics taskStats={userData.taskStatistics} />
+              <UserStatistics taskStats={filteredTaskStats} />
             </div>
             <div className="user-project-history-container">
               <UserProjectHistory 
@@ -146,7 +187,7 @@ function UserDetails({ userId: propUserId, onBack }) {
           </div>
           <div className="user-right-col">
             <div className="user-tasks-container">
-              <UserTasks tasks={userData.tasks} />
+              <UserTasks tasks={filteredTasks} />
             </div>
             <div className="user-performance-container">
               <UserPerformance 
