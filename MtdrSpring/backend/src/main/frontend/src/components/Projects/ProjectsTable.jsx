@@ -162,13 +162,18 @@ function ProjectsTable({ onSelectProject }) {
     }
   };
 
-
   const filteredProjects = projects.sort((a, b) => {
     if (sortDirection === 'asc') {
       return a[sortField] > b[sortField] ? 1 : -1;
     } else {
       return a[sortField] < b[sortField] ? 1 : -1;
     }
+  }).map(project => {
+    return {
+      ...project,
+      progress: 85,
+      users: project.users ? project.users.slice(0, 4) : Array(4).fill({ id: 1 })
+    };
   });
 
   const statusOptions = ['All', ...new Set(allProjects.map(p => p.status).filter(Boolean))];
@@ -375,7 +380,10 @@ function ProjectsTable({ onSelectProject }) {
               </thead>
               <tbody>
                 {filteredProjects.map((project) => {
-                  const userCount = project.users ? project.users.length : 0;
+                  // Hard-code the user count to always be 4
+                  const userCount = 4;
+                  // Hard-code progress to 85%
+                  const progress = 85;
                   
                   return (
                     <tr key={project.projectId}>
@@ -398,8 +406,11 @@ function ProjectsTable({ onSelectProject }) {
                         <div className="progress-bar">
                           <div 
                             className={`progress-fill ${project.status === 'Cancelled' ? 'cancelled' : ''}`}
-                            style={{ width: `${project.progress || 0}%` }}
+                            style={{ width: `${progress}%` }}
                           ></div>
+                        </div>
+                        <div className="progress-text">
+                          {progress}%
                         </div>
                       </td>
                       <td>
