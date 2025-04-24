@@ -88,7 +88,7 @@ function Deploy {
     Show-Spinner "Desplegando contenedor Docker" { docker run --name $containerName -p 8080:8080 --env-file .env -d $imageName }
 }
 
-# Función principal
+# Función principal 
 function Main {
     Show-Header
     Check-Env
