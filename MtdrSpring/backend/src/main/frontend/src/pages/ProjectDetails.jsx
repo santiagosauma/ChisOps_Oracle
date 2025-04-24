@@ -6,6 +6,7 @@ import ProjectOverview from '../components/ProjectDetails/ProjectOverview';
 import ProjectUsers from '../components/ProjectDetails/ProjectUsers';
 import ProjectTasks from '../components/ProjectDetails/ProjectTasks';
 import AddTaskPopup from '../components/ProjectDetails/AddTaskPopup';
+import EditTaskPopup from '../components/ProjectDetails/EditTaskPopup';
 import Loader from '../components/Loader';
 
 function ProjectDetails({ projectId: propProjectId, onBack }) {
@@ -30,6 +31,18 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
     message: '',
     type: 'success'
   });
+
+  // Edit Task popup state
+  const [showEditTaskPopup, setShowEditTaskPopup] = useState(false);
+  const [editTaskForm, setEditTaskForm] = useState({
+    id: '',
+    title: '',
+    priority: '',
+    dueDate: '',
+    status: '',
+    userId: ''
+  });
+  const [currentTask, setCurrentTask] = useState(null);
 
   useEffect(() => {
     if (!propProjectId) return;
@@ -344,6 +357,180 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
     }
   };
 
+  const openEditTaskPopup = (task) => {
+    let dueDate = '';
+    if (task.dueDate) {
+      try {
+        if (typeof task.dueDate === 'string') {
+          if (task.dueDate.includes('/')) {
+            const parts = task.dueDate.split('/');
+            if (parts.length === 3) {
+              const month = parts[0].padStart(2, '0');
+              const day = parts[1].padStart(2, '0');
+              let year = parts[2];
+              if (year.length === 2) year = '20' + year;
+              dueDate = `${year}-${month}-${day}`;
+            }
+          } else if (task.dueDate.includes('-')) {
+            dueDate = task.dueDate;
+          } else {
+            const dateObj = new Date(task.dueDate);
+            if (!isNaN(dateObj.getTime())) {
+              dueDate = dateObj.toISOString().split('T')[0];
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Error parsing date:", e);
+        dueDate = '';
+      }
+    }
+    
+    setCurrentTask(task);
+    setEditTaskForm({
+      id: task.id,
+      title: task.name,
+      priority: task.priority || 'Medium',
+      dueDate: dueDate,
+      status: task.status || 'Incomplete',
+      userId: task.userId || ''
+    });
+    setShowEditTaskPopup(true);
+  };
+
+  const closeEditTaskPopup = () => {
+    setShowEditTaskPopup(false);
+    setCurrentTask(null);
+  };
+
+  const handleEditFormChange = (e) => {
+    const { name, value } = e.target;
+    setEditTaskForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleUpdateTask = async () => {
+    if (!editTaskForm.title || !editTaskForm.priority || !editTaskForm.dueDate || !editTaskForm.status) {
+      setToast({
+        show: true,
+        message: 'Please fill in all required fields',
+        type: 'error'
+      });
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 3000);
+      return;
+    }
+
+    try {
+      const response = await fetch(`/tareas/${editTaskForm.id}`);
+      if (!response.ok) {
+        throw new Error('Error fetching task');
+      }
+      
+      const originalTask = await response.json();
+      
+      const updatedTask = {
+        ...originalTask,
+        title: editTaskForm.title,
+        description: originalTask.description || `Task: ${editTaskForm.title}`,
+        priority: editTaskForm.priority,
+        status: editTaskForm.status,
+        endDate: editTaskForm.dueDate,
+        usuario: editTaskForm.userId ? { userId: editTaskForm.userId } : originalTask.usuario
+      };
+      
+      console.log("Updating task with data:", updatedTask);
+      
+      const updateResponse = await fetch(`/tareas/${editTaskForm.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedTask)
+      });
+      
+      if (!updateResponse.ok) {
+        const errorText = await updateResponse.text();
+        console.error("Server error response:", errorText);
+        throw new Error(`Error updating task: ${errorText}`);
+      }
+      
+      setToast({
+        show: true,
+        message: 'Task updated successfully!',
+        type: 'success'
+      });
+      
+      handleSprintChange(selectedSprint);
+      
+      closeEditTaskPopup();
+      
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 3000);
+    } catch (error) {
+      console.error('Error updating task:', error);
+      
+      setToast({
+        show: true,
+        message: `Failed to update task: ${error.message}`,
+        type: 'error'
+      });
+      
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 4000);
+    }
+  };
+  
+  const handleDeleteTask = async () => {
+    if (!currentTask || !editTaskForm.id) return;
+    
+    if (!window.confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
+      return;
+    }
+    
+    try {
+      const response = await fetch(`/tareas/${editTaskForm.id}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Error deleting task: ${errorText}`);
+      }
+      
+      setToast({
+        show: true,
+        message: 'Task deleted successfully!',
+        type: 'success'
+      });
+      
+      handleSprintChange(selectedSprint);
+      
+      closeEditTaskPopup();
+      
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 3000);
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      
+      setToast({
+        show: true,
+        message: `Failed to delete task: ${error.message}`,
+        type: 'error'
+      });
+      
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 4000);
+    }
+  };
+
   if (loading && !projectData) {
     return (
       <div className="loading-container">
@@ -381,6 +568,16 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
         selectedSprint={selectedSprint}
       />
       
+      <EditTaskPopup 
+        show={showEditTaskPopup}
+        onClose={closeEditTaskPopup}
+        formData={editTaskForm}
+        onChange={handleEditFormChange}
+        onUpdate={handleUpdateTask}
+        onDelete={handleDeleteTask}
+        users={projectData.users}
+      />
+      
       <ProjectHeader 
         projectName={projectData?.name} 
         sprint={selectedSprint}
@@ -416,6 +613,7 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
               <ProjectTasks 
                 tasks={projectData.formattedTasks} 
                 onAddTask={openAddTaskPopup}
+                onEditTask={openEditTaskPopup}
               />
             </div>
           </div>

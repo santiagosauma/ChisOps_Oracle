@@ -2,7 +2,7 @@ import React from 'react';
 import { Plus } from 'lucide-react';
 import '../../styles/ProjectDetails/ProjectTasks.css'
 
-const ProjectTasks = ({ tasks, onAddTask }) => {
+const ProjectTasks = ({ tasks, onAddTask, onEditTask }) => {
   const getStatusClass = (status) => {
     if (!status) return '';
     
@@ -62,7 +62,20 @@ const ProjectTasks = ({ tasks, onAddTask }) => {
           <tbody>
             {tasks && tasks.length > 0 ? tasks.map(task => (
               <tr key={task.id}>
-                <td>{task.name}</td>
+                <td>
+                  <span 
+                    className="task-name-link" 
+                    onClick={() => onEditTask(task)}
+                    style={{ 
+                      cursor: 'pointer', 
+                      color: '#000',
+                      textDecoration: 'underline',
+                      display: 'inline-block'
+                    }}
+                  >
+                    {task.name}
+                  </span>
+                </td>
                 <td>
                   <span className={`status-badge ${getStatusClass(task.status)}`}>
                     {task.status || 'Pending'}
