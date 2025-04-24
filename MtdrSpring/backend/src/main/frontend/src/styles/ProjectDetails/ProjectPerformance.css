@@ -1,0 +1,98 @@
+.project-performance {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.project-performance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.project-performance-header h2 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  color: #333;
+}
+
+.project-chart-selector {
+  display: flex;
+  gap: 8px;
+}
+
+.project-chart-btn {
+  background-color: #f5f7fa;
+  border: 1px solid #dce1e8;
+  border-radius: 4px;
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.2s;
+}
+
+.project-chart-btn:hover {
+  background-color: #e6e9ee;
+}
+
+.project-chart-btn.active {
+  background-color: #c25a44;
+  color: white;
+  border-color: #c25a44;
+}
+
+.project-performance-content {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  height: calc(100% - 30px); /* Account for header height */
+  padding-top: 10px;
+}
+
+.project-chart-container {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-height: 550px; /* Ensure enough space for the chart */
+}
+
+.project-chart-container h3 {
+  margin-bottom: 15px;
+  font-size: 16px;
+  color: #333;
+  font-weight: 500;
+}
+
+.no-data-message {
+  flex-grow: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #888;
+  font-style: italic;
+}
+
+.recharts-tooltip-wrapper {
+  z-index: 1000 !important;
+}
+
+@media (max-width: 768px) {
+  .project-performance-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .project-chart-selector {
+    width: 100%;
+  }
+  
+  .project-chart-btn {
+    flex: 1;
+    text-align: center;
+  }
+}

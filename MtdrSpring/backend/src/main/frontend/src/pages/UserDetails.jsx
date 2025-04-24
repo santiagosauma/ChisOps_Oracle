@@ -267,6 +267,8 @@ function UserDetails({ userId, projectId, onBack }) {
               <UserPerformance 
                 assignedVsCompleted={performanceData.assignedVsCompleted} 
                 hoursData={performanceData.hoursData} 
+                selectedSprint={selectedSprint}
+                tasks={filteredTasks}
               />
             </div>
           </div>
