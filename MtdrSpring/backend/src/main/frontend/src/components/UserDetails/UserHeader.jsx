@@ -1,17 +1,21 @@
 //User Header
 import React, { useState, useRef, useEffect } from 'react';
 import '../../styles/UserDetails/UserHeader.css';
-import { ArrowLeft, Edit, ChevronDown } from 'lucide-react';
+import { ArrowLeft, ChevronDown } from 'lucide-react';
 
 function UserHeader({ userName, role, onBack, sprints, selectedSprint, onSprintChange }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Encontrar el nombre del sprint actual
+  useEffect(() => {
+    console.log("UserHeader - Sprints data:", sprints);
+    console.log("UserHeader - Selected Sprint:", selectedSprint);
+  }, [sprints, selectedSprint]);
+
   const currentSprintName = selectedSprint === "all" 
-  ? "All Sprints" 
-  : (Array.isArray(sprints) && sprints.find(s => s.id === selectedSprint)?.name) || `Sprint ${selectedSprint}`;
-  // Cerrar el dropdown al hacer clic fuera de él
+    ? "All Sprints" 
+    : (Array.isArray(sprints) && sprints.find(s => s.id === parseInt(selectedSprint))?.name) || "Loading sprints...";
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -26,58 +30,56 @@ function UserHeader({ userName, role, onBack, sprints, selectedSprint, onSprintC
   }, []); 
 
   const handleSprintSelect = (sprintId) => {
+    console.log("Sprint selected:", sprintId);
     if (onSprintChange) {
       onSprintChange(sprintId);
     }
     setDropdownOpen(false);
   };
 
+  const toggleDropdown = () => {
+    console.log("Toggling dropdown, current state:", dropdownOpen);
+    setDropdownOpen(!dropdownOpen);
+  };
 
   return (
     <div className="user-header">
       <div className="user-header-left">
-
         <button className="back-button" onClick={onBack}>
-                <ArrowLeft size={20} />
-          </button>
-        
+          <ArrowLeft size={20} />
+        </button>
         <h1>{userName} - Details</h1>
       </div>
       <div className="user-header-right">
         <button className="delete-user-btn">Delete User from Project</button>
-        <div className="sprint-selector" ref={dropdownRef}>
+        <div className="user-sprint-selector" ref={dropdownRef}>
           <div 
-            className="sprint-display"
-            onClick={() => setDropdownOpen(!dropdownOpen)}
+            className="user-sprint-display"
+            onClick={toggleDropdown}
           >
             <span>{currentSprintName}</span>
-            <div className="sprint-actions">
-              <button className="edit-button">
-                <Edit size={16} />
-              </button>
-              <button className="dropdown-button">
-                <ChevronDown size={16} />
-              </button>
-            </div>
+            <ChevronDown size={16} className="user-dropdown-icon" />
           </div>
           
           {dropdownOpen && (
-            <div className="sprint-dropdown">
+            <div className="user-sprint-dropdown">
               <div 
-                className={`sprint-option ${selectedSprint === "all" ? 'active' : ''}`}
+                className={`user-sprint-option ${selectedSprint === "all" ? 'active' : ''}`}
                 onClick={() => handleSprintSelect("all")}
               >
                 All Sprints
               </div>
-              {sprints && sprints.map(sprint => (
+              {Array.isArray(sprints) && sprints.length > 0 ? sprints.map(sprint => (
                 <div 
                   key={sprint.id} 
-                  className={`sprint-option ${sprint.id === selectedSprint ? 'active' : ''}`}
-                  onClick={() => handleSprintSelect(sprint.id)}
+                  className={`user-sprint-option ${parseInt(selectedSprint) === sprint.id ? 'active' : ''}`}
+                  onClick={() => handleSprintSelect(sprint.id.toString())}
                 >
                   {sprint.name}
                 </div>
-              ))}
+              )) : (
+                <div className="user-sprint-option">No sprints available</div>
+              )}
             </div>
           )}
         </div>
