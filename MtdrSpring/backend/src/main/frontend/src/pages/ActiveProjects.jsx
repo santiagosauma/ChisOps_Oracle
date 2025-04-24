@@ -52,7 +52,7 @@ function ActiveProjects() {
         
         Promise.all(projectPromises)
           .then(projectsWithProgress => {
-            console.log("Projects with progress:", projectsWithProgress);
+            //console.log("Projects with progress:", projectsWithProgress);
             setProjects(projectsWithProgress);
             setLoading(false);
           });
