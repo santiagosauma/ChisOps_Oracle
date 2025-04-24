@@ -11,7 +11,7 @@ import AddSprintPopup from '../components/ProjectDetails/AddSprintPopup';
 import EditSprintPopup from '../components/ProjectDetails/EditSprintPopup';
 import Loader from '../components/Loader';
 
-function ProjectDetails({ projectId: propProjectId, onBack }) {
+function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
   const [fullProjectData, setFullProjectData] = useState(null);
   const [projectData, setProjectData] = useState(null);
   const [selectedSprint, setSelectedSprint] = useState(null);
@@ -938,8 +938,13 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
               <ProjectOverview tasksInfo={projectData.tasksInfo} />
             </div>
             <div className="project-users-container">
-              <ProjectUsers users={projectData.users} tasks={projectData.formattedTasks} />
-            </div>
+                <ProjectUsers 
+              users={projectData?.users || []} 
+              tasks={projectData?.formattedTasks || []} 
+              projectID={propProjectId}
+              onSelectUser={onSelectUser}  
+            />
+                    </div>
           </div>
           <div className="project-right-col">
             <div className="project-tasks-container">

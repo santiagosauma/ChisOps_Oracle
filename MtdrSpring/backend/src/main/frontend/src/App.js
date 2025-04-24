@@ -8,17 +8,19 @@ import Login from './pages/Login';
 import Register from './pages/Register';
 import UserHome from './pages/UserHome';
 import ProjectDetails from './pages/ProjectDetails';
+import UserDetails from './pages/UserDetails';
 
 
 function App() {
-  // al principio no mostramos nada hasta validar sesión
-  const [page, setPage] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [authMode, setAuthMode] = useState('login');
-  const [userRole, setUserRole] = useState(null);
-  const [selectedProjectId, setSelectedProjectId] = useState(null);
-
-
+   // Existing state
+   const [page, setPage] = useState(null);
+   const [isLoggedIn, setIsLoggedIn] = useState(false);
+   const [authMode, setAuthMode] = useState('login');
+   const [userRole, setUserRole] = useState(null);
+   const [selectedProjectId, setSelectedProjectId] = useState(null);
+   // New state for user details
+   const [selectedUserId, setSelectedUserId] = useState(null);
+ 
   useEffect(() => {
     const saved = localStorage.getItem('user');
     if (saved) {
@@ -76,10 +78,26 @@ function App() {
 
    const handleSelectProject = (projectId) => {
     setSelectedProjectId(projectId);
+    setSelectedUserId(null); // Reset user selection when changing projects
+    
   };
 
   const handleBackToProjects = () => {
     setSelectedProjectId(null);
+    setSelectedUserId(null); // Reset user selection when going back to projects
+
+  };
+
+  const handleSelectUser = (userId, projectId) => {
+    setSelectedUserId(userId);
+    setSelectedProjectId(projectId);
+    setPage('UserDetails'); // Change to UserDetails page
+  };
+
+  // Handler to go back from user details to project details
+  const handleBackToProject = () => {
+    setSelectedUserId(null);
+    setPage('ProjectsTrue');
   };
 
 
@@ -106,16 +124,22 @@ function App() {
         userRole={userRole}
         onLogout={handleLogout}
       />
-       <div style={{ marginLeft: '60px', flex: 1, padding: '0px' }}>
+      <div style={{ marginLeft: '60px', flex: 1, padding: '0px' }}>
         {page === 'UserHome' && requireAuth(UserHome, {})}
         {page === 'Home' && requireAuth(Home, {})}
         {page === 'Projects' && userRole === 'admin' && requireAuth(ManageTasks, {})}
         {page === 'ProjectsTrue' && !selectedProjectId && requireAuth(Projects, { 
           onSelectProject: handleSelectProject 
         })}
-        {page === 'ProjectsTrue' && selectedProjectId && requireAuth(ProjectDetails, {
+        {page === 'ProjectsTrue' && selectedProjectId && !selectedUserId && requireAuth(ProjectDetails, {
           projectId: selectedProjectId,
-          onBack: handleBackToProjects
+          onBack: handleBackToProjects,
+          onSelectUser: handleSelectUser
+        })}
+        {page === 'UserDetails' && requireAuth(UserDetails, {
+          userId: selectedUserId,
+          projectId: selectedProjectId,
+          onBack: handleBackToProject
         })}
       </div>
     </div>

@@ -198,11 +198,7 @@ function UserDetails({ userId, projectId, onBack }) {
           <div className="user-left-col">
             <div className="user-information-container">
               <UserInformation 
-                email={userData.email}
-                telephone={userData.telephone}
-                telegram={userData.telegram}
-                joinDate={userData.joinDate}
-                status={userData.status}
+userData={userData}
               />
             </div>
             <div className="user-statistics-container">

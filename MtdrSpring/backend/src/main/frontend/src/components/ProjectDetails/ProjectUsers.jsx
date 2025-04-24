@@ -2,7 +2,7 @@ import React from 'react';
 import { Plus } from 'lucide-react';
 import '../../styles/ProjectDetails/ProjectUsers.css';
 
-const ProjectUsers = ({ users, tasks = [] }) => {
+const ProjectUsers = ({ users, tasks = [], projectID, onSelectUser }) => {
   const getUserStats = (userId) => {
     const userTasks = tasks.filter(task => {
       return task.userId === userId || 
@@ -35,6 +35,12 @@ const ProjectUsers = ({ users, tasks = [] }) => {
     };
   };
 
+  const handleUserClick = (userId) => {
+    if (onSelectUser) {
+      onSelectUser(userId, projectID);
+    }
+  };
+
   return (
     <div className="project-users">
       <h2>Users</h2>
@@ -54,7 +60,18 @@ const ProjectUsers = ({ users, tasks = [] }) => {
                 const stats = getUserStats(user.id);
                 return (
                   <tr key={user.id}>
-                    <td>{user.name}</td>
+                    <td>
+                      <a 
+                        href="#" 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleUserClick(user.id);
+                        }}
+                        className="user-name-link"
+                      >
+                        {user.name}
+                      </a>
+                    </td>
                     <td className="text-center">{stats.completedTasks}</td>
                     <td className="text-center">{stats.estimatedHours}</td>
                     <td className="text-center">{stats.actualHours}</td>

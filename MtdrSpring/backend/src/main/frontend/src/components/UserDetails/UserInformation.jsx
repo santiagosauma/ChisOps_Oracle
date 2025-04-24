@@ -3,7 +3,7 @@ import '../../styles/UserDetails/UserInformation.css';
 
 function UserInformation({ userData }) {
   return (
-    <div className="user-information">
+    <div className="user-information"> 
       <h2>Information:</h2>
       <div className="info-content">
         <div className="info-item">
