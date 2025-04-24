@@ -248,6 +248,9 @@ function ProjectDetails({ projectId: propProjectId, onBack }) {
                 startDate={projectData.startDate}
                 dueDate={projectData.endDate}
                 status={projectData.status}
+                currentSprint={selectedSprint === 'all' 
+                  ? 'all' 
+                  : projectData.sprints?.find(s => s.sprintId === selectedSprint)}
               />
             </div>
             <div className="project-overview-container">

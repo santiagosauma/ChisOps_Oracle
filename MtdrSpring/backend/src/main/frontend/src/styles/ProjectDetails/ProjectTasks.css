@@ -1,3 +1,9 @@
+.project-tasks {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 .project-tasks h2 {
     font-size: 18px;
     font-weight: 600;
@@ -7,24 +13,28 @@
   }
   
   .project-tasks-table-container {
+    flex-grow: 1;
     overflow-x: auto;
-    margin-bottom: 15px;
-    max-height: 400px;
     overflow-y: auto;
+    max-height: 470px;
+    margin-bottom: 15px;
+    border: 1px solid #f0f0f0;
+    border-radius: 4px;
   }
   
   .project-tasks-table {
     width: 100%;
     border-collapse: collapse;
+    font-size: 14px;
     min-width: 800px;
   }
   
   .project-tasks-table th,
   .project-tasks-table td {
-    padding: 10px;
+    padding: 8px 10px; /* Slightly reduced padding to fit more rows */
     text-align: left;
+    border-bottom: 1px solid #f0f0f0;
     font-size: 14px;
-    border-bottom: 1px solid #e0e0e0;
   }
   
   .project-tasks-table th {
