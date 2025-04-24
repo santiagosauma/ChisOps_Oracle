@@ -9,16 +9,56 @@ import AddTaskPopup from '../components/ProjectDetails/AddTaskPopup';
 import EditTaskPopup from '../components/ProjectDetails/EditTaskPopup';
 import AddSprintPopup from '../components/ProjectDetails/AddSprintPopup';
 import EditSprintPopup from '../components/ProjectDetails/EditSprintPopup';
+import ProjectPerformance from '../components/ProjectDetails/ProjectPerformance';
 import Loader from '../components/Loader';
 
-function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
+const hardcodedPerformanceData = {
+  all: [
+    { name: 'Charlie Vázquez', estimated: 81, actual: 61 },
+    { name: 'Santi Sauma', estimated: 84, actual: 66 },
+    { name: 'Isaac Rojas', estimated: 85, actual: 62 },
+    { name: 'Héctor Garza', estimated: 81, actual: 70 },
+  ],
+  '1': [
+    { name: 'Charlie Vázquez', estimated: 15, actual: 15 },
+    { name: 'Santi Sauma', estimated: 17, actual: 13 },
+    { name: 'Isaac Rojas', estimated: 24, actual: 21 },
+    { name: 'Héctor Garza', estimated: 23, actual: 19 },
+  ],
+  '2': [
+    { name: 'Charlie Vázquez', estimated: 15, actual: 15 },
+    { name: 'Santi Sauma', estimated: 14, actual: 14 },
+    { name: 'Isaac Rojas', estimated: 17, actual: 15 },
+    { name: 'Héctor Garza', estimated: 20, actual: 16 },
+  ],
+  '3': [
+    { name: 'Charlie Vázquez', estimated: 12, actual: 13 },
+    { name: 'Santi Sauma', estimated: 19, actual: 15 },
+    { name: 'Isaac Rojas', estimated: 24, actual: 13 },
+    { name: 'Héctor Garza', estimated: 18, actual: 15 },
+  ],
+  '4': [
+    { name: 'Charlie Vázquez', estimated: 19, actual: 18 },
+    { name: 'Santi Sauma', estimated: 25, actual: 24 },
+    { name: 'Isaac Rojas', estimated: 10, actual: 13 },
+    { name: 'Héctor Garza', estimated: 20, actual: 20 },
+  ],
+  '5': [
+    { name: 'Charlie Vázquez', estimated: 0, actual: 0 },
+    { name: 'Santi Sauma', estimated: 0, actual: 0 },
+    { name: 'Isaac Rojas', estimated: 0, actual: 0 },
+    { name: 'Héctor Garza', estimated: 0, actual: 0 },
+  ],
+};
+
+function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
   const [fullProjectData, setFullProjectData] = useState(null);
   const [projectData, setProjectData] = useState(null);
-  const [selectedSprint, setSelectedSprint] = useState(null);
+  const [selectedSprint, setSelectedSprint] = useState('all');
   const [allSprintTasks, setAllSprintTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   const [showAddTaskPopup, setShowAddTaskPopup] = useState(false);
   const [addTaskForm, setAddTaskForm] = useState({
     title: '',
@@ -33,7 +73,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
     type: 'success'
   });
 
-  // Edit Task popup state
   const [showEditTaskPopup, setShowEditTaskPopup] = useState(false);
   const [editTaskForm, setEditTaskForm] = useState({
     id: '',
@@ -45,7 +84,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
   });
   const [currentTask, setCurrentTask] = useState(null);
 
-  // Add Sprint popup state
   const [showAddSprintPopup, setShowAddSprintPopup] = useState(false);
   const [addSprintForm, setAddSprintForm] = useState({
     name: '',
@@ -53,7 +91,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
     endDate: ''
   });
 
-  // Edit Sprint popup state
   const [showEditSprintPopup, setShowEditSprintPopup] = useState(false);
   const [editSprintForm, setEditSprintForm] = useState({
     id: '',
@@ -66,16 +103,16 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
 
   useEffect(() => {
     if (!propProjectId) return;
-    
+
     const loadProjectData = async () => {
       try {
         setLoading(true);
         const projectResponse = await fetch(`/proyectos/${propProjectId}`);
         if (!projectResponse.ok) throw new Error('Error fetching project');
         const projectFull = await projectResponse.json();
-        
+
         setFullProjectData(projectFull);
-        
+
         let users = [];
         if (!projectFull.usuarios) {
           const usersResponse = await fetch(`/proyectos/${propProjectId}/usuarios`);
@@ -85,13 +122,13 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
         } else {
           users = projectFull.usuarios;
         }
-        
+
         const formattedUsers = users.map(user => ({
           id: user.userId || user.id,
           name: `${user.firstName || ''} ${user.lastName || ''}`.trim(),
           role: user.rol || 'Team Member'
         }));
-        
+
         let projectSprints = [];
         try {
           const sprintsResponse = await fetch(`/sprints/proyecto/${propProjectId}`);
@@ -101,17 +138,17 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
         } catch (err) {
           console.error("Error fetching sprints:", err);
         }
-        
+
         setSelectedSprint('all');
-        
+
         let allTasks = [];
         if (projectSprints.length > 0) {
           try {
-            const allTasksPromises = projectSprints.map(sprint => 
+            const allTasksPromises = projectSprints.map(sprint =>
               fetch(`/tareas/sprint/${sprint.sprintId}`)
                 .then(res => res.ok ? res.json() : [])
             );
-            
+
             const tasksArrays = await Promise.all(allTasksPromises);
             allTasks = tasksArrays.flat();
             setAllSprintTasks(allTasks);
@@ -119,9 +156,9 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
             console.error("Error fetching all tasks:", err);
           }
         }
-          
+
         const tasksInfo = calculateTasksInfo(allTasks);
-        
+
         setProjectData({
           id: projectFull.projectId,
           name: projectFull.name,
@@ -134,7 +171,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
           tasksInfo,
           formattedTasks: formatTasks(allTasks)
         });
-        
+
         setLoading(false);
       } catch (err) {
         console.error('Error loading project data:', err);
@@ -142,48 +179,48 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
         setLoading(false);
       }
     };
-    
+
     loadProjectData();
   }, [propProjectId]);
 
   const calculateTasksInfo = (tasks) => {
     if (!tasks || !Array.isArray(tasks)) return { overdue: 0, progress: '0%', completed: 0, pending: 0, total: 0 };
-    
+
     const currentDate = new Date();
-    
+
     const completed = tasks.filter(t => {
       const status = t.status?.toLowerCase() || '';
-      return status === 'completed' || 
-             status === 'done' || 
-             status === 'finalizada' || 
-             status === 'completado';
+      return status === 'completed' ||
+        status === 'done' ||
+        status === 'finalizada' ||
+        status === 'completado';
     }).length;
-    
+
     const overdue = tasks.filter(t => {
       const dueDate = new Date(t.endDate || t.dueDate);
       const status = t.status?.toLowerCase() || '';
-      return dueDate < currentDate && 
-             !['completed', 'done', 'finalizada', 'completado'].includes(status);
+      return dueDate < currentDate &&
+        !['completed', 'done', 'finalizada', 'completado'].includes(status);
     }).length;
-    
+
     const inProgress = tasks.filter(t => {
       const status = t.status?.toLowerCase() || '';
-      return status === 'doing' || 
-             status === 'in progress' || 
-             status === 'en progreso';
+      return status === 'doing' ||
+        status === 'in progress' ||
+        status === 'en progreso';
     }).length;
-    
+
     const pending = tasks.filter(t => {
       const status = t.status?.toLowerCase() || '';
-      return status === 'pending' || 
-             status === 'to do' || 
-             status === 'pendiente' ||
-             status === '';
+      return status === 'pending' ||
+        status === 'to do' ||
+        status === 'pendiente' ||
+        status === '';
     }).length;
-    
+
     const total = tasks.length;
     const progressPercent = total > 0 ? Math.round((completed / total) * 100) : 0;
-    
+
     return {
       overdue,
       progress: progressPercent,
@@ -195,15 +232,15 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
 
   const formatTasks = (tasks) => {
     if (!tasks || !Array.isArray(tasks)) return [];
-    
+
     return tasks.map(task => {
-      const userId = task.usuario?.userId || 
-                    task.usuario?.id || 
-                    task.user?.userId ||
-                    task.user?.id ||
-                    task.userId ||
-                    null;
-      
+      const userId = task.usuario?.userId ||
+        task.usuario?.id ||
+        task.user?.userId ||
+        task.user?.id ||
+        task.userId ||
+        null;
+
       return {
         id: task.taskId,
         name: task.title || task.name || 'Unnamed Task',
@@ -222,19 +259,19 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
 
   const handleSprintChange = async (sprintId) => {
     setLoading(true);
-    
+
     try {
       let tasksToShow = [];
-      
+
       if (sprintId === 'all') {
         if (allSprintTasks.length > 0) {
           tasksToShow = allSprintTasks;
         } else if (projectData?.sprints?.length > 0) {
-          const allTasksPromises = projectData.sprints.map(sprint => 
+          const allTasksPromises = projectData.sprints.map(sprint =>
             fetch(`/tareas/sprint/${sprint.sprintId}`)
               .then(res => res.ok ? res.json() : [])
           );
-          
+
           const tasksArrays = await Promise.all(allTasksPromises);
           tasksToShow = tasksArrays.flat();
           setAllSprintTasks(tasksToShow);
@@ -244,16 +281,16 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
         if (!response.ok) {
           throw new Error(`Error loading tasks for sprint ${sprintId}`);
         }
-        
+
         tasksToShow = await response.json();
       }
-      
+
       setProjectData(prev => ({
         ...prev,
         tasksInfo: calculateTasksInfo(tasksToShow),
         formattedTasks: formatTasks(tasksToShow)
       }));
-      
+
       setSelectedSprint(sprintId);
     } catch (error) {
       console.error("Error fetching sprint tasks:", error);
@@ -261,8 +298,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
       setLoading(false);
     }
   };
-  
-  // Add Task popup handlers
+
   const openAddTaskPopup = () => {
     setAddTaskForm({
       title: '',
@@ -300,16 +336,16 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
     }
 
     try {
-      const sprintId = selectedSprint === 'all' && projectData.sprints.length > 0 
-        ? projectData.sprints[0].sprintId 
+      const sprintId = selectedSprint === 'all' && projectData.sprints.length > 0
+        ? projectData.sprints[0].sprintId
         : selectedSprint;
-      
+
       if (!sprintId) {
         throw new Error('No valid sprint selected');
       }
-      
+
       const today = new Date().toISOString().split('T')[0];
-      
+
       const newTask = {
         title: addTaskForm.title,
         description: `Task: ${addTaskForm.title}`,
@@ -322,16 +358,16 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
         estimatedHours: parseFloat(addTaskForm.estimatedHours) || 0,
         actualHours: null,
         deleted: 0,
-        sprint: { 
-          sprintId: sprintId 
+        sprint: {
+          sprintId: sprintId
         },
-        usuario: addTaskForm.userId ? { 
-          userId: addTaskForm.userId 
+        usuario: addTaskForm.userId ? {
+          userId: addTaskForm.userId
         } : null
       };
-      
+
       console.log("Sending task data:", JSON.stringify(newTask, null, 2));
-      
+
       const response = await fetch('/tareas', {
         method: 'POST',
         headers: {
@@ -339,45 +375,44 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
         },
         body: JSON.stringify(newTask)
       });
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error("Server error response:", errorText);
         throw new Error(`Error creating task: ${errorText}`);
       }
-      
+
       const location = response.headers.get('location');
       console.log("Task created successfully, ID:", location);
-      
+
       setToast({
         show: true,
         message: 'Task added successfully!',
         type: 'success'
       });
-      
+
       handleSprintChange(selectedSprint);
-      
+
       closeAddTaskPopup();
-      
+
       setTimeout(() => {
         setToast(prev => ({ ...prev, show: false }));
       }, 3000);
     } catch (error) {
       console.error('Error adding task:', error);
-      
+
       setToast({
         show: true,
         message: `Failed to add task: ${error.message}`,
         type: 'error'
       });
-      
+
       setTimeout(() => {
         setToast(prev => ({ ...prev, show: false }));
       }, 4000);
     }
   };
 
-  // Add Sprint popup handlers
   const openAddSprintPopup = () => {
     setAddSprintForm({
       name: '',
@@ -420,12 +455,12 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
         status: "Active",
         deleted: 0,
         proyecto: {
-          projectId: propProjectId 
+          projectId: propProjectId
         }
       };
-      
+
       console.log("Sending sprint data:", JSON.stringify(newSprint, null, 2));
-      
+
       const response = await fetch('/sprints', {
         method: 'POST',
         headers: {
@@ -433,23 +468,22 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
         },
         body: JSON.stringify(newSprint)
       });
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         console.error("Server error response:", errorText);
         throw new Error(`Error creating sprint: ${errorText}`);
       }
-      
+
       const location = response.headers.get('location');
       console.log("Sprint created successfully, ID:", location);
-      
+
       setToast({
         show: true,
         message: 'Sprint added successfully!',
         type: 'success'
       });
-      
-      // Refresh sprints list
+
       const sprintsResponse = await fetch(`/sprints/proyecto/${propProjectId}`);
       if (sprintsResponse.ok) {
         const updatedSprints = await sprintsResponse.json();
@@ -458,21 +492,21 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
           sprints: updatedSprints
         }));
       }
-      
+
       closeAddSprintPopup();
-      
+
       setTimeout(() => {
         setToast(prev => ({ ...prev, show: false }));
       }, 3000);
     } catch (error) {
       console.error('Error adding sprint:', error);
-      
+
       setToast({
         show: true,
         message: `Failed to add sprint: ${error.message}`,
         type: 'error'
       });
-      
+
       setTimeout(() => {
         setToast(prev => ({ ...prev, show: false }));
       }, 4000);
@@ -482,7 +516,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
   const openEditSprintPopup = (sprint) => {
     let startDate = '';
     let endDate = '';
-    
+
     if (sprint.startDate) {
       try {
         const startDateObj = new Date(sprint.startDate);
@@ -494,7 +528,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
         startDate = '';
       }
     }
-    
+
     if (sprint.endDate) {
       try {
         const endDateObj = new Date(sprint.endDate);
@@ -506,7 +540,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
         endDate = '';
       }
     }
-    
+
     setCurrentSprint(sprint);
     setEditSprintForm({
       id: sprint.sprintId,
@@ -549,9 +583,9 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
       if (!response.ok) {
         throw new Error('Error fetching sprint');
       }
-      
+
       const originalSprint = await response.json();
-      
+
       const updatedSprint = {
         ...originalSprint,
         name: editSprintForm.name,
@@ -559,9 +593,9 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
         startDate: editSprintForm.startDate,
         endDate: editSprintForm.endDate
       };
-      
+
       console.log("Updating sprint with data:", updatedSprint);
-      
+
       const updateResponse = await fetch(`/sprints/${editSprintForm.id}`, {
         method: 'PUT',
         headers: {
@@ -569,19 +603,19 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
         },
         body: JSON.stringify(updatedSprint)
       });
-      
+
       if (!updateResponse.ok) {
         const errorText = await updateResponse.text();
         console.error("Server error response:", errorText);
         throw new Error(`Error updating sprint: ${errorText}`);
       }
-      
+
       setToast({
         show: true,
         message: 'Sprint updated successfully!',
         type: 'success'
       });
-      
+
       const sprintsResponse = await fetch(`/sprints/proyecto/${propProjectId}`);
       if (sprintsResponse.ok) {
         const updatedSprints = await sprintsResponse.json();
@@ -589,55 +623,55 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
           ...prev,
           sprints: updatedSprints
         }));
-        
+
         if (selectedSprint === editSprintForm.id) {
           handleSprintChange(selectedSprint);
         }
       }
-      
+
       closeEditSprintPopup();
-      
+
       setTimeout(() => {
         setToast(prev => ({ ...prev, show: false }));
       }, 3000);
     } catch (error) {
       console.error('Error updating sprint:', error);
-      
+
       setToast({
         show: true,
         message: `Failed to update sprint: ${error.message}`,
         type: 'error'
       });
-      
+
       setTimeout(() => {
         setToast(prev => ({ ...prev, show: false }));
       }, 4000);
     }
   };
-  
+
   const handleDeleteSprint = async () => {
     if (!currentSprint || !editSprintForm.id) return;
-    
+
     if (!window.confirm('Are you sure you want to delete this sprint? This action cannot be undone and will affect all tasks in this sprint.')) {
       return;
     }
-    
+
     try {
       const response = await fetch(`/sprints/${editSprintForm.id}`, {
         method: 'DELETE'
       });
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Error deleting sprint: ${errorText}`);
       }
-      
+
       setToast({
         show: true,
         message: 'Sprint deleted successfully!',
         type: 'success'
       });
-      
+
       const sprintsResponse = await fetch(`/sprints/proyecto/${propProjectId}`);
       if (sprintsResponse.ok) {
         const updatedSprints = await sprintsResponse.json();
@@ -645,26 +679,26 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
           ...prev,
           sprints: updatedSprints
         }));
-        
+
         if (selectedSprint === editSprintForm.id) {
           handleSprintChange('all');
         }
       }
-      
+
       closeEditSprintPopup();
-      
+
       setTimeout(() => {
         setToast(prev => ({ ...prev, show: false }));
       }, 3000);
     } catch (error) {
       console.error('Error deleting sprint:', error);
-      
+
       setToast({
         show: true,
         message: `Failed to delete sprint: ${error.message}`,
         type: 'error'
       });
-      
+
       setTimeout(() => {
         setToast(prev => ({ ...prev, show: false }));
       }, 4000);
@@ -699,7 +733,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
         dueDate = '';
       }
     }
-    
+
     setCurrentTask(task);
     setEditTaskForm({
       id: task.id,
@@ -743,9 +777,9 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
       if (!response.ok) {
         throw new Error('Error fetching task');
       }
-      
+
       const originalTask = await response.json();
-      
+
       const updatedTask = {
         ...originalTask,
         title: editTaskForm.title,
@@ -755,9 +789,9 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
         endDate: editTaskForm.dueDate,
         usuario: editTaskForm.userId ? { userId: editTaskForm.userId } : originalTask.usuario
       };
-      
+
       console.log("Updating task with data:", updatedTask);
-      
+
       const updateResponse = await fetch(`/tareas/${editTaskForm.id}`, {
         method: 'PUT',
         headers: {
@@ -765,85 +799,88 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
         },
         body: JSON.stringify(updatedTask)
       });
-      
+
       if (!updateResponse.ok) {
         const errorText = await updateResponse.text();
         console.error("Server error response:", errorText);
         throw new Error(`Error updating task: ${errorText}`);
       }
-      
+
       setToast({
         show: true,
         message: 'Task updated successfully!',
         type: 'success'
       });
-      
+
       handleSprintChange(selectedSprint);
-      
+
       closeEditTaskPopup();
-      
+
       setTimeout(() => {
         setToast(prev => ({ ...prev, show: false }));
       }, 3000);
     } catch (error) {
       console.error('Error updating task:', error);
-      
+
       setToast({
         show: true,
         message: `Failed to update task: ${error.message}`,
         type: 'error'
       });
-      
+
       setTimeout(() => {
         setToast(prev => ({ ...prev, show: false }));
       }, 4000);
     }
   };
-  
+
   const handleDeleteTask = async () => {
     if (!currentTask || !editTaskForm.id) return;
-    
+
     if (!window.confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
       return;
     }
-    
+
     try {
       const response = await fetch(`/tareas/${editTaskForm.id}`, {
         method: 'DELETE'
       });
-      
+
       if (!response.ok) {
         const errorText = await response.text();
         throw new Error(`Error deleting task: ${errorText}`);
       }
-      
+
       setToast({
         show: true,
         message: 'Task deleted successfully!',
         type: 'success'
       });
-      
+
       handleSprintChange(selectedSprint);
-      
+
       closeEditTaskPopup();
-      
+
       setTimeout(() => {
         setToast(prev => ({ ...prev, show: false }));
       }, 3000);
     } catch (error) {
       console.error('Error deleting task:', error);
-      
+
       setToast({
         show: true,
         message: `Failed to delete task: ${error.message}`,
         type: 'error'
       });
-      
+
       setTimeout(() => {
         setToast(prev => ({ ...prev, show: false }));
       }, 4000);
     }
   };
+
+  const performanceChartData = hardcodedPerformanceData[selectedSprint] || [];
+  const performanceViewType = selectedSprint === 'all' ? 'allSprints' : 'singleSprint';
 
   if (loading && !projectData) {
     return (
@@ -871,8 +908,8 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
           <div className="toast-timeline"></div>
         </div>
       )}
-      
-      <AddTaskPopup 
+
+      <AddTaskPopup
         show={showAddTaskPopup}
         onClose={closeAddTaskPopup}
         formData={addTaskForm}
@@ -881,8 +918,8 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
         users={projectData.users}
         selectedSprint={selectedSprint}
       />
-      
-      <EditTaskPopup 
+
+      <EditTaskPopup
         show={showEditTaskPopup}
         onClose={closeEditTaskPopup}
         formData={editTaskForm}
@@ -891,16 +928,16 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
         onDelete={handleDeleteTask}
         users={projectData.users}
       />
-      
-      <AddSprintPopup 
+
+      <AddSprintPopup
         show={showAddSprintPopup}
         onClose={closeAddSprintPopup}
         formData={addSprintForm}
         onChange={handleAddSprintChange}
         onSubmit={handleAddSprint}
       />
-      
-      <EditSprintPopup 
+
+      <EditSprintPopup
         show={showEditSprintPopup}
         onClose={closeEditSprintPopup}
         formData={editSprintForm}
@@ -908,9 +945,9 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
         onUpdate={handleUpdateSprint}
         onDelete={handleDeleteSprint}
       />
-      
-      <ProjectHeader 
-        projectName={projectData?.name} 
+
+      <ProjectHeader
+        projectName={projectData?.name}
         sprint={selectedSprint}
         sprints={projectData?.sprints}
         onSprintChange={handleSprintChange}
@@ -923,13 +960,13 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
         <div className="project-details-grid">
           <div className="project-left-col">
             <div className="project-description-container">
-              <ProjectDescription 
+              <ProjectDescription
                 description={projectData.description}
                 startDate={projectData.startDate}
                 dueDate={projectData.endDate}
                 status={projectData.status}
-                currentSprint={selectedSprint === 'all' 
-                  ? 'all' 
+                currentSprint={selectedSprint === 'all'
+                  ? 'all'
                   : projectData.sprints?.find(s => s.sprintId === selectedSprint)}
                 allSprints={projectData.sprints || []}
               />
@@ -938,20 +975,26 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser}) {
               <ProjectOverview tasksInfo={projectData.tasksInfo} />
             </div>
             <div className="project-users-container">
-                <ProjectUsers 
-              users={projectData?.users || []} 
-              tasks={projectData?.formattedTasks || []} 
-              projectID={propProjectId}
-              onSelectUser={onSelectUser}  
-            />
-                    </div>
+              <ProjectUsers
+                users={projectData?.users || []}
+                tasks={projectData?.formattedTasks || []}
+                projectID={propProjectId}
+                onSelectUser={onSelectUser}
+              />
+            </div>
           </div>
           <div className="project-right-col">
             <div className="project-tasks-container">
-              <ProjectTasks 
-                tasks={projectData.formattedTasks} 
+              <ProjectTasks
+                tasks={projectData.formattedTasks}
                 onAddTask={openAddTaskPopup}
                 onEditTask={openEditTaskPopup}
+              />
+            </div>
+            <div className="project-performance-container">
+              <ProjectPerformance
+                chartData={performanceChartData}
+                viewType={performanceViewType}
               />
             </div>
           </div>
