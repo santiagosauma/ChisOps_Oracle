@@ -13,7 +13,7 @@ function UserInformation({ userData }) {
 
         <div className="info-item">
           <span className="info-label">Name:</span>
-          <span className="info-value">{`${userData.firstName} ${userData.lastName}`}</span>
+          <span className="info-value">{`${userData.firstName || ''} ${userData.lastName || ''}`}</span>
         </div>
 
         <div className="info-item">

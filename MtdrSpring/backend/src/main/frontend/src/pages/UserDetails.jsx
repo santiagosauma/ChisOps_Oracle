@@ -1,4 +1,3 @@
-//UserDetails
 import React, { useState, useEffect } from 'react';
 import '../styles/UserDetails.css';
 import UserHeader from '../components/UserDetails/UserHeader';
@@ -17,15 +16,17 @@ function UserDetails({ userId, projectId, onBack }) {
   const [error, setError] = useState(null);
   const [selectedProject, setSelectedProject] = useState(null);
   const [selectedSprint, setSelectedSprint] = useState("all");
-  const [filteredTasks, setFilteredTasks] = useState([]);
-  const [filteredTaskStats, setFilteredTaskStats] = useState({});
-  const [sprints, setSprints] = useState([]);
   const [sprintsWithTasks, setSprintsWithTasks] = useState([]);
+  const [filteredTasks, setFilteredTasks] = useState([]);
+  const [filteredTaskStats, setFilteredTaskStats] = useState({
+    overdue: 0,
+    pending: 0,
+    completed: 0
+  });
   const [performanceData, setPerformanceData] = useState({
     assignedVsCompleted: [],
     hoursData: []
   });
-
 
   useEffect(() => {
     const fetchData = async () => {
@@ -34,14 +35,20 @@ function UserDetails({ userId, projectId, onBack }) {
         
         // 1. Obtener datos básicos del usuario
         const userResponse = await fetch(`/usuarios/${userId}`);
+        if (!userResponse.ok) {
+          throw new Error('Failed to fetch user data');
+        }
         const user = await userResponse.json();
         
         // 2. Obtener proyectos simplificados del usuario
         const projectsResponse = await fetch(`/proyectos/usuario/${userId}/simplificados`);
+        if (!projectsResponse.ok) {
+          throw new Error('Failed to fetch projects data');
+        }
         const projectsData = await projectsResponse.json();
         
         // 3. Determinar proyecto a mostrar
-        const initialProject = projectId || (projectsData[0]?.projectId || null);
+        const initialProject = projectId || (projectsData.length > 0 ? projectsData[0].projectId : null);
         
         // 4. Obtener tareas organizadas por sprint si hay proyecto
         let tasksData = { sprints: [] };
@@ -49,25 +56,48 @@ function UserDetails({ userId, projectId, onBack }) {
           const tasksResponse = await fetch(
             `/tareas/usuario/${userId}/proyecto/${initialProject}/organizadas`
           );
+          if (!tasksResponse.ok) {
+            throw new Error('Failed to fetch tasks data');
+          }
           tasksData = await tasksResponse.json();
         }
 
         // Procesar datos para el estado
         const processedUser = {
           ...user,
-          status: user.deleted === 0 ? 'Active' : 'Inactive',
-          joinDate: new Date().toISOString().split('T')[0] // Ejemplo, ajustar según tu API
+          status: user.deleted === 0 ? 'Active' : 'Inactive'
         };
 
         setUserData(processedUser);
         setProjects(projectsData);
         setSelectedProject(initialProject);
-        setSprintsWithTasks(tasksData.sprints);
+        setSprintsWithTasks(tasksData.sprints || []);
+        
+        // Extraer todas las tareas para mostrarlas inicialmente
+        const allTasks = [];
+        tasksData.sprints.forEach(sprint => {
+          if (sprint.tasks && Array.isArray(sprint.tasks)) {
+            allTasks.push(...sprint.tasks);
+          }
+        });
+        
+        setFilteredTasks(allTasks);
+        
+        // Calcular estadísticas iniciales
+        const done = allTasks.filter(t => t.status === 'Done').length;
+        const inProgress = allTasks.filter(t => t.status !== 'Done').length;
+        
+        setFilteredTaskStats({
+          overdue: 0, // Asumimos que no hay tareas vencidas inicialmente
+          pending: inProgress,
+          completed: done
+        });
         
         // Calcular métricas de rendimiento
-        calculatePerformanceMetrics(tasksData.sprints);
+        calculatePerformanceMetrics(tasksData.sprints || []);
 
       } catch (err) {
+        console.error("Error fetching data:", err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -82,6 +112,10 @@ function UserDetails({ userId, projectId, onBack }) {
     const hoursData = [];
     
     sprints.forEach(sprint => {
+      if (!sprint.tasks || !Array.isArray(sprint.tasks)) {
+        return;
+      }
+      
       const sprintTasks = sprint.tasks;
       const completed = sprintTasks.filter(t => t.status === 'Done').length;
       
@@ -106,27 +140,37 @@ function UserDetails({ userId, projectId, onBack }) {
       hoursData
     });
   };
-  
 
-  
-
-  // Función para filtrar tareas por sprint
   useEffect(() => {
-    if (!userData) return;
+    if (!sprintsWithTasks || sprintsWithTasks.length === 0) return;
 
-    let tasksToShow = userData.tasks;
+    // Filtrar las tareas según el sprint seleccionado
+    let tasksToShow = [];
     
-    // Filtrar las tareas si se seleccionó un sprint específico
-    if (selectedSprint !== "all") {
-      tasksToShow = userData.tasks.filter(task => task.sprintId === selectedSprint);
+    if (selectedSprint === "all") {
+      // Mostrar todas las tareas de todos los sprints
+      sprintsWithTasks.forEach(sprint => {
+        if (sprint.tasks && Array.isArray(sprint.tasks)) {
+          tasksToShow = [...tasksToShow, ...sprint.tasks];
+        }
+      });
+    } else {
+      // Buscar el sprint seleccionado y mostrar sus tareas
+      const selectedSprintData = sprintsWithTasks.find(s => s.sprintId === parseInt(selectedSprint));
+      if (selectedSprintData && selectedSprintData.tasks) {
+        tasksToShow = selectedSprintData.tasks;
+      }
     }
     
     setFilteredTasks(tasksToShow);
     
     // Recalcular estadísticas basadas en las tareas filtradas
-    const overdue = tasksToShow.filter(task => task.status === "Overdue").length;
-    const doing = tasksToShow.filter(task => task.status === "Doing").length;
-    const completed = tasksToShow.filter(task => task.status === "Completed").length;
+    const overdue = tasksToShow.filter(task => 
+      new Date(task.endDate) < new Date() && task.status !== 'Done'
+    ).length;
+    
+    const doing = tasksToShow.filter(task => task.status !== 'Done').length - overdue;
+    const completed = tasksToShow.filter(task => task.status === 'Done').length;
     
     setFilteredTaskStats({
       overdue,
@@ -134,28 +178,33 @@ function UserDetails({ userId, projectId, onBack }) {
       completed
     });
     
-  }, [userData, selectedSprint]);
+  }, [sprintsWithTasks, selectedSprint]);
 
- // Modificar el handler de cambio de proyecto
- const handleProjectChange = async (projectId) => {
-  try {
-    setLoading(true);
-    const response = await fetch(
-      `/tareas/usuario/${userId}/proyecto/${projectId}/organizadas`
-    );
-    const data = await response.json();
-    
-    setSelectedProject(projectId);
-    setSprintsWithTasks(data.sprints);
-    calculatePerformanceMetrics(data.sprints);
-    
-  } catch (err) {
-    setError(err.message);
-  } finally {
-    setLoading(false);
-  }
-};
-
+  const handleProjectChange = async (projectId) => {
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `/tareas/usuario/${userId}/proyecto/${projectId}/organizadas`
+      );
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch tasks data');
+      }
+      
+      const data = await response.json();
+      
+      setSelectedProject(projectId);
+      setSprintsWithTasks(data.sprints || []);
+      setSelectedSprint("all"); // Resetear a mostrar todas las tareas
+      calculatePerformanceMetrics(data.sprints || []);
+      
+    } catch (err) {
+      console.error("Error changing project:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSprintChange = (sprintId) => {
     setSelectedSprint(sprintId);
@@ -197,20 +246,17 @@ function UserDetails({ userId, projectId, onBack }) {
         <div className="user-details-grid">
           <div className="user-left-col">
             <div className="user-information-container">
-              <UserInformation 
-userData={userData}
-              />
+              <UserInformation userData={userData} />
             </div>
             <div className="user-statistics-container">
               <UserStatistics taskStats={filteredTaskStats} />
             </div>
             <div className="user-project-history-container">
-                    <UserProjectHistory 
+              <UserProjectHistory 
                 projects={projects} 
                 selectedProject={selectedProject}
                 onProjectChange={handleProjectChange}
               />
-      
             </div>
           </div>
           <div className="user-right-col">
@@ -218,7 +264,7 @@ userData={userData}
               <UserTasks tasks={filteredTasks} />
             </div>
             <div className="user-performance-container">
-            <UserPerformance 
+              <UserPerformance 
                 assignedVsCompleted={performanceData.assignedVsCompleted} 
                 hoursData={performanceData.hoursData} 
               />

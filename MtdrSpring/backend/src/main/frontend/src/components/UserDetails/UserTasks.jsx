@@ -1,9 +1,8 @@
-//UserTasks
 import React, { useState } from 'react';
 import '../../styles/UserDetails/UserTasks.css';
 
 function UserTasks({ tasks }) {
-  const [sortField, setSortField] = useState('id');
+  const [sortField, setSortField] = useState('taskId');
   const [sortDirection, setSortDirection] = useState('asc');
 
   const handleSort = (field) => {
@@ -15,10 +14,28 @@ function UserTasks({ tasks }) {
     }
   };
 
+  // Verificar si hay tareas antes de intentar ordenarlas
+  if (!tasks || tasks.length === 0) {
+    return (
+      <div className="user-tasks">
+        <div className="user-tasks-header">
+          <h2>Tasks</h2>
+        </div>
+        <div className="tasks-table">
+          <div className="no-tasks">No tasks available for this selection</div>
+        </div>
+      </div>
+    );
+  }
+
   const getSortedTasks = () => {
     return [...tasks].sort((a, b) => {
       let aValue = a[sortField];
       let bValue = b[sortField];
+      
+      // Manejar campos no definidos
+      if (aValue === undefined) aValue = '';
+      if (bValue === undefined) bValue = '';
       
       // Handle string comparison
       if (typeof aValue === 'string' && typeof bValue === 'string') {
@@ -46,8 +63,8 @@ function UserTasks({ tasks }) {
       <div className="tasks-table">
         <div className="table-header">
           <div 
-            className={`header-cell id ${sortField === 'id' ? 'sorted-' + sortDirection : ''}`}
-            onClick={() => handleSort('id')}
+            className={`header-cell id ${sortField === 'taskId' ? 'sorted-' + sortDirection : ''}`}
+            onClick={() => handleSort('taskId')}
           >
             ID & Task
             <span className="sort-icon"></span>
@@ -74,22 +91,22 @@ function UserTasks({ tasks }) {
             <span className="sort-icon"></span>
           </div>
           <div 
-            className={`header-cell date ${sortField === 'dueDate' ? 'sorted-' + sortDirection : ''}`}
-            onClick={() => handleSort('dueDate')}
+            className={`header-cell date ${sortField === 'endDate' ? 'sorted-' + sortDirection : ''}`}
+            onClick={() => handleSort('endDate')}
           >
             Due Date
             <span className="sort-icon"></span>
           </div>
           <div 
-            className={`header-cell hours ${sortField === 'estimatedHour' ? 'sorted-' + sortDirection : ''}`}
-            onClick={() => handleSort('estimatedHour')}
+            className={`header-cell hours ${sortField === 'estimatedHours' ? 'sorted-' + sortDirection : ''}`}
+            onClick={() => handleSort('estimatedHours')}
           >
-            Est. Hour
+            Est. Hours
             <span className="sort-icon"></span>
           </div>
           <div 
-            className={`header-cell hours ${sortField === 'realHours' ? 'sorted-' + sortDirection : ''}`}
-            onClick={() => handleSort('realHours')}
+            className={`header-cell hours ${sortField === 'actualHours' ? 'sorted-' + sortDirection : ''}`}
+            onClick={() => handleSort('actualHours')}
           >
             Real Hours
             <span className="sort-icon"></span>
@@ -97,9 +114,9 @@ function UserTasks({ tasks }) {
         </div>
         <div className="table-body">
           {sortedTasks.map((task) => (
-            <div key={task.id} className="table-row">
+            <div key={task.taskId} className="table-row">
               <div className="cell id">
-                <div>{task.id} - {task.name}</div>
+                <div>{task.taskId} - {task.title}</div>
               </div>
               <div className="cell status">
                 <span className={`status-badge ${task.status.toLowerCase()}`}>
@@ -112,9 +129,9 @@ function UserTasks({ tasks }) {
                 </span>
               </div>
               <div className="cell date">{task.startDate}</div>
-              <div className="cell date">{task.dueDate}</div>
-              <div className="cell hours">{task.estimatedHour}</div>
-              <div className="cell hours">{task.realHours}</div>
+              <div className="cell date">{task.endDate}</div>
+              <div className="cell hours">{task.estimatedHours}</div>
+              <div className="cell hours">{task.actualHours}</div>
             </div>
           ))}
         </div>
