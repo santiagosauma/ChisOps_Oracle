@@ -15,10 +15,15 @@ const TasksTable = ({
   onFilterRemove, 
   onClearFilters, 
   onShowFiltersToggle, 
-  showFilters 
+  showFilters,
+  cssPrefix
 }) => {
   const [sortField, setSortField] = useState('name');
   const [sortDirection, setSortDirection] = useState('asc');
+
+  const getClassName = (baseClass, cssPrefix = '') => {
+    return cssPrefix ? `${cssPrefix}${baseClass}` : baseClass;
+  };
 
   const filteredTasks = tasks.filter(task => {
     if (filters.status && task.status !== filters.status) return false;
@@ -72,17 +77,17 @@ const TasksTable = ({
   };
 
   return (
-    <div className="card">
-      <div className="card-header-with-actions">
-        <h2 className="card-title">Tasks</h2>
-        <div className="action-buttons">
+    <div className={getClassName('card', cssPrefix)}>
+      <div className={getClassName('card-header-with-actions', cssPrefix)}>
+        <h2 className={getClassName('card-title', cssPrefix)}>Tasks</h2>
+        <div className={getClassName('action-buttons', cssPrefix)}>
           {activeFilters.length > 0 && (
-            <div className="active-filters">
+            <div className={getClassName('active-filters', cssPrefix)}>
               {activeFilters.map((filter, index) => (
-                <div key={index} className="active-filter">
+                <div key={index} className={getClassName('active-filter', cssPrefix)}>
                   <span>{filter.type}: {filter.value}</span>
                   <button 
-                    className="remove-filter-btn" 
+                    className={getClassName('remove-filter-btn', cssPrefix)} 
                     onClick={() => onFilterRemove(filter.type)}
                   >
                     ×
@@ -91,7 +96,7 @@ const TasksTable = ({
               ))}
               {activeFilters.length > 1 && (
                 <button 
-                  className="clear-filters-btn"
+                  className={getClassName('clear-filters-btn', cssPrefix)}
                   onClick={onClearFilters}
                 >
                   Clear all
@@ -99,26 +104,26 @@ const TasksTable = ({
               )}
             </div>
           )}
-          <div className="filter-wrapper">
+          <div className={getClassName('filter-wrapper', cssPrefix)}>
             <div 
-              className="filter-badge"
+              className={getClassName('filter-badge', cssPrefix)}
               onClick={onShowFiltersToggle}
             >
-              <span className="filter-icon">◎</span>
+              <span className={getClassName('filter-icon', cssPrefix)} style={{ width: '16px', height: '16px' }}>◎</span>
               <span>Filter</span>
               {activeFilters.length > 0 && (
-                <span className="filter-count">{activeFilters.length}</span>
+                <span className={getClassName('filter-count', cssPrefix)}>{activeFilters.length}</span>
               )}
-              <span className="close-icon">
+              <span className={getClassName('close-icon', cssPrefix)}>
                 {showFilters ? '△' : '▽'}
               </span>
             </div>
             
             {showFilters && (
-              <div className="filter-dropdown">
-                <div className="filter-section">
+              <div className={getClassName('filter-dropdown', cssPrefix)}>
+                <div className={getClassName('filter-section', cssPrefix)}>
                   <h3>Search</h3>
-                  <div className="filter-search">
+                  <div className={getClassName('filter-search', cssPrefix)}>
                     <input 
                       type="text" 
                       placeholder="Search tasks..." 
@@ -128,13 +133,13 @@ const TasksTable = ({
                   </div>
                 </div>
                 
-                <div className="filter-section">
+                <div className={getClassName('filter-section', cssPrefix)}>
                   <h3>Status</h3>
-                  <div className="filter-options">
+                  <div className={getClassName('filter-options', cssPrefix)}>
                     {['Done', 'Incomplete', 'In Progress'].map((status, index) => (
                       <div 
                         key={index} 
-                        className={`filter-option ${filters.status === status ? 'selected' : ''}`}
+                        className={`${getClassName('filter-option', cssPrefix)} ${filters.status === status ? 'selected' : ''}`}
                         onClick={() => applyFilter('status', status)}
                       >
                         <span>{status}</span>
@@ -143,13 +148,13 @@ const TasksTable = ({
                   </div>
                 </div>
                 
-                <div className="filter-section">
+                <div className={getClassName('filter-section', cssPrefix)}>
                   <h3>Priority</h3>
-                  <div className="filter-options">
+                  <div className={getClassName('filter-options', cssPrefix)}>
                     {['High', 'Medium', 'Low'].map((priority, index) => (
                       <div 
                         key={index} 
-                        className={`filter-option ${filters.priority === priority ? 'selected' : ''}`}
+                        className={`${getClassName('filter-option', cssPrefix)} ${filters.priority === priority ? 'selected' : ''}`}
                         onClick={() => applyFilter('priority', priority)}
                       >
                         <span>{priority}</span>
@@ -158,9 +163,9 @@ const TasksTable = ({
                   </div>
                 </div>
                 
-                <div className="filter-actions">
+                <div className={getClassName('filter-actions', cssPrefix)}>
                   <button 
-                    className="clear-filter-btn"
+                    className={getClassName('clear-filter-btn', cssPrefix)}
                     onClick={() => {
                       onClearFilters();
                       onShowFiltersToggle();
@@ -174,107 +179,119 @@ const TasksTable = ({
           </div>
         </div>
       </div>
-      <div className="card-content">
+      <div className={getClassName('card-content', cssPrefix)}>
         {loading ? (
-          <p className="loading-message">Loading tasks...</p>
+          <p className={getClassName('loading-message', cssPrefix)}>Loading tasks...</p>
         ) : error ? (
-          <p className="error-message">{error}</p>
+          <p className={getClassName('error-message', cssPrefix)}>{error}</p>
         ) : (
-          <div className="table-container">
-            <table className="data-table">
+          <div className={getClassName('table-container', cssPrefix)}>
+            <table className={getClassName('data-table', cssPrefix)}>
               <thead>
-                <tr className="table-header-row">
+                <tr className={getClassName('table-header-row', cssPrefix)}>
                   <th 
-                    className="table-header-cell sortable" 
+                    className={`${getClassName('table-header-cell', cssPrefix)} sortable`} 
                     onClick={() => handleSort('name')}
                     data-active-sort={sortField === 'name' ? "true" : "false"}
                   >
-                    <div className="sortable-header">
+                    <div className={getClassName('sortable-header', cssPrefix)}>
                       <span>Name</span>
                       {sortField === 'name' && (
                         <img 
                           src={sortDirection === 'asc' ? dropupIcon : dropdownIcon} 
                           alt="sort" 
-                          className="sort-indicator" 
+                          className={getClassName('sort-indicator', cssPrefix)} 
                         />
                       )}
                     </div>
                   </th>
                   <th 
-                    className="table-header-cell sortable" 
+                    className={`${getClassName('table-header-cell', cssPrefix)} sortable`} 
                     onClick={() => handleSort('status')}
                     data-active-sort={sortField === 'status' ? "true" : "false"}
                   >
-                    <div className="sortable-header">
+                    <div className={getClassName('sortable-header', cssPrefix)}>
                       <span>Status</span>
                       {sortField === 'status' && (
                         <img 
                           src={sortDirection === 'asc' ? dropupIcon : dropdownIcon} 
                           alt="sort" 
-                          className="sort-indicator" 
+                          className={getClassName('sort-indicator', cssPrefix)} 
                         />
                       )}
                     </div>
                   </th>
                   <th 
-                    className="table-header-cell sortable" 
+                    className={`${getClassName('table-header-cell', cssPrefix)} sortable`} 
                     onClick={() => handleSort('finishDate')}
                     data-active-sort={sortField === 'finishDate' ? "true" : "false"}
                   >
-                    <div className="sortable-header">
+                    <div className={getClassName('sortable-header', cssPrefix)}>
                       <span>Finish Date</span>
                       {sortField === 'finishDate' && (
                         <img 
                           src={sortDirection === 'asc' ? dropupIcon : dropdownIcon} 
                           alt="sort" 
-                          className="sort-indicator" 
+                          className={getClassName('sort-indicator', cssPrefix)} 
                         />
                       )}
                     </div>
                   </th>
                   <th 
-                    className="table-header-cell sortable" 
+                    className={`${getClassName('table-header-cell', cssPrefix)} sortable`} 
                     onClick={() => handleSort('priority')}
                     data-active-sort={sortField === 'priority' ? "true" : "false"}
                   >
-                    <div className="sortable-header">
+                    <div className={getClassName('sortable-header', cssPrefix)}>
                       <span>Priority</span>
                       {sortField === 'priority' && (
                         <img 
                           src={sortDirection === 'asc' ? dropupIcon : dropdownIcon} 
                           alt="sort" 
-                          className="sort-indicator" 
+                          className={getClassName('sort-indicator', cssPrefix)} 
                         />
                       )}
                     </div>
                   </th>
-                  <th className="table-header-cell">Actions</th>
+                  <th className={getClassName('table-header-cell', cssPrefix)}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredTasks.length > 0 ? (
                   getSortedTasks(filteredTasks).map((task, index) => (
-                    <tr key={task.id || index} className="table-row">
-                      <td className="table-cell">{task.name}</td>
-                      <td className="table-cell">
+                    <tr key={task.id || index} className={getClassName('table-row', cssPrefix)}>
+                      <td className={getClassName('table-cell', cssPrefix)}>{task.name}</td>
+                      <td className={getClassName('table-cell', cssPrefix)}>
                         <StatusBadge status={task.status} />
                       </td>
-                      <td className="table-cell">
+                      <td className={getClassName('table-cell', cssPrefix)}>
                         {typeof task.finishDate === 'string' ? task.finishDate : 'No date'}
                       </td>
-                      <td className="table-cell">
+                      <td className={getClassName('table-cell', cssPrefix)}>
                         <PriorityBadge priority={task.priority} />
                       </td>
-                      <td className="table-cell action-cell">
-                        <button className="edit-button" onClick={() => onUpdateTask(task)}>
-                          <img src={pencilIcon} alt="Edit" className="edit-icon" />
+                      <td className={`${getClassName('table-cell', cssPrefix)} action-cell`}>
+                        <button 
+                          className={getClassName('edit-button', cssPrefix)}
+                          onClick={() => onUpdateTask(task)}
+                          style={{ width: '32px', height: '32px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+                        >
+                          <svg 
+                            className={getClassName('edit-icon', cssPrefix)} 
+                            width="16" 
+                            height="16" 
+                            viewBox="0 0 24 24"
+                            style={{ width: '16px', height: '16px', maxWidth: '16px', maxHeight: '16px' }}
+                          >
+                            {/* SVG path content */}
+                          </svg>
                         </button>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="5" className="table-cell no-data">
+                    <td colSpan="5" className={`${getClassName('table-cell', cssPrefix)} no-data`}>
                       No tasks match the applied filters. Try different criteria or remove some filters.
                     </td>
                   </tr>

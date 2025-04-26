@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import "../styles/UserHome.css"
 import dropdownIcon from '../resources/dropdown.png';
 import dropupIcon from '../resources/dropup.png';
+import pencilIcon from '../resources/pencil.png';
 import TasksTable from '../components/TasksTable';
 
 export default function UserHome() {
@@ -693,27 +694,67 @@ export default function UserHome() {
       });
   };
 
+  const EditIcon = () => {
+    const [imageError, setImageError] = useState(false);
+
+    return imageError ? (
+      <span
+        style={{
+          display: 'inline-block',
+          width: '18px',
+          height: '18px',
+          lineHeight: '18px',
+          textAlign: 'center',
+          fontWeight: 'bold',
+          color: '#000',
+          fontSize: '14px'
+        }}
+      >
+        ✎
+      </span>
+    ) : (
+      <img 
+        src={`${process.env.PUBLIC_URL || ''}/resources/pencil.png`}
+        onError={() => {
+          console.error("Failed to load pencil icon");
+          setImageError(true);
+        }}
+        alt="Edit" 
+        className="uh-edit-icon"
+        style={{ 
+          width: '18px', 
+          height: '18px', 
+          display: 'block',
+          objectFit: 'contain',
+          border: '1px solid transparent', // Makes icon more visible
+          margin: '0 auto',
+          background: 'transparent'
+        }}
+      />
+    );
+  };
+
   return (
-    <div className="main-container">
+    <div className="uh-main-container">
       {/* Toast notification */}
       {toast.show && (
-        <div className={`toast-notification ${toast.type}`}>
-          <div className="toast-content">
+        <div className={`uh-toast-notification ${toast.type}`}>
+          <div className="uh-toast-content">
             <span>{toast.message}</span>
           </div>
-          <div className="toast-timeline"></div>
+          <div className="uh-toast-timeline"></div>
         </div>
       )}
       
       {showUpdatePopup && currentTask && (
-        <div className="popup-overlay">
-          <div className="popup-container" style={{ backgroundColor: '#D4D7E3' }}>
-            <h2 className="popup-title">Update Task</h2>
+        <div className="uh-popup-overlay">
+          <div className="uh-popup-container" style={{ backgroundColor: '#D4D7E3' }}>
+            <h2 className="uh-popup-title">Update Task</h2>
             
-            <div className="popup-form">
-              <div className="form-group">
+            <div className="uh-popup-form">
+              <div className="uh-form-group">
                 <label>Status</label>
-                <div className="select-wrapper">
+                <div className="uh-select-wrapper">
                   <select
                     name="status"
                     value={updateTaskForm.status}
@@ -726,9 +767,9 @@ export default function UserHome() {
                 </div>
               </div>
               
-              <div className="form-group">
+              <div className="uh-form-group">
                 <label>Hours Taken</label>
-                <div className="select-wrapper">
+                <div className="uh-select-wrapper">
                   {updateTaskForm.status === 'Done' ? (
                     <input
                       type="number"
@@ -737,25 +778,25 @@ export default function UserHome() {
                       onChange={handleUpdateFormChange}
                       min="0"
                       step="0.5"
-                      className="hours-input"
+                      className="uh-hours-input"
                     />
                   ) : (
-                    <div className="hours-input disabled-input" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div className="uh-hours-input uh-disabled-input" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       -
                     </div>
                   )}
                 </div>
                 {updateTaskForm.status !== 'Done' && (
-                  <small className="helper-text">Hours can only be entered when status is "Done"</small>
+                  <small className="uh-helper-text">Hours can only be entered when status is "Done"</small>
                 )}
               </div>
               
-              <div className="popup-buttons">
-                <button className="add-button" onClick={handleUpdateTask}>
+              <div className="uh-popup-buttons">
+                <button className="uh-add-button" onClick={handleUpdateTask}>
                   Update
                 </button>
                 <button 
-                  className="cancel-button" 
+                  className="uh-cancel-button" 
                   onClick={closeUpdatePopup}
                   style={{ backgroundColor: '#C74634' }}
                 >
@@ -767,64 +808,64 @@ export default function UserHome() {
         </div>
       )}
 
-      <div className="content-wrapper">
-        <header className="page-header">
-          <h1 className="page-title">
+      <div className="uh-content-wrapper">
+        <header className="uh-page-header">
+          <h1 className="uh-page-title">
             {currentUser ? `Home - ${currentUser.name}` : 'Home'}
           </h1>
         </header>
 
-        <div className="content-area">
+        <div className="uh-content-area">
           {!currentUser ? (
-            <div className="card">
-              <p className="loading-message">Loading user information...</p>
+            <div className="uh-card">
+              <p className="uh-loading-message">Loading user information...</p>
             </div>
           ) : (
-            <div className="content-grid">
-              <div className="card">
-                <div className="card-header">
-                  <h2 className="card-title">Active Projects</h2>
+            <div className="uh-content-grid">
+              <div className="uh-card">
+                <div className="uh-card-header">
+                  <h2 className="uh-card-title">Active Projects</h2>
                 </div>
-                <div className="card-content">
+                <div className="uh-card-content">
                   {loading.projects ? (
-                    <p className="loading-message">Loading projects...</p>
+                    <p className="uh-loading-message">Loading projects...</p>
                   ) : error.projects ? (
-                    <p className="error-message">{error.projects}</p>
+                    <p className="uh-error-message">{error.projects}</p>
                   ) : (
-                    <div className="table-container">
-                      <table className="data-table">
+                    <div className="uh-table-container">
+                      <table className="uh-data-table">
                         <thead>
-                          <tr className="table-header-row">
-                            <th className="table-header-cell">Name</th>
-                            <th className="table-header-cell">Finish Date</th>
-                            <th className="table-header-cell">Sprint</th>
-                            <th className="table-header-cell">Manager</th>
-                            <th className="table-header-cell">Progress</th>
+                          <tr className="uh-table-header-row">
+                            <th className="uh-table-header-cell">Name</th>
+                            <th className="uh-table-header-cell">Finish Date</th>
+                            <th className="uh-table-header-cell">Sprint</th>
+                            <th className="uh-table-header-cell">Manager</th>
+                            <th className="uh-table-header-cell">Progress</th>
                           </tr>
                         </thead>
                         <tbody>
                           {projects.length > 0 ? (
                             projects.map((project, index) => (
-                              <tr key={project.projectId || index} className="table-row">
-                                <td className="table-cell">{project.name || project.nombre || 'Unnamed'}</td>
-                                <td className="table-cell">
+                              <tr key={project.projectId || index} className="uh-table-row">
+                                <td className="uh-table-cell">{project.name || project.nombre || 'Unnamed'}</td>
+                                <td className="uh-table-cell">
                                   {project.endDate ? new Date(project.endDate).toLocaleDateString() : 'No date'}
                                 </td>
-                                <td className="table-cell">
+                                <td className="uh-table-cell">
                                   <div 
-                                    className="sprint-selector" 
+                                    className="uh-sprint-selector" 
                                     onClick={(event) => toggleSprintDropdown(project.projectId, event)}
                                     style={{ backgroundColor: "#fff", borderColor: "#ddd", color: "#000" }}
                                   >
                                     <span>
                                       {selectedSprintByProject[project.projectId]?.name || 'No Sprint'}
                                     </span>
-                                    <span className="dropdown-indicator">▼</span>
+                                    <span className="uh-dropdown-indicator">▼</span>
                                   </div>
                                   
                                   {showSprintDropdown[project.projectId] && projectSprints[project.projectId]?.length > 0 && (
                                     <div 
-                                      className="sprint-dropdown" 
+                                      className="uh-sprint-dropdown" 
                                       style={{
                                         position: 'fixed',
                                         top: `${dropdownPosition.top}px`,
@@ -843,7 +884,7 @@ export default function UserHome() {
                                     >
                                       <div 
                                         key="all-sprints" 
-                                        className="sprint-option"
+                                        className="uh-sprint-option"
                                         style={{
                                           padding: '8px 12px',
                                           cursor: 'pointer',
@@ -868,7 +909,7 @@ export default function UserHome() {
                                       {projectSprints[project.projectId].map(sprint => (
                                         <div 
                                           key={sprint.sprintId} 
-                                          className="sprint-option"
+                                          className="uh-sprint-option"
                                           style={{
                                             padding: '8px 12px',
                                             cursor: 'pointer',
@@ -889,12 +930,12 @@ export default function UserHome() {
                                     </div>
                                   )}
                                 </td>
-                                <td className="table-cell">
+                                <td className="uh-table-cell">
                                   {project.usuario ? 
                                    `${project.usuario.firstName} ${project.usuario.lastName}` : 
                                    'Unassigned'}
                                 </td>
-                                <td className="table-cell">
+                                <td className="uh-table-cell">
                                   <div 
                                     style={{ 
                                       width: '100%', 
@@ -924,7 +965,7 @@ export default function UserHome() {
                             ))
                           ) : (
                             <tr>
-                              <td colSpan="5" className="table-cell no-data">No active projects</td>
+                              <td colSpan="5" className="uh-table-cell uh-no-data">No active projects</td>
                             </tr>
                           )}
                         </tbody>
@@ -934,39 +975,38 @@ export default function UserHome() {
                 </div>
               </div>
 
-              <div className="task-summary-grid">
-                <div className="task-card overdue-card">
-                  <div className="task-card-header">
-                    <div className="task-card-title-container">
-                      <span className="alert-icon">!</span>
-                      <h2 className="task-card-title">Overdue Tasks</h2>
+              <div className="uh-task-summary-grid">
+                <div className="uh-task-card uh-overdue-card">
+                  <div className="uh-task-card-header">
+                    <div className="uh-task-card-title-container">
+                      <span className="uh-alert-icon">!</span>
+                      <h2 className="uh-task-card-title">Overdue Tasks</h2>
                     </div>
                   </div>
-                  <div className="task-card-content">
-                    <div className="task-count">{overdueTasks}</div>
+                  <div className="uh-task-card-content">
+                    <div className="uh-task-count">{overdueTasks}</div>
                   </div>
                 </div>
 
-                <div className="task-card pending-card">
-                  <div className="task-card-header">
-                    <h2 className="task-card-title">Pending Tasks</h2>
+                <div className="uh-task-card uh-pending-card">
+                  <div className="uh-task-card-header">
+                    <h2 className="uh-task-card-title">Pending Tasks</h2>
                   </div>
-                  <div className="task-card-content">
-                    <div className="task-count">{pendingTasks}</div>
+                  <div className="uh-task-card-content">
+                    <div className="uh-task-count">{pendingTasks}</div>
                   </div>
                 </div>
 
-                <div className="task-card done-card">
-                  <div className="task-card-header">
-                    <h2 className="task-card-title">Tasks Done</h2>
+                <div className="uh-task-card uh-done-card">
+                  <div className="uh-task-card-header">
+                    <h2 className="uh-task-card-title">Tasks Done</h2>
                   </div>
-                  <div className="task-card-content">
-                    <div className="task-count">{completedTasks}</div>
+                  <div className="uh-task-card-content">
+                    <div className="uh-task-count">{completedTasks}</div>
                   </div>
                 </div>
               </div>
 
-              {/* Reemplazar la tabla de tareas con el nuevo componente */}
               <TasksTable 
                 tasks={tasks}
                 loading={loading.tasks}
@@ -979,6 +1019,30 @@ export default function UserHome() {
                 onClearFilters={clearAllFilters}
                 onShowFiltersToggle={toggleShowFilters}
                 showFilters={showFilters}
+                cssPrefix="uh-"
+                editButtonProps={{
+                  className: "uh-edit-button",
+                  style: {
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    width: "32px",
+                    height: "32px",
+                    margin: "0 auto",
+                    border: "none",
+                    borderRadius: "4px",
+                    cursor: "pointer",
+                    background: "transparent"
+                  }
+                }}
+                editIconProps={{
+                  element: <EditIcon />,
+                  className: "uh-edit-icon",
+                  style: {
+                    width: "16px",
+                    height: "16px"
+                  }
+                }}
               />
             </div>
           )}
