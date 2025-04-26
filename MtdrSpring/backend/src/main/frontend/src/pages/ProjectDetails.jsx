@@ -12,45 +12,6 @@ import EditSprintPopup from '../components/ProjectDetails/EditSprintPopup';
 import ProjectPerformance from '../components/ProjectDetails/ProjectPerformance';
 import Loader from '../components/Loader';
 
-const hardcodedPerformanceData = {
-  all: [
-    { name: 'Charlie Vázquez', estimated: 81, actual: 61 },
-    { name: 'Santi Sauma', estimated: 84, actual: 66 },
-    { name: 'Isaac Rojas', estimated: 85, actual: 62 },
-    { name: 'Héctor Garza', estimated: 81, actual: 70 },
-  ],
-  '1': [
-    { name: 'Charlie Vázquez', estimated: 15, actual: 15 },
-    { name: 'Santi Sauma', estimated: 17, actual: 13 },
-    { name: 'Isaac Rojas', estimated: 24, actual: 21 },
-    { name: 'Héctor Garza', estimated: 23, actual: 19 },
-  ],
-  '2': [
-    { name: 'Charlie Vázquez', estimated: 15, actual: 15 },
-    { name: 'Santi Sauma', estimated: 14, actual: 14 },
-    { name: 'Isaac Rojas', estimated: 17, actual: 15 },
-    { name: 'Héctor Garza', estimated: 20, actual: 16 },
-  ],
-  '3': [
-    { name: 'Charlie Vázquez', estimated: 12, actual: 13 },
-    { name: 'Santi Sauma', estimated: 19, actual: 15 },
-    { name: 'Isaac Rojas', estimated: 24, actual: 13 },
-    { name: 'Héctor Garza', estimated: 18, actual: 15 },
-  ],
-  '4': [
-    { name: 'Charlie Vázquez', estimated: 19, actual: 18 },
-    { name: 'Santi Sauma', estimated: 25, actual: 24 },
-    { name: 'Isaac Rojas', estimated: 10, actual: 13 },
-    { name: 'Héctor Garza', estimated: 20, actual: 20 },
-  ],
-  '5': [
-    { name: 'Charlie Vázquez', estimated: 0, actual: 0 },
-    { name: 'Santi Sauma', estimated: 0, actual: 0 },
-    { name: 'Isaac Rojas', estimated: 0, actual: 0 },
-    { name: 'Héctor Garza', estimated: 0, actual: 0 },
-  ],
-};
-
 function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
   const [fullProjectData, setFullProjectData] = useState(null);
   const [projectData, setProjectData] = useState(null);
@@ -58,6 +19,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
   const [allSprintTasks, setAllSprintTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [performanceData, setPerformanceData] = useState([]);
 
   const [showAddTaskPopup, setShowAddTaskPopup] = useState(false);
   const [addTaskForm, setAddTaskForm] = useState({
@@ -100,6 +62,36 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
     status: ''
   });
   const [currentSprint, setCurrentSprint] = useState(null);
+
+  const generatePerformanceData = (tasks, users, sprintId) => {
+    if (!users || !tasks) return [];
+
+    const filteredTasks = tasks;
+
+    return users.map(user => {
+      const userTasks = filteredTasks.filter(task => {
+        return task.userId === user.id ||
+          String(task.userId) === String(user.id) ||
+          (task.usuario && (task.usuario.userId === user.id || String(task.usuario.userId) === String(user.id)));
+      });
+
+      const estimatedHours = userTasks.reduce((sum, task) => {
+        const hours = Number(task.estimatedHour || task.estimatedHours || 0);
+        return isNaN(hours) ? sum : sum + hours;
+      }, 0);
+
+      const actualHours = userTasks.reduce((sum, task) => {
+        const hours = Number(task.realHours || task.actualHours || 0);
+        return isNaN(hours) ? sum : sum + hours;
+      }, 0);
+
+      return {
+        name: user.name,
+        estimated: estimatedHours,
+        actual: actualHours
+      };
+    });
+  };
 
   useEffect(() => {
     if (!propProjectId) return;
@@ -158,6 +150,9 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         }
 
         const tasksInfo = calculateTasksInfo(allTasks);
+
+        const performanceMetrics = generatePerformanceData(allTasks, formattedUsers, 'all');
+        setPerformanceData(performanceMetrics);
 
         setProjectData({
           id: projectFull.projectId,
@@ -241,6 +236,8 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         task.userId ||
         null;
 
+      const sprintId = task.sprint?.sprintId || task.sprintId || null;
+
       return {
         id: task.taskId,
         name: task.title || task.name || 'Unnamed Task',
@@ -250,7 +247,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         assignedTo: task.usuario ? `${task.usuario.firstName || ''} ${task.usuario.lastName || ''}`.trim() : 'Unassigned',
         estimatedHour: task.estimatedHours || 0,
         realHours: task.actualHours || '-',
-        sprintId: task.sprintId,
+        sprintId: sprintId,
         userId: userId,
         usuario: task.usuario
       };
@@ -283,13 +280,27 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         }
 
         tasksToShow = await response.json();
+        
+        tasksToShow = tasksToShow.map(task => ({
+          ...task,
+          sprintId: sprintId
+        }));
       }
+
+      const formattedTasks = formatTasks(tasksToShow);
 
       setProjectData(prev => ({
         ...prev,
         tasksInfo: calculateTasksInfo(tasksToShow),
-        formattedTasks: formatTasks(tasksToShow)
+        formattedTasks: formattedTasks
       }));
+
+      const updatedPerformanceData = generatePerformanceData(
+        formattedTasks,
+        projectData.users,
+        sprintId
+      );
+      setPerformanceData(updatedPerformanceData);
 
       setSelectedSprint(sprintId);
     } catch (error) {
@@ -879,7 +890,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
     }
   };
 
-  const performanceChartData = hardcodedPerformanceData[selectedSprint] || [];
   const performanceViewType = selectedSprint === 'all' ? 'allSprints' : 'singleSprint';
 
   if (loading && !projectData) {
@@ -993,7 +1003,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
             </div>
             <div className="project-performance-container">
               <ProjectPerformance
-                chartData={performanceChartData}
+                chartData={performanceData}
                 viewType={performanceViewType}
               />
             </div>
