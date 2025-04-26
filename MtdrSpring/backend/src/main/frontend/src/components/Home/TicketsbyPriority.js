@@ -49,7 +49,8 @@ function TicketsByPriority() {
               height: '180px',
               backgroundColor: '#ccc',
               position: 'relative',
-              borderRadius: '8px'
+              borderRadius: '8px',
+              overflow: 'hidden'
             }}
           >
             <div
@@ -59,8 +60,7 @@ function TicketsByPriority() {
                 left: '0',
                 right: '0',
                 height: lowPercent + '%',
-                backgroundColor: 'green',
-                borderRadius: '0 0 8px 8px'
+                backgroundColor: 'green'
               }}
             />
             <div
@@ -80,8 +80,7 @@ function TicketsByPriority() {
                 left: '0',
                 right: '0',
                 height: highPercent + '%',
-                backgroundColor: 'red',
-                borderRadius: '8px 8px 0 0'
+                backgroundColor: 'red'
               }}
             />
           </div>
