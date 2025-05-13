@@ -36,7 +36,7 @@ jobs:
 
       # 5. Publica resultados como artefacto
       - name: Upload results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: jmeter-results
           path: jmeter-results
