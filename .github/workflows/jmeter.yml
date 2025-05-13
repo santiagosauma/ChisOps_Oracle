@@ -1,0 +1,42 @@
+name: 🚀 JMeter Performance Test
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  jmeter-cli:
+    name: Ejecutar JMeter (CLI)
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Clona el repo
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. Descarga y descomprime JMeter
+      - name: Download Apache JMeter 5.6.3
+        run: |
+          curl -sL https://downloads.apache.org//jmeter/binaries/apache-jmeter-5.6.3.tgz \
+            | tar -xz
+
+      # 3. Crea el directorio de resultados
+      - name: Create results directory
+        run: mkdir -p jmeter-results
+
+      # 4. Ejecuta tu test plan en modo no-GUI
+      - name: Run JMeter test
+        run: |
+          apache-jmeter-5.6.3/bin/jmeter -n \
+            -t MtdrSpring/backend/src/test/Jmeter/chisops-jmeterTest.jmx \
+            -l jmeter-results/results.jtl \
+            -e -o jmeter-results/dashboard
+
+      # 5. Publica resultados como artefacto
+      - name: Upload results
+        uses: actions/upload-artifact@v3
+        with:
+          name: jmeter-results
+          path: jmeter-results
