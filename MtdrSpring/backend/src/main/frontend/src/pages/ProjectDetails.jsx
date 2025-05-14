@@ -454,11 +454,19 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
     }
 
     try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const startDate = new Date(addSprintForm.startDate);
+      startDate.setHours(0, 0, 0, 0);
+      
+      const status = startDate <= today ? "In Progress" : "Pending";
+      
       const newSprint = {
         name: addSprintForm.name,
         startDate: addSprintForm.startDate,
         endDate: addSprintForm.endDate,
-        status: "Pending",
+        status: status,
         deleted: 0,
         proyecto: {
           projectId: propProjectId
