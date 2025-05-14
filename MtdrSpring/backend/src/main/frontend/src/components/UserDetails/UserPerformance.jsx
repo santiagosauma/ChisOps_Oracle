@@ -1,6 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import '../../styles/UserDetails/UserPerformance.css';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
 
 function UserPerformance({ assignedVsCompleted, hoursData, selectedSprint, tasks }) {
   const [activeChart, setActiveChart] = useState('tasks');
@@ -23,79 +32,67 @@ function UserPerformance({ assignedVsCompleted, hoursData, selectedSprint, tasks
     }));
   };
   
-  const renderMultiSprintTasksChart = () => {
-    return (
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart
-          data={assignedVsCompleted}
-          margin={{
-            top: 20,
-            right: 30,
-            left: 20,
-            bottom: 20,
-          }} 
-        >  
-          <CartesianGrid strokeDasharray="3 3" vertical={false} />
-          <XAxis dataKey="sprint" tick={{ fontSize: 12 }} />
-          <YAxis tick={{ fontSize: 12 }} />
-          <Tooltip />
-          <Legend wrapperStyle={{ fontSize: '12px' }} />
-          <Line
-            type="monotone"
-            dataKey="completed"
-            stroke="#e74c3c"
-            activeDot={{ r: 6 }}
-            name="Completed"
-            strokeWidth={2}
-          />
-          <Line
-            type="monotone"
-            dataKey="assigned"
-            stroke="#f1c40f"
-            name="Assigned"
-            strokeWidth={2}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    );
-  };
+  const renderMultiSprintTasksChart = () => (
+    <ResponsiveContainer width="100%" height={300}>
+      <LineChart
+        data={assignedVsCompleted}
+        margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+      >  
+        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+        {/* eje X sin etiquetas */}
+        <XAxis dataKey="sprint" tick={false} />
+        <YAxis tick={{ fontSize: 12 }} />
+        <Tooltip />
+        <Legend wrapperStyle={{ fontSize: '12px' }} />
+        <Line
+          type="monotone"
+          dataKey="completed"
+          stroke="#e74c3c"
+          activeDot={{ r: 6 }}
+          name="Completed"
+          strokeWidth={2}
+        />
+        <Line
+          type="monotone"
+          dataKey="assigned"
+          stroke="#f1c40f"
+          name="Assigned"
+          strokeWidth={2}
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  );
   
-  const renderMultiSprintHoursChart = () => {
-    return (
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart
-          data={hoursData}
-          margin={{
-            top: 20,
-            right: 30,
-            left: 20,
-            bottom: 20,
-          }}
-        >
-          <CartesianGrid strokeDasharray="3 3" vertical={false} />
-          <XAxis dataKey="sprint" tick={{ fontSize: 12 }} />
-          <YAxis tick={{ fontSize: 12 }} />
-          <Tooltip />
-          <Legend wrapperStyle={{ fontSize: '12px' }} />
-          <Line
-            type="monotone"
-            dataKey="real"
-            stroke="#e74c3c"
-            activeDot={{ r: 6 }}
-            name="Real Hours"
-            strokeWidth={2}
-          />
-          <Line
-            type="monotone"
-            dataKey="estimated"
-            stroke="#3498db"
-            name="Estimated Hours"
-            strokeWidth={2}
-          />
-        </LineChart>
-      </ResponsiveContainer>
-    );
-  };
+  const renderMultiSprintHoursChart = () => (
+    <ResponsiveContainer width="100%" height={300}>
+      <LineChart
+        data={hoursData}
+        margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+      >
+        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+        {/* eje X sin etiquetas */}
+        <XAxis dataKey="sprint" tick={false} />
+        <YAxis tick={{ fontSize: 12 }} />
+        <Tooltip />
+        <Legend wrapperStyle={{ fontSize: '12px' }} />
+        <Line
+          type="monotone"
+          dataKey="real"
+          stroke="#e74c3c"
+          activeDot={{ r: 6 }}
+          name="Real Hours"
+          strokeWidth={2}
+        />
+        <Line
+          type="monotone"
+          dataKey="estimated"
+          stroke="#3498db"
+          name="Estimated Hours"
+          strokeWidth={2}
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  );
   
   const renderSingleSprintTasksHoursChart = () => {
     const singleSprintData = prepareSingleSprintData();
@@ -104,19 +101,13 @@ function UserPerformance({ assignedVsCompleted, hoursData, selectedSprint, tasks
       <ResponsiveContainer width="100%" height={300}>
         <LineChart
           data={singleSprintData}
-          margin={{
-            top: 20,
-            right: 30,
-            left: 20,
-            bottom: 70,
-          }}
+          margin={{ top: 20, right: 30, left: 20, bottom: 70 }}
         >
           <CartesianGrid strokeDasharray="3 3" vertical={false} />
+          {/* eje X sin etiquetas */}
           <XAxis 
-            dataKey="name" 
-            tick={{ fontSize: 12 }}
-            angle={-45}
-            textAnchor="end"
+            dataKey="name"
+            tick={false}
             height={70}
           />
           <YAxis tick={{ fontSize: 12 }} />
@@ -166,24 +157,11 @@ function UserPerformance({ assignedVsCompleted, hoursData, selectedSprint, tasks
       </div>
       <div className="performance-content">
         {selectedSprint === 'all' ? (
-          // Multi-sprint view
-          activeChart === 'tasks' ? (
-            <div className="chart-container">
-              <h3>Assigned Tasks vs. Completed Tasks (By Sprint)</h3>
-              {renderMultiSprintTasksChart()}
-            </div>
-          ) : (
-            <div className="chart-container">
-              <h3>Estimated Hours vs. Real Hours (By Sprint)</h3>
-              {renderMultiSprintHoursChart()}
-            </div>
-          )
+          activeChart === 'tasks'
+            ? renderMultiSprintTasksChart()
+            : renderMultiSprintHoursChart()
         ) : (
-          // Single sprint view
-          <div className="chart-container">
-            <h3>Estimated vs Actual Hours (By Task)</h3>
-            {renderSingleSprintTasksHoursChart()}
-          </div>
+          renderSingleSprintTasksHoursChart()
         )}
       </div>
     </div>

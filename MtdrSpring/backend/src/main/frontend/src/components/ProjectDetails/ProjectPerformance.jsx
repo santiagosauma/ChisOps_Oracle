@@ -1,6 +1,15 @@
 import React from 'react';
 import '../../styles/ProjectDetails/ProjectPerformance.css';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
 
 function ProjectPerformance({ chartData, viewType }) {
   // Determine chart title based on viewType
@@ -25,10 +34,13 @@ function ProjectPerformance({ chartData, viewType }) {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis
                   dataKey="name"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={false}
+                  axisLine={true}
+                  tickLine={true}
+                  tick={{ fontSize: 12, fill: '#666' }}
                   height={60}
+                  interval={0}
+                  angle={-20}
+                  textAnchor="end"
                 />
                 <YAxis
                   tick={{ fontSize: 12 }}

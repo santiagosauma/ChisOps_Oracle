@@ -3,7 +3,6 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
-  /* eliminamos cualquier padding o min-height extra que forcé el scroll */
 }
 
 .project-performance-header {
@@ -20,54 +19,21 @@
   color: #333;
 }
 
-/* (si no lo usas, puedes borrar todo lo de selector de botones) */
-.project-chart-selector {
-  display: flex;
-  gap: 8px;
-}
-
-.project-chart-btn {
-  background-color: #f5f7fa;
-  border: 1px solid #dce1e8;
-  border-radius: 4px;
-  padding: 6px 12px;
-  cursor: pointer;
-  font-size: 13px;
-  transition: all 0.2s;
-}
-
-.project-chart-btn:hover {
-  background-color: #e6e9ee;
-}
-
-.project-chart-btn.active {
-  background-color: #c25a44;
-  color: white;
-  border-color: #c25a44;
-}
-
-/* -------------------------------------------------
-   Contenedor de contenido: ocupa todo el espacio 💡
-   ------------------------------------------------- */
 .project-performance-content {
-  flex: 1;          /* llena todo el espacio restante */
+  flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 0;    /* ¡clave para que su hijo pueda hacer scroll! */
+  min-height: 0;
   padding-top: 10px;
 }
 
-/* -------------------------------------------------
-   Contenedor del chart: ahora flexible y sin altura fija
-   ------------------------------------------------- */
 .project-chart-container {
-  flex: 1;          /* ocupa todo lo que quede dentro del content */
+  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 0;    /* permite encogerse y mostrar scroll interno */
+  min-height: 0;
   width: 100%;
-  /* elimina el min-height: 550px; */
 }
 
 .project-chart-container h3 {
@@ -76,9 +42,6 @@
   color: #333;
   font-weight: 500;
 }
-
-/* Si quieres que el chart tenga scroll en ejes concretos, puedes añadir: */
-/* .project-chart-container { overflow: auto; } */
 
 .no-data-message {
   flex: 1;
@@ -98,14 +61,5 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 10px;
-  }
-  
-  .project-chart-selector {
-    width: 100%;
-  }
-  
-  .project-chart-btn {
-    flex: 1;
-    text-align: center;
   }
 }
