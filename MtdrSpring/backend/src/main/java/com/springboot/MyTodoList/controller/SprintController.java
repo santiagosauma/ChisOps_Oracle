@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * CONTROLADOR REST PARA GESTIÓN DE SPRINTS
@@ -34,7 +35,10 @@ public class SprintController {
     //@CrossOrigin
     @GetMapping(value = "/sprints")
     public List<Sprint> getAllSprints() {
-        return sprintService.findAll();
+        List<Sprint> sprints = sprintService.findAll();
+        return sprints.stream()
+                .map(this::normalizeSprintStatus)
+                .collect(Collectors.toList());
     }
     
     /**
@@ -49,7 +53,8 @@ public class SprintController {
     public ResponseEntity<Sprint> getSprintById(@PathVariable int id) {
         try {
             ResponseEntity<Sprint> responseEntity = sprintService.getSprintById(id);
-            return new ResponseEntity<Sprint>(responseEntity.getBody(), HttpStatus.OK);
+            Sprint sprint = normalizeSprintStatus(responseEntity.getBody());
+            return new ResponseEntity<>(sprint, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
@@ -66,6 +71,8 @@ public class SprintController {
     @PostMapping(value = "/sprints")
     public ResponseEntity<?> addSprint(@RequestBody Sprint sprint) {
         try {
+            sprint = normalizeSprintStatus(sprint);
+            
             Sprint newSprint = sprintService.addSprint(sprint);
             HttpHeaders responseHeaders = new HttpHeaders();
             responseHeaders.set("location", "" + newSprint.getSprintId());
@@ -90,6 +97,8 @@ public class SprintController {
     @PutMapping(value = "/sprints/{id}")
     public ResponseEntity<?> updateSprint(@RequestBody Sprint sprint, @PathVariable int id) {
         try {
+            sprint = normalizeSprintStatus(sprint);
+            
             Sprint updatedSprint = sprintService.updateSprint(id, sprint);
             if (updatedSprint != null) {
                 return new ResponseEntity<>(updatedSprint, HttpStatus.OK);
@@ -99,6 +108,48 @@ public class SprintController {
         } catch (Exception e) {
             return new ResponseEntity<>("Error al actualizar el sprint: " + e.getMessage(), HttpStatus.BAD_REQUEST);
         }
+    }
+    
+    private Sprint normalizeSprintStatus(Sprint sprint) {
+        if (sprint == null) return null;
+        
+        String currentStatus = sprint.getStatus();
+        if (currentStatus == null) {
+            sprint.setStatus("Pending");
+            return sprint;
+        }
+        
+        String normalizedStatus;
+        switch (currentStatus.toLowerCase()) {
+            case "completed":
+            case "completado":
+            case "complete":
+            case "done":
+            case "finalizado":
+                normalizedStatus = "Completed";
+                break;
+            case "in progress":
+            case "inprogress":
+            case "en progreso":
+            case "active":
+            case "activo":
+                normalizedStatus = "In Progress";
+                break;
+            case "pending":
+            case "pendiente":
+            case "to do":
+            case "todo":
+            case "planificado":
+            case "planned":
+                normalizedStatus = "Pending";
+                break;
+            default:
+                normalizedStatus = "Pending";
+                break;
+        }
+        
+        sprint.setStatus(normalizedStatus);
+        return sprint;
     }
     
     /**
@@ -129,7 +180,10 @@ public class SprintController {
     //@CrossOrigin
     @GetMapping(value = "/sprints/proyecto/{proyectoId}")
     public List<Sprint> getSprintsByProyecto(@PathVariable int proyectoId) {
-        return sprintService.getSprintsByProyecto(proyectoId);
+        List<Sprint> sprints = sprintService.getSprintsByProyecto(proyectoId);
+        return sprints.stream()
+                .map(this::normalizeSprintStatus)
+                .collect(Collectors.toList());
     }
     
     /**
@@ -141,7 +195,10 @@ public class SprintController {
     //@CrossOrigin
     @GetMapping(value = "/sprints/estado/{status}")
     public List<Sprint> getSprintsByStatus(@PathVariable String status) {
-        return sprintService.getSprintsByStatus(status);
+        List<Sprint> sprints = sprintService.getSprintsByStatus(status);
+        return sprints.stream()
+                .map(this::normalizeSprintStatus)
+                .collect(Collectors.toList());
     }
     
     /**
@@ -153,7 +210,10 @@ public class SprintController {
     //@CrossOrigin
     @GetMapping(value = "/sprints/activos")
     public List<Sprint> getActiveSprints() {
-        return sprintService.getActiveSprints();
+        List<Sprint> sprints = sprintService.getActiveSprints();
+        return sprints.stream()
+                .map(this::normalizeSprintStatus)
+                .collect(Collectors.toList());
     }
     
     /**
@@ -165,6 +225,9 @@ public class SprintController {
     //@CrossOrigin
     @GetMapping(value = "/sprints/buscar")
     public List<Sprint> searchSprints(@RequestParam("name") String name) {
-        return sprintService.searchSprintsByName(name);
+        List<Sprint> sprints = sprintService.searchSprintsByName(name);
+        return sprints.stream()
+                .map(this::normalizeSprintStatus)
+                .collect(Collectors.toList());
     }
 }

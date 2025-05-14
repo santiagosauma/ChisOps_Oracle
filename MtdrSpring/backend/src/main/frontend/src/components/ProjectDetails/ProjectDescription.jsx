@@ -6,10 +6,12 @@ const ProjectDescription = ({ description, startDate, dueDate, status, currentSp
     if (!status) return 'status-badge-default';
     
     const statusLower = status.toLowerCase();
-    if (statusLower.includes('done') || statusLower.includes('complete') || statusLower === 'finalizada') {
+    if (statusLower === 'completed' || statusLower.includes('done') || statusLower.includes('complete') || statusLower === 'finalizada') {
       return 'status-badge-success';
-    } else if (statusLower.includes('progress') || statusLower === 'in progress' || statusLower === 'en progreso') {
+    } else if (statusLower === 'in progress' || statusLower.includes('progress') || statusLower === 'en progreso') {
       return 'status-badge-warning';
+    } else if (statusLower === 'pending' || statusLower.includes('pending') || statusLower.includes('to do')) {
+      return 'status-badge-info';
     } else {
       return 'status-badge-danger';
     }

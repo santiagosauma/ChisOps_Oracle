@@ -458,7 +458,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         name: addSprintForm.name,
         startDate: addSprintForm.startDate,
         endDate: addSprintForm.endDate,
-        status: "Active",
+        status: "Pending",
         deleted: 0,
         proyecto: {
           projectId: propProjectId
@@ -542,11 +542,20 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       }
     }
 
+    let status = sprint.status || 'Pending';
+    if (['Completed', 'Complete', 'Done', 'Finalizado'].includes(status)) {
+      status = 'Completed';
+    } else if (['In Progress', 'Active', 'En Progreso', 'InProgress'].includes(status)) {
+      status = 'In Progress';
+    } else {
+      status = 'Pending';
+    }
+
     setCurrentSprint(sprint);
     setEditSprintForm({
       id: sprint.sprintId,
       name: sprint.name,
-      status: sprint.status || 'Active',
+      status: status,
       startDate: startDate,
       endDate: endDate
     });
