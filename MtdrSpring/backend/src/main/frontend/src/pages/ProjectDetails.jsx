@@ -377,8 +377,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         } : null
       };
 
-      console.log("Sending task data:", JSON.stringify(newTask, null, 2));
-
       const response = await fetch('/tareas', {
         method: 'POST',
         headers: {
@@ -392,9 +390,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         console.error("Server error response:", errorText);
         throw new Error(`Error creating task: ${errorText}`);
       }
-
-      const location = response.headers.get('location');
-      console.log("Task created successfully, ID:", location);
 
       setToast({
         show: true,
@@ -470,8 +465,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         }
       };
 
-      console.log("Sending sprint data:", JSON.stringify(newSprint, null, 2));
-
       const response = await fetch('/sprints', {
         method: 'POST',
         headers: {
@@ -485,9 +478,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         console.error("Server error response:", errorText);
         throw new Error(`Error creating sprint: ${errorText}`);
       }
-
-      const location = response.headers.get('location');
-      console.log("Sprint created successfully, ID:", location);
 
       setToast({
         show: true,
@@ -801,8 +791,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         usuario: editTaskForm.userId ? { userId: editTaskForm.userId } : originalTask.usuario
       };
 
-      console.log("Updating task with data:", updatedTask);
-
       const updateResponse = await fetch(`/tareas/${editTaskForm.id}`, {
         method: 'PUT',
         headers: {
@@ -911,11 +899,11 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
   return (
     <div className="project-details-wrapper">
       {toast.show && (
-        <div className={`toast-notification ${toast.type}`}>
-          <div className="toast-content">
+        <div className={`uh-toast-notification ${toast.type}`}>
+          <div className="uh-toast-content">
             <span>{toast.message}</span>
           </div>
-          <div className="toast-timeline"></div>
+          <div className="uh-toast-timeline"></div>
         </div>
       )}
 
