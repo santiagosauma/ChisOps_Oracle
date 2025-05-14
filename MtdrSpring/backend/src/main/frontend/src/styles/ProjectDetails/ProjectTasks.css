@@ -30,7 +30,7 @@
   border-collapse: collapse;
   font-size: 14px;
   min-width: 800px;
-  background-color: #c2c2ca;
+  background-color: #e1e1e4;
   table-layout: fixed;
 }
 
@@ -53,10 +53,6 @@
 
 .project-tasks-table tr:nth-child(even) {
   background-color: #f9f9f9;
-}
-
-.project-tasks-table tr:hover {
-  background-color: #f1f1f1;
 }
 
 .status-badge {
