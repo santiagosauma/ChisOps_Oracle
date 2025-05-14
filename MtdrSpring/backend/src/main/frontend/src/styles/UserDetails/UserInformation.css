@@ -1,5 +1,6 @@
 .user-information {
-    height: 100%;
+    /* Remove the fixed height */
+    height: auto;
     display: flex;
     flex-direction: column;
     padding: 0;
