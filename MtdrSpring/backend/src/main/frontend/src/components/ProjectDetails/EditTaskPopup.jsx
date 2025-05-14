@@ -13,27 +13,28 @@ const EditTaskPopup = ({
   if (!show) return null;
 
   return (
-    <div className="popup-overlay">
-      <div className="popup-container" style={{ backgroundColor: '#D4D7E3' }}>
-        <h2 className="popup-title">Edit Task</h2>
+    <div className="uh-popup-overlay">
+      <div className="uh-popup-container" style={{ backgroundColor: '#D4D7E3' }}>
+        <h2 className="uh-popup-title">Edit Task</h2>
         
-        <div className="popup-form" style={{ gap: '10px' }}>
-          <div className="form-group">
+        <div className="uh-popup-form" style={{ gap: '10px' }}>
+          <div className="uh-form-group">
             <label>Task Name*</label>
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={onChange}
-              placeholder="Ex: Fix Bug in Backend..."
-              className="select-wrapper"
-              required
-            />
+            <div className="uh-select-wrapper">
+              <input
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={onChange}
+                placeholder="Ex: Fix Bug in Backend..."
+                required
+              />
+            </div>
           </div>
           
-          <div className="form-group">
+          <div className="uh-form-group">
             <label>Priority*</label>
-            <div className="select-wrapper">
+            <div className="uh-select-wrapper">
               <select
                 name="priority"
                 value={formData.priority}
@@ -48,23 +49,22 @@ const EditTaskPopup = ({
             </div>
           </div>
           
-          <div className="form-group">
+          <div className="uh-form-group">
             <label>Due Date*</label>
-            <div className="select-wrapper">
+            <div className="uh-select-wrapper">
               <input
                 type="date"
                 name="dueDate"
                 value={formData.dueDate}
                 onChange={onChange}
-                className="select-wrapper"
                 required
               />
             </div>
           </div>
           
-          <div className="form-group">
+          <div className="uh-form-group">
             <label>Status*</label>
-            <div className="select-wrapper">
+            <div className="uh-select-wrapper">
               <select
                 name="status"
                 value={formData.status}
@@ -78,9 +78,9 @@ const EditTaskPopup = ({
             </div>
           </div>
           
-          <div className="form-group">
+          <div className="uh-form-group">
             <label>Assigned User</label>
-            <div className="select-wrapper">
+            <div className="uh-select-wrapper">
               <select
                 name="userId"
                 value={formData.userId}
@@ -96,19 +96,19 @@ const EditTaskPopup = ({
             </div>
           </div>
           
-          <div className="popup-buttons" style={{ marginTop: '8px' }}>
-            <button className="add-button" onClick={onUpdate}>
+          <div className="uh-popup-buttons" style={{ marginTop: '8px' }}>
+            <button className="uh-add-button" onClick={onUpdate}>
               Update
             </button>
             <button 
-              className="cancel-button" 
+              className="uh-cancel-button" 
               onClick={onClose}
             >
               Cancel
             </button>
           </div>
           
-          <div className="popup-buttons" style={{ marginTop: '5px' }}> 
+          <div className="uh-popup-buttons" style={{ marginTop: '5px' }}> 
             <button 
               className="delete-button" 
               onClick={onDelete}
