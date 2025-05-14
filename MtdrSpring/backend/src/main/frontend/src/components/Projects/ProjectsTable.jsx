@@ -22,6 +22,9 @@ function ProjectsTable({ onSelectProject }) {
   });
   const [allProjects, setAllProjects] = useState([]);
   const [projectsProgress, setProjectsProgress] = useState({});
+  const progressCache = React.useRef({});
+  const progressTimestamps = React.useRef({});
+  const CACHE_TTL = 60000;
 
   useEffect(() => {
     setLoading(true);
@@ -126,67 +129,85 @@ function ProjectsTable({ onSelectProject }) {
     const fetchProgressForProjects = async () => {
       if (!projects.length) return;
       
-      const progressData = {};
+      const now = Date.now();
+      const progressData = { ...progressCache.current };
+      const projectsToFetch = [];
       
-      for (const project of projects) {
-        try {
-          console.log(`Fetching progress for project ${project.projectId}: ${project.name}`);
-          
-          const sprintsResponse = await fetch(`/sprints/proyecto/${project.projectId}`);
-          if (!sprintsResponse.ok) {
-            progressData[project.projectId] = { progress: 0, taskCount: 0, completedCount: 0 };
-            continue;
-          }
-          
-          const sprints = await sprintsResponse.json();
-          console.log(`Found ${sprints.length} sprints for project ${project.projectId}`);
-          
-          if (!sprints.length) {
-            progressData[project.projectId] = { progress: 0, taskCount: 0, completedCount: 0 };
-            continue;
-          }
-          
-          let allTasks = [];
-          for (const sprint of sprints) {
-            const tasksResponse = await fetch(`/tareas/sprint/${sprint.sprintId}`);
-            if (tasksResponse.ok) {
-              const tasks = await tasksResponse.json();
-              allTasks = [...allTasks, ...tasks];
-            }
-          }
-          
-          console.log(`Found ${allTasks.length} tasks for project ${project.projectId}`);
-          
-          if (allTasks.length === 0) {
-            progressData[project.projectId] = { progress: 5, taskCount: 0, completedCount: 0 };
-          } else {
-            const completedTasks = allTasks.filter(task => {
-              const status = task.status ? task.status.toLowerCase() : '';
-              return status === 'done' || 
-                     status === 'completed' || 
-                     status === 'finalizado' || 
-                     status === 'terminado' ||
-                     status === 'ready';
-            }).length;
-            
-            console.log(`Project ${project.projectId} has ${completedTasks} completed tasks out of ${allTasks.length}`);
-            
-            const calculatedProgress = Math.round((completedTasks / allTasks.length) * 100);
-            const progress = calculatedProgress > 0 ? calculatedProgress : 5;
-            
-            progressData[project.projectId] = { 
-              progress, 
-              taskCount: allTasks.length, 
-              completedCount: completedTasks 
-            };
-          }
-        } catch (error) {
-          console.error(`Error fetching progress for project ${project.projectId}:`, error);
-          progressData[project.projectId] = { progress: 5, taskCount: 0, completedCount: 0 };
+      projects.forEach(project => {
+        const projectId = project.projectId;
+        const lastFetchTime = progressTimestamps.current[projectId] || 0;
+        
+        if (!progressData[projectId] || (now - lastFetchTime > CACHE_TTL)) {
+          projectsToFetch.push(project);
         }
+      });
+      
+      if (projectsToFetch.length === 0) {
+        setProjectsProgress(progressData);
+        return;
       }
       
-      console.log("All project progress data:", progressData);
+      const sprintsPromises = projectsToFetch.map(project => 
+        fetch(`/sprints/proyecto/${project.projectId}`)
+          .then(res => res.ok ? res.json() : [])
+          .then(sprints => ({ projectId: project.projectId, sprints }))
+      );
+      
+      const projectsSprints = await Promise.all(sprintsPromises);
+      
+      const allSprintsWithProject = projectsSprints.flatMap(
+        ({ projectId, sprints }) => sprints.map(sprint => ({ 
+          projectId, 
+          sprintId: sprint.sprintId 
+        }))
+      );
+      
+      const tasksPromises = allSprintsWithProject.map(({ projectId, sprintId }) => 
+        fetch(`/tareas/sprint/${sprintId}`)
+          .then(res => res.ok ? res.json() : [])
+          .then(tasks => ({ projectId, sprintId, tasks }))
+      );
+      
+      const allSprintTasks = await Promise.all(tasksPromises);
+      
+      const projectTasks = {};
+      allSprintTasks.forEach(({ projectId, tasks }) => {
+        if (!projectTasks[projectId]) {
+          projectTasks[projectId] = [];
+        }
+        projectTasks[projectId] = [...projectTasks[projectId], ...tasks];
+      });
+      
+      projectsToFetch.forEach(project => {
+        const projectId = project.projectId;
+        const tasks = projectTasks[projectId] || [];
+        
+        if (tasks.length === 0) {
+          progressData[projectId] = { progress: 5, taskCount: 0, completedCount: 0 };
+        } else {
+          const completedTasks = tasks.filter(task => {
+            const status = task.status ? task.status.toLowerCase() : '';
+            return status === 'done' || 
+                   status === 'completed' || 
+                   status === 'finalizado' || 
+                   status === 'terminado' ||
+                   status === 'ready';
+          }).length;
+          
+          const calculatedProgress = Math.round((completedTasks / tasks.length) * 100);
+          const progress = calculatedProgress > 0 ? calculatedProgress : 5;
+          
+          progressData[projectId] = { 
+            progress, 
+            taskCount: tasks.length, 
+            completedCount: completedTasks 
+          };
+        }
+        
+        progressTimestamps.current[projectId] = now;
+      });
+      
+      progressCache.current = progressData;
       setProjectsProgress(progressData);
     };
     
