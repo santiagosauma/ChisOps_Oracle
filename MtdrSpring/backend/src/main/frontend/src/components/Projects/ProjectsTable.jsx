@@ -6,6 +6,7 @@ import tableGridIcon from '../../resources/table-grid.png';
 import searchIcon from '../../resources/search.png';
 import settingIcon from '../../resources/setting.png';
 import plusIcon from '../../resources/plus.png';
+import AddProjectPopup from './AddProjectPopup';
 
 function ProjectsTable({ onSelectProject }) {
   const [projects, setProjects] = useState([]);
@@ -26,6 +27,23 @@ function ProjectsTable({ onSelectProject }) {
   const progressTimestamps = React.useRef({});
   const CACHE_TTL = 60000;
 
+   // Add project popup state
+   const [showAddProjectPopup, setShowAddProjectPopup] = useState(false);
+   const [addProjectForm, setAddProjectForm] = useState({
+     name: '',
+     description: '',
+     startDate: '',
+     endDate: '',
+     status: 'Pending',
+     selectedUsers: []
+   });
+   const [users, setUsers] = useState([]);
+   const [toast, setToast] = useState({
+     show: false,
+     message: '',
+     type: 'success'
+   });
+ 
   useEffect(() => {
     setLoading(true);
     let url = '/proyectos';
@@ -57,6 +75,22 @@ function ProjectsTable({ onSelectProject }) {
         setAllProjects([]);
         setLoading(false);
       });
+
+      fetch('/usuarios')
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Failed to fetch users');
+        }
+        return response.json();
+      })
+      .then(data => {
+        setUsers(data);
+      })
+      .catch(err => {
+        console.error('Error fetching users:', err);
+      });
+
+
   }, [filterOptions.status, filterOptions.activeState, searchTerm]);
 
   useEffect(() => {
@@ -272,11 +306,149 @@ function ProjectsTable({ onSelectProject }) {
     };
   });
 
+
+  const openAddProjectPopup = () => {
+    // Set current date as default start date
+    const today = new Date().toISOString().split('T')[0];
+    
+    setAddProjectForm({
+      name: '',
+      description: '',
+      startDate: today,
+      endDate: '',
+      status: 'Pending',
+      selectedUsers: []
+    });
+    setShowAddProjectPopup(true);
+  };
+  
+  const closeAddProjectPopup = () => {
+    setShowAddProjectPopup(false);
+  };
+  
+  const handleAddProjectFormChange = (e) => {
+    const { name, value } = e.target;
+    setAddProjectForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  const handleAddProject = async () => {
+    if (!addProjectForm.name || !addProjectForm.startDate || !addProjectForm.endDate || !addProjectForm.status) {
+      setToast({
+        show: true,
+        message: 'Please fill in all required fields',
+        type: 'error'
+      });
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 3000);
+      return;
+    }
+  
+    try {
+      // Get the current user from local storage or context
+      // For now, we'll assume user ID 1 as the manager
+      const managerId = 1; // Replace with actual user ID from authentication
+      
+      const newProject = {
+        name: addProjectForm.name,
+        description: addProjectForm.description,
+        startDate: addProjectForm.startDate,
+        endDate: addProjectForm.endDate,
+        status: addProjectForm.status,
+        usuario: {
+          userId: managerId
+        },
+        deleted: 0
+      };
+  
+      console.log("Sending project data:", JSON.stringify(newProject, null, 2));
+  
+      const response = await fetch('/proyectos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newProject)
+      });
+  
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Server error response:", errorText);
+        throw new Error(`Error creating project: ${errorText}`);
+      }
+  
+      const location = response.headers.get('location');
+      console.log("Project created successfully, ID:", location);
+  
+      // Para fines de demostración, simplemente mostrar los usuarios que se hubieran asignado
+      if (addProjectForm.selectedUsers.length > 0) {
+        console.log("Selected users that would be associated with the project:", 
+          addProjectForm.selectedUsers.map(userId => {
+            const user = users.find(u => u.userId === userId);
+            return user ? `${user.firstName} ${user.lastName}` : `User ID: ${userId}`;
+          })
+        );
+      }
+  
+      setToast({
+        show: true,
+        message: 'Project added successfully!',
+        type: 'success'
+      });
+  
+      // Refresh the projects list
+      fetch('/proyectos')
+        .then(response => response.json())
+        .then(data => {
+          setAllProjects(data);
+          filterProjectsByDate(data);
+        });
+  
+      closeAddProjectPopup();
+  
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 3000);
+    } catch (error) {
+      console.error('Error adding project:', error);
+  
+      setToast({
+        show: true,
+        message: `Failed to add project: ${error.message}`,
+        type: 'error'
+      });
+  
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 4000);
+    }
+  };
   const statusOptions = ['All', ...new Set(allProjects.map(p => p.status).filter(Boolean))];
   const activeStateOptions = ['All', 'Active'];
 
   return (
     <div className="home-wrapper">
+        {toast.show && (
+        <div className={`toast-notification ${toast.type}`}>
+          <div className="toast-content">
+            <span>{toast.message}</span>
+          </div>
+          <div className="toast-timeline"></div>
+        </div>
+      )}
+      
+      <AddProjectPopup
+        show={showAddProjectPopup}
+        onClose={closeAddProjectPopup}
+        formData={addProjectForm}
+        onChange={handleAddProjectFormChange}
+        onSubmit={handleAddProject}
+        users={users}
+      />
+
       <div className="projects-container">
         <div className="toolbar">
           <div className="toolbar-left">
@@ -302,8 +474,8 @@ function ProjectsTable({ onSelectProject }) {
               <img src={settingIcon} alt="Filter" className="button-icon" />
             </button>
             
-            <button className="new-button" onClick={() => alert('Create new project functionality would go here')}>
-              New Project
+            <button className="new-button" onClick={openAddProjectPopup}>
+            New Project
               <img src={plusIcon} alt="Add" className="add-icon" />
             </button>
           </div>
@@ -522,6 +694,9 @@ function ProjectsTable({ onSelectProject }) {
         </div>
       </div>
     </div>
+    
+
+
   );
 }
 
