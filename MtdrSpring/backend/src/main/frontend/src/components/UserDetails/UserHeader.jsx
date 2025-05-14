@@ -43,7 +43,7 @@ function UserHeader({ userName, role, onBack, sprints, selectedSprint, onSprintC
   };
 
   return (
-    <div className="user-header">
+    <div className="user-header" style={{ height: '110px' }}>
       <div className="user-header-left">
         <button className="back-button" onClick={onBack}>
           <ArrowLeft size={20} />

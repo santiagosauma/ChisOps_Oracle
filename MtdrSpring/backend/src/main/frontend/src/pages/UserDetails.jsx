@@ -238,6 +238,7 @@ function UserDetails({ userId, projectId, onBack }) {
         }))}
         selectedSprint={selectedSprint}
         onSprintChange={handleSprintChange}
+        style={{ height: 'calc(100% + 50px)' }}
       />
 
       <div className="user-details-container">
