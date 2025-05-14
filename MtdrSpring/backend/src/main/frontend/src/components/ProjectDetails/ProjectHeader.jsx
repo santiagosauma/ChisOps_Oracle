@@ -188,10 +188,14 @@ const ProjectHeader = ({ projectName, sprint, sprints = [], onSprintChange, onBa
                   padding: '8px 12px',
                   marginTop: '5px',
                   color: '#0066cc',
-                  fontWeight: '500'
+                  fontWeight: '500',
+                  textAlign: 'center',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center'
                 }}
               >
-                <span style={{ marginRight: '5px' }}>+</span> Add Sprint
+                <span style={{ marginRight: '2px' }}>+</span>Add Sprint
               </div>
             </div>
           )}
