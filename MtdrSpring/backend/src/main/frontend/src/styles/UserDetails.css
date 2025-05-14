@@ -48,7 +48,6 @@
   .user-details-grid {
     width: 100%;
     display: flex;
-    height: 100%;
     min-height: 650px;
   }
   
@@ -82,7 +81,6 @@
     box-shadow: 0 2px 5px rgba(0,0,0,0.15);
     padding: 20px;
     overflow: hidden;
-    height: 100%; /* Ensure full height of the grid cell */
   }
   
   .user-information-container {
