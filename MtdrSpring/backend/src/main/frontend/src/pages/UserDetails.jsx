@@ -33,24 +33,20 @@ function UserDetails({ userId, projectId, onBack }) {
       try {
         setLoading(true);
         
-        // 1. Obtener datos básicos del usuario
         const userResponse = await fetch(`/usuarios/${userId}`);
         if (!userResponse.ok) {
           throw new Error('Failed to fetch user data');
         }
         const user = await userResponse.json();
         
-        // 2. Obtener proyectos simplificados del usuario
         const projectsResponse = await fetch(`/proyectos/usuario/${userId}/simplificados`);
         if (!projectsResponse.ok) {
           throw new Error('Failed to fetch projects data');
         }
         const projectsData = await projectsResponse.json();
         
-        // 3. Determinar proyecto a mostrar
         const initialProject = projectId || (projectsData.length > 0 ? projectsData[0].projectId : null);
         
-        // 4. Obtener tareas organizadas por sprint si hay proyecto
         let tasksData = { sprints: [] };
         if (initialProject) {
           const tasksResponse = await fetch(

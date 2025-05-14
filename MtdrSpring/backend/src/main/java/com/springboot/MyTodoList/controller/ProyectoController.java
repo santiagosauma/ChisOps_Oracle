@@ -207,6 +207,43 @@ public ResponseEntity<List<Map<String, Object>>> getProyectosSimplificadosByUsua
     }
     
     /**
+     * OBTENER PROYECTOS ACTIVOS DETALLADOS
+     * 
+     * Devuelve todos los proyectos con estado 'En progreso', 'In Progress', 'Activo' o 'Active' con información adicional
+     * Endpoint: GET /proyectos/activos-detallados
+     */
+    @GetMapping(value = "/proyectos/activos-detallados")
+    public ResponseEntity<?> getActiveProjectsDetailed() {
+        try {
+            List<Proyecto> allProjects = proyectoService.findAll();
+            List<Proyecto> activeProjects = allProjects.stream()
+                .filter(p -> "En progreso".equalsIgnoreCase(p.getStatus()) || 
+                             "In Progress".equalsIgnoreCase(p.getStatus()) || 
+                             "Activo".equalsIgnoreCase(p.getStatus()) ||
+                             "Active".equalsIgnoreCase(p.getStatus()))
+                .collect(Collectors.toList());
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("activeProjects", activeProjects);
+            response.put("totalProjects", allProjects.size());
+            response.put("activeCount", activeProjects.size());
+            
+            // Count by status for debugging
+            Map<String, Long> statusCounts = allProjects.stream()
+                .collect(Collectors.groupingBy(
+                    Proyecto::getStatus,
+                    Collectors.counting()
+                ));
+            response.put("statusCounts", statusCounts);
+            
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>("Error retrieving active projects: " + e.getMessage(), 
+                                        HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    /**
      * BUSCAR PROYECTOS POR TEXTO
      * 
      * Busca proyectos que contengan el texto de búsqueda en su nombre o descripción

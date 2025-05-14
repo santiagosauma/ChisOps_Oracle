@@ -4,16 +4,24 @@ function ActiveProjects() {
   const [isLoading, setLoading] = useState(false)
   const [error, setError] = useState()
   const [projects, setProjects] = useState([])
+  const [diagnosticInfo, setDiagnosticInfo] = useState(null)
 
   useEffect(() => {
     setLoading(true)
     
-    fetch('/proyectos')
-      .then(res => res.ok ? res.json() : Promise.reject('Failed to fetch projects'))
-      .then(projectsData => {
-        const activeProjects = projectsData.filter(p => 
-          p.status === 'En progreso' || p.status === 'Activo'
-        );
+    // Use the new detailed endpoint
+    fetch('/proyectos/activos-detallados')
+      .then(res => {
+        if (!res.ok) {
+          return Promise.reject('Failed to fetch active projects');
+        }
+        return res.json();
+      })
+      .then(data => {
+        console.log("Server response:", data);
+        setDiagnosticInfo(data);
+        
+        const activeProjects = data.activeProjects || [];
         
         if (activeProjects.length === 0) {
           setProjects([]);
@@ -52,7 +60,7 @@ function ActiveProjects() {
         
         Promise.all(projectPromises)
           .then(projectsWithProgress => {
-            //console.log("Projects with progress:", projectsWithProgress);
+            console.log("Projects with progress:", projectsWithProgress);
             setProjects(projectsWithProgress);
             setLoading(false);
           });
@@ -62,12 +70,43 @@ function ActiveProjects() {
         setError(typeof err === 'string' ? new Error(err) : err);
         setLoading(false);
       });
+
+    // If you want to keep the original endpoint as a fallback, update this filter:
+    fetch('/proyectos')
+      .then(res => res.ok ? res.json() : Promise.reject('Failed to fetch projects'))
+      .then(projectsData => {
+        const activeProjects = projectsData.filter(p => 
+          p.status === 'En progreso' || p.status === 'Activo' ||
+          p.status === 'In Progress' || p.status === 'Active'
+        );
+        
+        // Handle activeProjects if needed
+      })
+      .catch(err => {
+        console.error("Error in fallback fetch:", err);
+      });
   }, []);
 
   return (
     <div style={{ width: '100%', height: '100%' }}>
       {error && <p>Error: {error.message}</p>}
       {isLoading && <p>Loading...</p>}
+      
+      {/* Display diagnostic information when no projects are found */}
+      {!isLoading && projects.length === 0 && diagnosticInfo && (
+        <div>
+          <p>No active projects found</p>
+          <details>
+            <summary>Diagnostic Information (Click to expand)</summary>
+            <pre style={{ textAlign: 'left', fontSize: '12px' }}>
+              Total projects: {diagnosticInfo.totalProjects || 0}<br/>
+              Active projects: {diagnosticInfo.activeCount || 0}<br/>
+              Status counts: {JSON.stringify(diagnosticInfo.statusCounts, null, 2)}
+            </pre>
+          </details>
+        </div>
+      )}
+      
       {!isLoading && projects.length > 0 && (
         <div style={{ height: '100%', overflow: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
@@ -101,7 +140,7 @@ function ActiveProjects() {
           </table>
         </div>
       )}
-      {!isLoading && projects.length === 0 && <p>No active projects</p>}
+      {!isLoading && projects.length === 0 && !diagnosticInfo && <p>No active projects</p>}
     </div>
   )
 }
