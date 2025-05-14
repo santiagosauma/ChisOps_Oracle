@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.springboot.MyTodoList.bot.TaskBotControllerTest
 -------------------------------------------------------------------------------
-Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.905 s - in com.springboot.MyTodoList.bot.TaskBotControllerTest
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.473 s - in com.springboot.MyTodoList.bot.TaskBotControllerTest

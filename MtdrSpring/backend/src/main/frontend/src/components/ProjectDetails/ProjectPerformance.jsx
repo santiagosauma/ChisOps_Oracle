@@ -25,7 +25,9 @@ function ProjectPerformance({ chartData, viewType }) {
                 <CartesianGrid strokeDasharray="3 3" vertical={false} />
                 <XAxis
                   dataKey="name"
-                  tick={{ fontSize: 12 }}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={false}
                   height={60}
                 />
                 <YAxis

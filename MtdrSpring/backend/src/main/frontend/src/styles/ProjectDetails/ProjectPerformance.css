@@ -3,6 +3,7 @@
   flex-direction: column;
   height: 100%;
   width: 100%;
+  /* eliminamos cualquier padding o min-height extra que forcé el scroll */
 }
 
 .project-performance-header {
@@ -19,6 +20,7 @@
   color: #333;
 }
 
+/* (si no lo usas, puedes borrar todo lo de selector de botones) */
 .project-chart-selector {
   display: flex;
   gap: 8px;
@@ -44,20 +46,28 @@
   border-color: #c25a44;
 }
 
+/* -------------------------------------------------
+   Contenedor de contenido: ocupa todo el espacio 💡
+   ------------------------------------------------- */
 .project-performance-content {
-  flex-grow: 1;
+  flex: 1;          /* llena todo el espacio restante */
   display: flex;
   flex-direction: column;
-  height: calc(100% - 30px); /* Account for header height */
+  min-height: 0;    /* ¡clave para que su hijo pueda hacer scroll! */
   padding-top: 10px;
 }
 
+/* -------------------------------------------------
+   Contenedor del chart: ahora flexible y sin altura fija
+   ------------------------------------------------- */
 .project-chart-container {
-  flex-grow: 1;
+  flex: 1;          /* ocupa todo lo que quede dentro del content */
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 550px; /* Ensure enough space for the chart */
+  min-height: 0;    /* permite encogerse y mostrar scroll interno */
+  width: 100%;
+  /* elimina el min-height: 550px; */
 }
 
 .project-chart-container h3 {
@@ -67,8 +77,11 @@
   font-weight: 500;
 }
 
+/* Si quieres que el chart tenga scroll en ejes concretos, puedes añadir: */
+/* .project-chart-container { overflow: auto; } */
+
 .no-data-message {
-  flex-grow: 1;
+  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
