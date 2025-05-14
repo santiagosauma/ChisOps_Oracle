@@ -21,6 +21,7 @@ function ProjectsTable({ onSelectProject }) {
     date: ''
   });
   const [allProjects, setAllProjects] = useState([]);
+  const [projectsProgress, setProjectsProgress] = useState({});
 
   useEffect(() => {
     setLoading(true);
@@ -121,6 +122,79 @@ function ProjectsTable({ onSelectProject }) {
     };
   }, []);
 
+  useEffect(() => {
+    const fetchProgressForProjects = async () => {
+      if (!projects.length) return;
+      
+      const progressData = {};
+      
+      for (const project of projects) {
+        try {
+          console.log(`Fetching progress for project ${project.projectId}: ${project.name}`);
+          
+          const sprintsResponse = await fetch(`/sprints/proyecto/${project.projectId}`);
+          if (!sprintsResponse.ok) {
+            progressData[project.projectId] = { progress: 0, taskCount: 0, completedCount: 0 };
+            continue;
+          }
+          
+          const sprints = await sprintsResponse.json();
+          console.log(`Found ${sprints.length} sprints for project ${project.projectId}`);
+          
+          if (!sprints.length) {
+            progressData[project.projectId] = { progress: 0, taskCount: 0, completedCount: 0 };
+            continue;
+          }
+          
+          let allTasks = [];
+          for (const sprint of sprints) {
+            const tasksResponse = await fetch(`/tareas/sprint/${sprint.sprintId}`);
+            if (tasksResponse.ok) {
+              const tasks = await tasksResponse.json();
+              allTasks = [...allTasks, ...tasks];
+            }
+          }
+          
+          console.log(`Found ${allTasks.length} tasks for project ${project.projectId}`);
+          
+          if (allTasks.length === 0) {
+            progressData[project.projectId] = { progress: 5, taskCount: 0, completedCount: 0 };
+          } else {
+            const completedTasks = allTasks.filter(task => {
+              const status = task.status ? task.status.toLowerCase() : '';
+              return status === 'done' || 
+                     status === 'completed' || 
+                     status === 'finalizado' || 
+                     status === 'terminado' ||
+                     status === 'ready';
+            }).length;
+            
+            console.log(`Project ${project.projectId} has ${completedTasks} completed tasks out of ${allTasks.length}`);
+            
+            const calculatedProgress = Math.round((completedTasks / allTasks.length) * 100);
+            const progress = calculatedProgress > 0 ? calculatedProgress : 5;
+            
+            progressData[project.projectId] = { 
+              progress, 
+              taskCount: allTasks.length, 
+              completedCount: completedTasks 
+            };
+          }
+        } catch (error) {
+          console.error(`Error fetching progress for project ${project.projectId}:`, error);
+          progressData[project.projectId] = { progress: 5, taskCount: 0, completedCount: 0 };
+        }
+      }
+      
+      console.log("All project progress data:", progressData);
+      setProjectsProgress(progressData);
+    };
+    
+    if (projects.length > 0) {
+      fetchProgressForProjects();
+    }
+  }, [projects]);
+
   const handleSort = (field) => {
     const newDirection = sortField === field && sortDirection === 'asc' ? 'desc' : 'asc';
     setSortField(field);
@@ -169,9 +243,10 @@ function ProjectsTable({ onSelectProject }) {
       return a[sortField] < b[sortField] ? 1 : -1;
     }
   }).map(project => {
+    const progressInfo = projectsProgress[project.projectId] || { progress: 0 };
     return {
       ...project,
-      progress: 85,
+      progress: progressInfo.progress,
       users: project.users ? project.users.slice(0, 4) : Array(4).fill({ id: 1 })
     };
   });
@@ -380,10 +455,8 @@ function ProjectsTable({ onSelectProject }) {
               </thead>
               <tbody>
                 {filteredProjects.map((project) => {
-                  // Hard-code the user count to always be 4
+                  const progress = project.progress || 0;
                   const userCount = 4;
-                  // Hard-code progress to 85%
-                  const progress = 85;
                   
                   return (
                     <tr key={project.projectId}>
