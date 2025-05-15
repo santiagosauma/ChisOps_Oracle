@@ -76,11 +76,23 @@ function ProjectPerformance({
 
   const renderSprintBarChart = () => {
     if (!sprintChartData || sprintChartData.length === 0) {
-      console.log("No sprint chart data available:", sprintChartData);
+      console.log("No sprint chart data available:", {
+        data: sprintChartData,
+        length: sprintChartData?.length || 0
+      });
+      
       return (
         <div className="no-data-message">
           <p>No sprint performance data available.</p>
-          <p className="debug-info">Check the console for more information.</p>
+          <p className="debug-info">
+            Ensure tasks are assigned to sprints and users, with estimated/actual hours.
+          </p>
+          <button 
+            className="reload-btn"
+            onClick={() => window.location.reload()}
+          >
+            Reload Data
+          </button>
         </div>
       );
     }
@@ -207,7 +219,7 @@ function ProjectPerformance({
       <div className="project-performance-content">
         {chartData && chartData.length > 0 ? (
           <div className="project-chart-container">
-            <h3>
+            <h3 className="chart-title">
               {viewMode === 'barChart' && viewType === 'allSprints' 
                 ? "Hours by Sprint and Developer" 
                 : chartTitle}

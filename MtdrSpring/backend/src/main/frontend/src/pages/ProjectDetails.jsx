@@ -96,44 +96,62 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
   };
 
   const generateSprintPerformanceData = () => {
-    if (!projectData?.sprints || !projectData?.users || !allSprintTasks.length) {
+    if (!projectData?.sprints || !projectData?.users) {
       console.log("Missing data for sprint performance chart:", {
         hasProjects: !!projectData,
         hasSprints: !!projectData?.sprints,
         sprintsLength: projectData?.sprints?.length || 0,
         hasUsers: !!projectData?.users,
-        usersLength: projectData?.users?.length || 0,
-        tasksLength: allSprintTasks.length || 0
+        usersLength: projectData?.users?.length || 0
       });
       return [];
     }
 
     const sprintData = [];
+    const processedSprints = new Set();
     
-    projectData.sprints.forEach(sprint => {
+    const loadSprintTasks = async (sprint) => {
+      try {
+        console.log(`Fetching tasks for sprint: ${sprint.name} (ID: ${sprint.sprintId})`);
+        const response = await fetch(`/tareas/sprint/${sprint.sprintId}`);
+        if (!response.ok) {
+          console.error(`Error fetching tasks for sprint ${sprint.sprintId}: ${response.statusText}`);
+          return [];
+        }
+        
+        const tasks = await response.json();
+        console.log(`Fetched ${tasks.length} tasks for sprint ${sprint.name}`);
+        
+        if (tasks.length > 0) {
+          console.log("Sample task structure:", JSON.stringify(tasks[0], null, 2));
+        }
+        
+        return tasks;
+      } catch (error) {
+        console.error(`Error loading tasks for sprint ${sprint.sprintId}:`, error);
+        return [];
+      }
+    };
+    
+    const processSprint = async (sprint) => {
+      if (processedSprints.has(sprint.sprintId)) return null;
+      processedSprints.add(sprint.sprintId);
+      
       console.log(`Processing sprint: ${sprint.name} (ID: ${sprint.sprintId})`);
       
-      const sprintTasks = allSprintTasks.filter(task => {
-        const taskSprintId = 
-          task.sprintId || 
-          (task.sprint && (task.sprint.sprintId || task.sprint)) || 
-          null;
-        
-        const matches = 
-          taskSprintId === sprint.sprintId || 
-          String(taskSprintId) === String(sprint.sprintId);
-        
-        return matches;
-      });
+      const sprintTasks = await loadSprintTasks(sprint);
       
-      console.log(`Found ${sprintTasks.length} tasks for sprint ${sprint.name}`);
-      
-      if (sprintTasks.length === 0) return;
+      if (sprintTasks.length === 0) {
+        console.log(`No tasks found for sprint ${sprint.name}`);
+        return null;
+      }
       
       const sprintEntry = {
         name: sprint.name,
         sprintId: sprint.sprintId
       };
+      
+      let hasData = false;
       
       projectData.users.forEach((user, index) => {
         if (index < 4) {
@@ -143,19 +161,22 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
               (task.usuario && (task.usuario.userId || task.usuario.id)) || 
               null;
             
-            return taskUserId === user.id || 
-                   String(taskUserId) === String(user.id);
+            const userMatch = 
+              taskUserId === user.id || 
+              String(taskUserId) === String(user.id);
+            
+            return userMatch;
           });
           
           console.log(`User ${user.name} has ${userTasks.length} tasks in sprint ${sprint.name}`);
           
           const estimatedHours = userTasks.reduce((sum, task) => {
-            const hours = Number(task.estimatedHour || task.estimatedHours || 0);
+            const hours = Number(task.estimatedHours || task.estimatedHour || 0);
             return isNaN(hours) ? sum : sum + hours;
           }, 0);
           
           const actualHours = userTasks.reduce((sum, task) => {
-            const hours = Number(task.realHours || task.actualHours || 0);
+            const hours = Number(task.actualHours || task.realHours || 0);
             return isNaN(hours) ? sum : sum + hours;
           }, 0);
           
@@ -165,17 +186,15 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
             sprintEntry[`${user.name}_estimated`] = estimatedHours;
             sprintEntry[`${user.name}_actual`] = actualHours;
             sprintEntry[`${user.name}`] = user.name;
+            hasData = true;
           }
         }
       });
       
-      if (Object.keys(sprintEntry).length > 2) {
-        sprintData.push(sprintEntry);
-      }
-    });
+      return hasData ? sprintEntry : null;
+    };
     
-    console.log(`Generated sprint performance data with ${sprintData.length} entries`);
-    return sprintData;
+    return [];
   };
 
   useEffect(() => {
@@ -264,17 +283,87 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
   }, [propProjectId]);
 
   useEffect(() => {
-    if (allSprintTasks.length > 0 && projectData?.sprints && projectData?.users) {
-      console.log("Generating sprint performance data with:", {
-        tasksCount: allSprintTasks.length,
-        sprintsCount: projectData.sprints.length,
-        usersCount: projectData.users.length
-      });
+    if (projectData?.sprints && projectData?.users) {
+      const fetchSprintPerformanceData = async () => {
+        console.log("Fetching sprint performance data with:", {
+          sprintsCount: projectData.sprints.length,
+          usersCount: projectData.users.length
+        });
+        
+        try {
+          const sprintPromises = projectData.sprints.map(async (sprint) => {
+            try {
+              console.log(`Fetching tasks for sprint: ${sprint.name} (ID: ${sprint.sprintId})`);
+              const response = await fetch(`/tareas/sprint/${sprint.sprintId}`);
+              if (!response.ok) return null;
+              
+              const tasks = await response.json();
+              console.log(`Fetched ${tasks.length} tasks for sprint ${sprint.name}`);
+              
+              if (tasks.length === 0) return null;
+              
+              const sprintEntry = {
+                name: sprint.name,
+                sprintId: sprint.sprintId
+              };
+              
+              let hasData = false;
+              
+              projectData.users.forEach((user, index) => {
+                if (index < 4) {
+                  const userTasks = tasks.filter(task => {
+                    const taskUserId = 
+                      task.userId || 
+                      (task.usuario && (task.usuario.userId || task.usuario.id)) || 
+                      null;
+                    
+                    const userMatch = 
+                      taskUserId === user.id || 
+                      String(taskUserId) === String(user.id);
+                    
+                    return userMatch;
+                  });
+                  
+                  const estimatedHours = userTasks.reduce((sum, task) => {
+                    const hours = Number(task.estimatedHours || task.estimatedHour || 0);
+                    return isNaN(hours) ? sum : sum + hours;
+                  }, 0);
+                  
+                  const actualHours = userTasks.reduce((sum, task) => {
+                    const hours = Number(task.actualHours || task.realHours || 0);
+                    return isNaN(hours) ? sum : sum + hours;
+                  }, 0);
+                  
+                  if (estimatedHours > 0 || actualHours > 0) {
+                    sprintEntry[`${user.name}_estimated`] = estimatedHours;
+                    sprintEntry[`${user.name}_actual`] = actualHours;
+                    sprintEntry[`${user.name}`] = user.name;
+                    hasData = true;
+                  }
+                }
+              });
+              
+              return hasData ? sprintEntry : null;
+            } catch (error) {
+              console.error(`Error processing sprint ${sprint.sprintId}:`, error);
+              return null;
+            }
+          });
+          
+          const results = await Promise.all(sprintPromises);
+          const validResults = results.filter(result => result !== null);
+          console.log(`Generated sprint performance data with ${validResults.length} entries`);
+          
+          setSprintPerformanceData(validResults);
+        } catch (error) {
+          console.error("Error fetching sprint performance data:", error);
+          setSprintPerformanceData([]);
+        }
+      };
       
-      const sprintData = generateSprintPerformanceData();
-      setSprintPerformanceData(sprintData);
+      fetchSprintPerformanceData();
     }
-  }, [allSprintTasks, projectData?.sprints, projectData?.users]);
+  }, [projectData?.sprints, projectData?.users]);
 
   const calculateTasksInfo = (tasks) => {
     if (!tasks || !Array.isArray(tasks)) return { overdue: 0, progress: '0%', completed: 0, pending: 0, total: 0 };
