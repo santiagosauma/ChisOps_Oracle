@@ -7,6 +7,7 @@ import searchIcon from '../../resources/search.png';
 import settingIcon from '../../resources/setting.png';
 import plusIcon from '../../resources/plus.png';
 import AddProjectPopup from './AddProjectPopup';
+import EditProjectPopup from './EditProjectPopup';
 
 function ProjectsTable({ onSelectProject }) {
   const [projects, setProjects] = useState([]);
@@ -43,6 +44,32 @@ function ProjectsTable({ onSelectProject }) {
      message: '',
      type: 'success'
    });
+
+   // Edit project popup state
+  const [showEditProjectPopup, setShowEditProjectPopup] = useState(false);
+  const [editProjectForm, setEditProjectForm] = useState({
+    projectId: '',
+    name: '',
+    description: '',
+    startDate: '',
+    endDate: '',
+    status: ''
+  });
+  const [currentProject, setCurrentProject] = useState(null);
+
+  const getCurrentUser = () => {
+    try {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        return JSON.parse(userStr);
+      }
+    } catch (e) {
+      console.error('Error parsing user from localStorage:', e);
+    }
+    return { userId: 1 }; 
+  };
+
+
  
   useEffect(() => {
     setLoading(true);
@@ -290,6 +317,20 @@ function ProjectsTable({ onSelectProject }) {
       onSelectProject(projectId);
     }
   };
+   // Format date string for input fields
+   const formatDateForInput = (dateString) => {
+    if (!dateString) return '';
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return '';
+      
+      return date.toISOString().split('T')[0];
+    } catch (error) {
+      console.error('Error formatting date:', error);
+      return '';
+    }
+  };
 
   const filteredProjects = projects.sort((a, b) => {
     if (sortDirection === 'asc') {
@@ -348,9 +389,8 @@ function ProjectsTable({ onSelectProject }) {
     }
   
     try {
-      // Get the current user from local storage or context
-      // For now, we'll assume user ID 1 as the manager
-      const managerId = 1; // Replace with actual user ID from authentication
+      const currentUser = getCurrentUser();
+      const managerId = currentUser.userId || 1;
       
       const newProject = {
         name: addProjectForm.name,
@@ -426,6 +466,158 @@ function ProjectsTable({ onSelectProject }) {
       }, 4000);
     }
   };
+
+  const openEditProjectPopup = (project) => {
+    setCurrentProject(project);
+    setEditProjectForm({
+      projectId: project.projectId,
+      name: project.name,
+      description: project.description || '',
+      startDate: formatDateForInput(project.startDate),
+      endDate: formatDateForInput(project.endDate),
+      status: project.status || 'Pending'
+    });
+    setShowEditProjectPopup(true);
+  };
+
+  const closeEditProjectPopup = () => {
+    setShowEditProjectPopup(false);
+    setCurrentProject(null);
+  };
+
+  const handleEditProjectFormChange = (e) => {
+    const { name, value } = e.target;
+    setEditProjectForm(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
+  const handleUpdateProject = async () => {
+    if (!editProjectForm.name || !editProjectForm.startDate || !editProjectForm.endDate || !editProjectForm.status) {
+      setToast({
+        show: true,
+        message: 'Please fill in all required fields',
+        type: 'error'
+      });
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 3000);
+      return;
+    }
+
+    try {
+
+      const updatedProject = {
+        projectId: editProjectForm.projectId,
+        name: editProjectForm.name,
+        description: editProjectForm.description,
+        startDate: editProjectForm.startDate,
+        endDate: editProjectForm.endDate,
+        status: editProjectForm.status,
+
+      };
+
+      console.log("Sending updated project data:", JSON.stringify(updatedProject, null, 2));
+
+      const response = await fetch(`/proyectos/${editProjectForm.projectId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updatedProject)
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Server error response:", errorText);
+        throw new Error(`Error updating project: ${errorText}`);
+      }
+
+      setToast({
+        show: true,
+        message: 'Project updated successfully!',
+        type: 'success'
+      });
+
+      // Refresh the projects list
+      fetch('/proyectos')
+        .then(response => response.json())
+        .then(data => {
+          setAllProjects(data);
+          filterProjectsByDate(data);
+        });
+
+      closeEditProjectPopup();
+
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 3000);
+    } catch (error) {
+      console.error('Error updating project:', error);
+
+      setToast({
+        show: true,
+        message: `Failed to update project: ${error.message}`,
+        type: 'error'
+      });
+
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 4000);
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    try {
+      const response = await fetch(`/proyectos/${editProjectForm.projectId}`, {
+        method: 'DELETE'
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("Server error response:", errorText);
+        throw new Error(`Error deleting project: ${errorText}`);
+      }
+
+      setToast({
+        show: true,
+        message: 'Project deleted successfully!',
+        type: 'success'
+      });
+
+      // Refresh the projects list
+      fetch('/proyectos')
+        .then(response => response.json())
+        .then(data => {
+          setAllProjects(data);
+          filterProjectsByDate(data);
+        });
+
+      closeEditProjectPopup();
+
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 3000);
+    } catch (error) {
+      console.error('Error deleting project:', error);
+
+      setToast({
+        show: true,
+        message: `Failed to delete project: ${error.message}`,
+        type: 'error'
+      });
+
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 4000);
+    }
+  };
+
+
+
+
+
   const statusOptions = ['All', ...new Set(allProjects.map(p => p.status).filter(Boolean))];
   const activeStateOptions = ['All', 'Active'];
 
@@ -447,6 +639,15 @@ function ProjectsTable({ onSelectProject }) {
         onChange={handleAddProjectFormChange}
         onSubmit={handleAddProject}
         users={users}
+      />
+
+      <EditProjectPopup
+        show={showEditProjectPopup}
+        onClose={closeEditProjectPopup}
+        formData={editProjectForm}
+        onChange={handleEditProjectFormChange}
+        onUpdate={handleUpdateProject}
+        onDelete={handleDeleteProject}
       />
 
       <div className="projects-container">
@@ -680,8 +881,12 @@ function ProjectsTable({ onSelectProject }) {
                         </div>
                       </td>
                       <td>
-                        <button className="action-button" title="Edit Project">
-                          <i className="fas fa-pencil-alt"></i>
+                      <button 
+                          className="action-button" 
+                          title="Edit Project"
+                          onClick={() => openEditProjectPopup(project)}
+                        >
+                             <i className="fas fa-pencil-alt"></i>
                           Edit
                         </button>
                       </td>

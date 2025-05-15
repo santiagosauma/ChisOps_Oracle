@@ -465,6 +465,83 @@
   animation: slideIn 0.3s ease-out forwards;
 }
 
+.delete-project-button {
+  width: 100%;
+  padding: 8px;
+  margin-top: 15px;
+  background-color: #e5e5e5;
+  border: none;
+  border-radius: 4px;
+  color: #C74634;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.delete-project-button:hover {
+  background-color: #f8d7da;
+}
+
+.confirmation-dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1100;
+}
+
+.confirmation-dialog {
+  background-color: white;
+  border-radius: 8px;
+  padding: 20px;
+  width: 400px;
+  max-width: 90vw;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.confirmation-dialog h3 {
+  margin-top: 0;
+  color: #C74634;
+}
+
+.confirmation-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.confirm-delete-btn {
+  padding: 8px 16px;
+  background-color: #C74634;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.cancel-delete-btn {
+  padding: 8px 16px;
+  background-color: #e5e5e5;
+  color: #333;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.confirm-delete-btn:hover {
+  background-color: #b02a1a;
+}
+
+.cancel-delete-btn:hover {
+  background-color: #d5d5d5;
+}
+
 @keyframes slideIn {
   from {
     transform: translateX(100%);
