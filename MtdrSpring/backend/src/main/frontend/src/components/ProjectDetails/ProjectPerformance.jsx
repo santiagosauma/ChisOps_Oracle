@@ -28,50 +28,55 @@ function ProjectPerformance({
   const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300'];
 
   const renderLineChart = () => (
-    <ResponsiveContainer width="100%" height={300}>
-      <LineChart
-        data={chartData}
-        margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
-      >
-        <CartesianGrid strokeDasharray="3 3" vertical={false} />
-        <XAxis
-          dataKey="name"
-          axisLine={true}
-          tickLine={true}
-          tick={{ fontSize: 12, fill: '#666' }}
-          height={60}
-          interval={0}
-          angle={-20}
-          textAnchor="end"
-        />
-        <YAxis
-          tick={{ fontSize: 12 }}
-          label={{
-            value: 'Hours',
-            angle: -90,
-            position: 'insideLeft',
-            style: { textAnchor: 'middle' }
-          }}
-        />
-        <Tooltip />
-        <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-        <Line
-          type="monotone"
-          dataKey="actual"
-          stroke="#e74c3c"
-          activeDot={{ r: 6 }}
-          name="Actual Hours"
-          strokeWidth={2}
-        />
-        <Line
-          type="monotone"
-          dataKey="estimated"
-          stroke="#3498db"
-          name="Estimated Hours"
-          strokeWidth={2}
-        />
-      </LineChart>
-    </ResponsiveContainer>
+    <>
+      <h3 className="chart-title">
+        {viewType === 'allSprints' ? chartTitle : chartTitle}
+      </h3>
+      <ResponsiveContainer width="100%" height={300}>
+        <LineChart
+          data={chartData}
+          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+        >
+          <CartesianGrid strokeDasharray="3 3" vertical={false} />
+          <XAxis
+            dataKey="name"
+            axisLine={true}
+            tickLine={true}
+            tick={{ fontSize: 12, fill: '#666' }}
+            height={60}
+            interval={0}
+            angle={-20}
+            textAnchor="end"
+          />
+          <YAxis
+            tick={{ fontSize: 12 }}
+            label={{
+              value: 'Hours',
+              angle: -90,
+              position: 'insideLeft',
+              style: { textAnchor: 'middle' }
+            }}
+          />
+          <Tooltip />
+          <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
+          <Line
+            type="monotone"
+            dataKey="actual"
+            stroke="#e74c3c"
+            activeDot={{ r: 6 }}
+            name="Actual Hours"
+            strokeWidth={2}
+          />
+          <Line
+            type="monotone"
+            dataKey="estimated"
+            stroke="#3498db"
+            name="Estimated Hours"
+            strokeWidth={2}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </>
   );
 
   const renderSprintBarChart = () => {
@@ -144,47 +149,51 @@ function ProjectPerformance({
     }
 
     return (
-      <ResponsiveContainer width="100%" height={350}>
-        <BarChart
-          data={sprintChartData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 70 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" vertical={false} />
-          <XAxis
-            dataKey="name"
-            axisLine={true}
-            tickLine={true}
-            tick={{ fontSize: 12, fill: '#666' }}
-            height={60}
-            interval={0}
-            angle={-30}
-            textAnchor="end"
-          />
-          <YAxis
-            tick={{ fontSize: 12 }}
-            label={{
-              value: 'Hours',
-              angle: -90,
-              position: 'insideLeft',
-              style: { textAnchor: 'middle' }
-            }}
-          />
-          <Tooltip 
-            formatter={(value) => [`${value.toFixed(1)} hours`, '']} 
-            labelFormatter={(label) => `Sprint: ${label}`}
-          />
-          <Legend 
-            wrapperStyle={{ 
-              fontSize: '12px', 
-              paddingTop: '10px',
-              bottom: 0,
-              maxHeight: 40,
-              overflowY: 'auto'
-            }} 
-          />
-          {developerBars}
-        </BarChart>
-      </ResponsiveContainer>
+      <>
+        <h3 className="chart-title">Hours by Sprint and Developer</h3>
+        <ResponsiveContainer width="100%" height={450}>
+          <BarChart
+            data={sprintChartData}
+            margin={{ top: 20, right: 30, left: 20, bottom: 170 }}
+          >
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis
+              dataKey="name"
+              axisLine={true}
+              tickLine={true}
+              tick={{ fontSize: 12, fill: '#666' }}
+              height={60}
+              interval={0}
+              angle={-30}
+              textAnchor="end"
+            />
+            <YAxis
+              tick={{ fontSize: 12 }}
+              label={{
+                value: 'Hours',
+                angle: -90,
+                position: 'insideLeft',
+                style: { textAnchor: 'middle' }
+              }}
+            />
+            <Tooltip 
+              formatter={(value) => [`${value.toFixed(1)} hours`, '']} 
+              labelFormatter={(label) => `Sprint: ${label}`}
+            />
+            <Legend 
+              wrapperStyle={{ 
+                fontSize: '12px', 
+                paddingTop: '10px',
+                bottom: 200,
+                position: 'relative',
+                maxHeight: 40,
+                overflowY: 'auto'
+              }} 
+            />
+            {developerBars}
+          </BarChart>
+        </ResponsiveContainer>
+      </>
     );
   };
 
@@ -219,12 +228,6 @@ function ProjectPerformance({
       <div className="project-performance-content">
         {chartData && chartData.length > 0 ? (
           <div className="project-chart-container">
-            <h3 className="chart-title">
-              {viewMode === 'barChart' && viewType === 'allSprints' 
-                ? "Hours by Sprint and Developer" 
-                : chartTitle}
-            </h3>
-            
             {viewType === 'allSprints' && viewMode === 'barChart' 
               ? renderSprintBarChart() 
               : renderLineChart()}
