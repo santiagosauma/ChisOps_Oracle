@@ -39,8 +39,6 @@ export default function UserHome() {
     tasks: null
   })
 
-  // Test Comment
-
   const [currentUser, setCurrentUser] = useState(null)
   const [userId, setUserId] = useState(null)
 
