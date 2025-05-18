@@ -1,6 +1,6 @@
 import React from 'react'
 import ActiveProjects from './ActiveProjects'
-import TicketsByPriority from '../components/Home/TicketsbyPriority'
+import TasksByPriority from '../components/Home/TasksbyPriority'
 import GeneralOverview from '../components/Home/GeneralOverview'
 import OverdueTasks from '../components/Home/OverdueTasks'
 import PendingTasks from '../components/Home/PendingTasks'
@@ -65,7 +65,7 @@ function Home() {
                   Tasks By Priority
                 </h2>
                 <div className="p-4 flex-1 overflow-auto flex flex-col">
-                  <TicketsByPriority />
+                  <TasksByPriority />
                 </div>
               </div>
               <div className="w-full sm:w-1/2 flex flex-col space-y-2 md:space-y-4">
