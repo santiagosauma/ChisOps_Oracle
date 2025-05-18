@@ -1,11 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import '../../styles/Projects.css';
-import dropdownIcon from '../../resources/dropdown.png';
-import dropupIcon from '../../resources/dropup.png';
-import tableGridIcon from '../../resources/table-grid.png';
-import searchIcon from '../../resources/search.png';
-import settingIcon from '../../resources/setting.png';
-import plusIcon from '../../resources/plus.png';
 import AddProjectPopup from './AddProjectPopup';
 import EditProjectPopup from './EditProjectPopup';
 
@@ -622,13 +615,26 @@ function ProjectsTable({ onSelectProject }) {
   const activeStateOptions = ['All', 'Active'];
 
   return (
-    <div className="home-wrapper">
-        {toast.show && (
-        <div className={`toast-notification ${toast.type}`}>
-          <div className="toast-content">
-            <span>{toast.message}</span>
+    <div className="w-full h-full flex flex-col p-4">
+      {toast.show && (
+        <div className={`fixed top-4 right-4 z-50 rounded-lg shadow-lg overflow-hidden ${
+          toast.type === 'success' ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'
+        }`}>
+          <div className="px-4 py-3 flex items-center">
+            {toast.type === 'success' ? (
+              <svg className="w-5 h-5 mr-2 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+            ) : (
+              <svg className="w-5 h-5 mr-2 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+              </svg>
+            )}
+            <span className={toast.type === 'success' ? 'text-green-800' : 'text-red-800'}>
+              {toast.message}
+            </span>
           </div>
-          <div className="toast-timeline"></div>
+          <div className={`h-1 ${toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'} animate-[shrink_3s_linear]`}></div>
         </div>
       )}
       
@@ -650,45 +656,64 @@ function ProjectsTable({ onSelectProject }) {
         onDelete={handleDeleteProject}
       />
 
-      <div className="projects-container">
-        <div className="toolbar">
-          <div className="toolbar-left">
-            <img src={tableGridIcon} alt="Table" className="table-icon" />
+      <div className="bg-white rounded-lg shadow-md border border-gray-200 flex-1 flex flex-col overflow-hidden">
+        {/* Toolbar */}
+        <div className="flex justify-between items-center p-4 border-b border-gray-200">
+          <div className="flex items-center">
+            <svg className="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+            </svg>
           </div>
           
-          <div className="toolbar-right">
-            <div className="search-box">
-              <img src={searchIcon} alt="Search" className="search-input-icon" />
+          <div className="flex items-center space-x-3">
+            <div className="relative">
               <input 
                 type="text" 
                 placeholder="Search by name..." 
                 value={searchTerm}
                 onChange={handleSearch}
+                className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-64 text-sm"
               />
+              <svg className="w-4 h-4 text-gray-500 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </div>
             
             <button 
-              className={`filter-button ${filterActive ? 'active' : ''}`}
+              className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                filterActive 
+                  ? 'bg-blue-100 text-blue-700 border border-blue-300' 
+                  : 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200'
+              }`}
               onClick={toggleFilter}
             >
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              </svg>
               Filter
-              <img src={settingIcon} alt="Filter" className="button-icon" />
             </button>
             
-            <button className="new-button" onClick={openAddProjectPopup}>
-            New Project
-              <img src={plusIcon} alt="Add" className="add-icon" />
+            <button 
+              className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+              onClick={openAddProjectPopup}
+            >
+              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              New Project
             </button>
           </div>
         </div>
         
+        {/* Filter Panel */}
         {filterActive && (
-          <div className="filter-panel">
-            <div className="filter-option">
-              <label>Status:</label>
+          <div className="flex flex-wrap items-center gap-4 p-4 bg-gray-50 border-b border-gray-200">
+            <div className="flex items-center">
+              <label className="block text-sm font-medium text-gray-700 mr-2">Status:</label>
               <select 
                 value={filterOptions.status} 
                 onChange={(e) => handleFilterChange('status', e.target.value)}
+                className="block w-40 pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
               >
                 {statusOptions.map(status => (
                   <option key={status} value={status}>{status}</option>
@@ -696,11 +721,12 @@ function ProjectsTable({ onSelectProject }) {
               </select>
             </div>
 
-            <div className="filter-option">
-              <label>State:</label>
+            <div className="flex items-center">
+              <label className="block text-sm font-medium text-gray-700 mr-2">State:</label>
               <select 
                 value={filterOptions.activeState} 
                 onChange={(e) => handleFilterChange('activeState', e.target.value)}
+                className="block w-40 pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
               >
                 {activeStateOptions.map(option => (
                   <option key={option} value={option}>{option}</option>
@@ -708,193 +734,250 @@ function ProjectsTable({ onSelectProject }) {
               </select>
             </div>
 
-            <div className="filter-option">
-              <label>Date:</label>
+            <div className="flex items-center">
+              <label className="block text-sm font-medium text-gray-700 mr-2">Date:</label>
               <input 
                 type="date" 
                 value={filterOptions.date}
                 onChange={(e) => handleFilterChange('date', e.target.value)}
-                className="date-input"
-                style={{
-                  padding: '6px 10px',
-                  border: '1px solid #ddd',
-                  borderRadius: '4px',
-                  outline: 'none',
-                  minWidth: '150px',
-                  fontSize: '14px'
-                }}
+                className="block w-40 pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
               />
             </div>
           </div>
         )}
         
-        <div className="table-container">
+        {/* Table Container */}
+        <div className="flex-1 overflow-auto p-4">
           {loading ? (
-            <div className="loading-indicator">Loading projects...</div>
+            <div className="flex justify-center items-center h-full">
+              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
+              <span className="ml-2 text-gray-600">Loading projects...</span>
+            </div>
           ) : error ? (
-            <div className="error-message">Error loading projects: {error}</div>
+            <div className="flex justify-center items-center h-full text-red-500">
+              <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Error loading projects: {error}
+            </div>
           ) : projects.length === 0 ? (
-            <div className="no-projects">No projects found matching your search criteria.</div>
+            <div className="flex flex-col justify-center items-center h-full text-gray-500">
+              <svg className="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              No projects found matching your search criteria.
+            </div>
           ) : (
-            <table className="projects-table">
-              <thead>
-                <tr>
-                  <th 
-                    className={sortField === 'projectId' ? `sort-${sortDirection}` : ''}
-                    onClick={() => handleSort('projectId')}
-                  >
-                    ID
-                    {sortField === 'projectId' ? (
-                      <img 
-                        src={sortDirection === 'asc' ? dropdownIcon : dropupIcon} 
-                        alt={sortDirection === 'asc' ? 'Sort ascending' : 'Sort descending'} 
-                        className="sort-icon" 
-                      />
-                    ) : (
-                      <i className="fas fa-sort"></i>
-                    )}
-                  </th>
-                  <th 
-                    className={sortField === 'name' ? `sort-${sortDirection}` : ''}
-                    onClick={() => handleSort('name')}
-                  >
-                    Name
-                    {sortField === 'name' ? (
-                      <img 
-                        src={sortDirection === 'asc' ? dropdownIcon : dropupIcon} 
-                        alt={sortDirection === 'asc' ? 'Sort ascending' : 'Sort descending'} 
-                        className="sort-icon" 
-                      />
-                    ) : (
-                      <i className="fas fa-sort"></i>
-                    )}
-                  </th>
-                  <th 
-                    className={sortField === 'startDate' ? `sort-${sortDirection}` : ''}
-                    onClick={() => handleSort('startDate')}
-                  >
-                    Start Date
-                    {sortField === 'startDate' ? (
-                      <img 
-                        src={sortDirection === 'asc' ? dropdownIcon : dropupIcon} 
-                        alt={sortDirection === 'asc' ? 'Sort ascending' : 'Sort descending'} 
-                        className="sort-icon" 
-                      />
-                    ) : (
-                      <i className="fas fa-sort"></i>
-                    )}
-                  </th>
-                  <th 
-                    className={sortField === 'endDate' ? `sort-${sortDirection}` : ''}
-                    onClick={() => handleSort('endDate')}
-                  >
-                    Finish Date
-                    {sortField === 'endDate' ? (
-                      <img 
-                        src={sortDirection === 'asc' ? dropdownIcon : dropupIcon} 
-                        alt={sortDirection === 'asc' ? 'Sort ascending' : 'Sort descending'} 
-                        className="sort-icon" 
-                      />
-                    ) : (
-                      <i className="fas fa-sort"></i>
-                    )}
-                  </th>
-                  <th 
-                    className={sortField === 'status' ? `sort-${sortDirection}` : ''}
-                    onClick={() => handleSort('status')}
-                  >
-                    Status
-                    {sortField === 'status' ? (
-                      <img 
-                        src={sortDirection === 'asc' ? dropdownIcon : dropupIcon} 
-                        alt={sortDirection === 'asc' ? 'Sort ascending' : 'Sort descending'} 
-                        className="sort-icon" 
-                      />
-                    ) : (
-                      <i className="fas fa-sort"></i>
-                    )}
-                  </th>
-                  <th 
-                    className={sortField === 'users' ? `sort-${sortDirection}` : ''}
-                    onClick={() => handleSort('users')}
-                  >
-                    Num. of Users
-                    {sortField === 'users' ? (
-                      <img 
-                        src={sortDirection === 'asc' ? dropdownIcon : dropupIcon} 
-                        alt={sortDirection === 'asc' ? 'Sort ascending' : 'Sort descending'} 
-                        className="sort-icon" 
-                      />
-                    ) : (
-                      <i className="fas fa-sort"></i>
-                    )}
-                  </th>
-                  <th 
-                    className={sortField === 'progress' ? `sort-${sortDirection}` : ''}
-                    onClick={() => handleSort('progress')}
-                  >
-                    Progress
-                    {sortField === 'progress' ? (
-                      <img 
-                        src={sortDirection === 'asc' ? dropdownIcon : dropupIcon} 
-                        alt={sortDirection === 'asc' ? 'Sort ascending' : 'Sort descending'} 
-                        className="sort-icon" 
-                      />
-                    ) : (
-                      <i className="fas fa-sort"></i>
-                    )}
-                  </th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredProjects.map((project) => {
-                  const progress = project.progress || 0;
-                  const userCount = 4;
-                  
-                  return (
-                    <tr key={project.projectId}>
-                      <td>{project.projectId}</td>
-                      <td> <a 
-                          href="#" 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            handleProjectClick(project.projectId);
-                          }}
-                          className="project-name-link"
-                        >
-                          {project.name}
-                        </a></td>
-                      <td>{project.startDate ? new Date(project.startDate).toLocaleDateString() : 'N/A'}</td>
-                      <td>{project.endDate ? new Date(project.endDate).toLocaleDateString() : 'N/A'}</td>
-                      <td>{project.status || 'Unknown'}</td>
-                      <td>{userCount}</td>
-                      <td>
-                        <div className="progress-bar">
-                          <div 
-                            className={`progress-fill ${project.status === 'Cancelled' ? 'cancelled' : ''}`}
-                            style={{ width: `${progress}%` }}
-                          ></div>
-                        </div>
-                        <div className="progress-text">
-                          {progress}%
-                        </div>
-                      </td>
-                      <td>
-                      <button 
-                          className="action-button" 
-                          title="Edit Project"
-                          onClick={() => openEditProjectPopup(project)}
-                        >
-                             <i className="fas fa-pencil-alt"></i>
-                          Edit
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <div className="overflow-x-auto rounded-lg border border-gray-200">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    {/* Header for ID */}
+                    <th 
+                      scope="col" 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort('projectId')}
+                    >
+                      <div className="flex items-center">
+                        ID
+                        <span className="ml-1">
+                          {sortField === 'projectId' ? (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={
+                                sortDirection === 'asc' 
+                                  ? "M19 9l-7 7-7-7" 
+                                  : "M5 15l7-7 7 7"
+                              } />
+                            </svg>
+                          ) : (
+                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                            </svg>
+                          )}
+                        </span>
+                      </div>
+                    </th>
+                    
+                    {/* Header for Name */}
+                    <th 
+                      scope="col" 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort('name')}
+                    >
+                      <div className="flex items-center">
+                        Name
+                        <span className="ml-1">
+                          {sortField === 'name' ? (
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={
+                                sortDirection === 'asc' 
+                                  ? "M19 9l-7 7-7-7" 
+                                  : "M5 15l7-7 7 7"
+                              } />
+                            </svg>
+                          ) : (
+                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                            </svg>
+                          )}
+                        </span>
+                      </div>
+                    </th>
+                    
+                    {/* Similar pattern for other column headers */}
+                    <th 
+                      scope="col" 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort('startDate')}
+                    >
+                      <div className="flex items-center">
+                        Start Date
+                        <span className="ml-1">
+                          {/* Similar SVG pattern */}
+                        </span>
+                      </div>
+                    </th>
+                    
+                    <th 
+                      scope="col" 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort('endDate')}
+                    >
+                      <div className="flex items-center">
+                        Finish Date
+                        <span className="ml-1">
+                          {/* Similar SVG pattern */}
+                        </span>
+                      </div>
+                    </th>
+                    
+                    <th 
+                      scope="col" 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort('status')}
+                    >
+                      <div className="flex items-center">
+                        Status
+                        <span className="ml-1">
+                          {/* Similar SVG pattern */}
+                        </span>
+                      </div>
+                    </th>
+                    
+                    <th 
+                      scope="col" 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort('users')}
+                    >
+                      <div className="flex items-center">
+                        Num. of Users
+                        <span className="ml-1">
+                          {/* Similar SVG pattern */}
+                        </span>
+                      </div>
+                    </th>
+                    
+                    <th 
+                      scope="col" 
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+                      onClick={() => handleSort('progress')}
+                    >
+                      <div className="flex items-center">
+                        Progress
+                        <span className="ml-1">
+                        </span>
+                      </div>
+                    </th>
+                    
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {filteredProjects.map((project, index) => {
+                    const progress = project.progress || 0;
+                    const userCount = 4;
+                    
+                    return (
+                      <tr 
+                        key={project.projectId} 
+                        className={index % 2 === 0 ? 'bg-white hover:bg-blue-50' : 'bg-gray-50 hover:bg-blue-50'}
+                      >
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {project.projectId}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <button
+                            onClick={() => handleProjectClick(project.projectId)}
+                            className="group flex items-center text-gray-700 font-medium focus:outline-none"
+                          >
+                            <span className="group-hover:text-indigo-600 transition-colors duration-200">
+                              {project.name}
+                            </span>
+                            <svg 
+                              className="w-4 h-4 ml-1 text-gray-400 group-hover:text-indigo-500 transition-colors duration-200" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
+                          </button>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {project.startDate ? new Date(project.startDate).toLocaleDateString() : 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {project.endDate ? new Date(project.endDate).toLocaleDateString() : 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                            project.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                            project.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                            project.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
+                            project.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {project.status || 'Unknown'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {userCount}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="w-full bg-gray-200 rounded-full h-2.5 mb-1">
+                            <div 
+                              className={`h-2.5 rounded-full ${
+                                project.status === 'Cancelled' ? 'bg-gray-400' :
+                                progress >= 80 ? 'bg-green-500' :
+                                progress >= 40 ? 'bg-blue-500' :
+                                'bg-yellow-500'
+                              }`}
+                              style={{ width: `${progress}%` }}
+                            ></div>
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {progress}%
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <button 
+                            className="text-blue-600 hover:text-blue-900 flex items-center"
+                            onClick={() => openEditProjectPopup(project)}
+                          >
+                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                            Edit
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </div>

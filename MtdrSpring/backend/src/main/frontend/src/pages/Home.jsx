@@ -14,7 +14,7 @@ function Home() {
         <h1 className="text-2xl md:text-3xl font-bold text-white">Home</h1>
       </header>
 
-      <div className="flex-1 flex p-0 pb-0.5 mt-0 overflow-hidden">
+      <div className="flex-1 flex p-0 pb-0.5 mt-0 overflow-y-auto md:overflow-hidden">
         <div className="flex flex-col lg:flex-row w-full h-[calc(100%-2px)]">
           <div className="w-full lg:w-1/2 h-full p-1 md:p-3 lg:pr-1.5 flex flex-col space-y-2 md:space-y-3">
             <div className="h-auto lg:h-1/3 bg-white rounded-lg md:rounded-xl shadow-lg border border-gray-200 flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl">
