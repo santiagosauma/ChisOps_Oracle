@@ -1,23 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, Edit, ChevronDown } from 'lucide-react';
-import '../../styles/ProjectDetails/ProjectHeader.css';
+import { ArrowLeft, ChevronDown, Plus, Edit } from 'lucide-react';
 
-const ProjectHeader = ({ projectName, sprint, sprints = [], onSprintChange, onBack, onAddSprint, onEditSprint }) => {
+function ProjectHeader({ projectName, sprint, sprints, onSprintChange, onBack, onAddSprint, onEditSprint }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
-  const [dropdownPosition, setDropdownPosition] = useState({});
 
-  const validSprints = Array.isArray(sprints) ? sprints : [];
-  
-  useEffect(() => {
-    if (onSprintChange && validSprints.length > 0 && !sprint) {
-      onSprintChange('all');
-    }
-  }, [validSprints, sprint, onSprintChange]);
-  
-  const currentSprintName = sprint === 'all' 
-    ? 'All Sprints' 
-    : validSprints.find(s => s.sprintId === sprint)?.name || `Sprint ${sprint || 'Current'}`;
+  const currentSprint = sprint === "all" 
+    ? "All Sprints" 
+    : (Array.isArray(sprints) && sprints.find(s => s.sprintId === parseInt(sprint))?.name) || "Loading sprints...";
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -30,179 +20,85 @@ const ProjectHeader = ({ projectName, sprint, sprints = [], onSprintChange, onBa
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, []); 
 
-  const handleSprintSelect = (sprintId, e) => {
-    if (e) e.stopPropagation();
+  const toggleDropdown = () => {
+    setDropdownOpen(!dropdownOpen);
+  };
+
+  const handleSprintSelect = (sprintId) => {
     if (onSprintChange) {
       onSprintChange(sprintId);
     }
     setDropdownOpen(false);
   };
 
-  const handleBackClick = () => {
-    if (onBack) {
-      onBack();
-    }
-  };
-
-  const toggleDropdown = (e) => {
+  const handleEditSprint = (e, sprint) => {
     e.stopPropagation();
-    
-    if (dropdownRef.current) {
-      const rect = dropdownRef.current.getBoundingClientRect();
-      setDropdownPosition({
-        top: rect.bottom + window.scrollY + 5,
-        right: window.innerWidth - rect.right,
-        width: rect.width
-      });
-    }
-    
-    setDropdownOpen(!dropdownOpen);
-  };
-
-  const handleAddSprintClick = (e) => {
-    e.stopPropagation();
-    if (onAddSprint) {
-      onAddSprint();
-    }
-    setDropdownOpen(false);
-  };
-
-  const handleEditClick = (e) => {
-    e.stopPropagation();
-    
-    // Only allow editing if a specific sprint is selected (not "All Sprints")
-    if (sprint !== 'all') {
-      const currentSprint = validSprints.find(s => s.sprintId === sprint);
-      if (currentSprint && onEditSprint) {
-        onEditSprint(currentSprint);
-      }
+    if (onEditSprint) {
+      onEditSprint(sprint);
     }
   };
 
   return (
-    <div className="project-header">
-      <div className="project-header-left">
-        <button className="back-button" onClick={handleBackClick}>
+    <div className="bg-[#423E3A] h-[65px] min-h-[65px] px-5 flex items-center justify-between shadow-md mb-1 md:mb-2">
+      <div className="flex items-center">
+        <button className="bg-transparent border-none cursor-pointer flex items-center justify-center p-2 rounded-full text-white transition-colors hover:bg-white/10 mr-3" onClick={onBack}>
           <ArrowLeft size={20} />
         </button>
-        <h1>{projectName || 'Project'} - Details</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-white m-0">{projectName}</h1>
       </div>
-      <div className="project-header-right">
-        <div 
-          className="sprint-selector" 
-          ref={dropdownRef}
-          style={{ backgroundColor: '#c25a44', color: 'white' }}
-          onClick={toggleDropdown}
+      <div className="flex gap-2.5">
+        <button 
+          className="h-10 bg-blue-600 hover:bg-blue-700 text-white border-none rounded-lg px-4 flex items-center justify-center gap-1.5 text-sm font-medium transition-colors"
+          onClick={onAddSprint}
         >
-          <div className="sprint-display">
-            <span>{currentSprintName}</span>
-            <div className="sprint-actions">
-              <button 
-                className="edit-button" 
-                onClick={handleEditClick}
-                disabled={sprint === 'all'}
-                style={{ opacity: sprint === 'all' ? 0.5 : 1 }}
-              >
-                <Edit size={16} color="white" />
-              </button>
-              <button className="dropdown-button" onClick={(e) => toggleDropdown(e)}>
-                <ChevronDown size={16} color="white" />
-              </button>
-            </div>
+          <Plus size={16} />
+          Add Sprint
+        </button>
+        <div className="relative" ref={dropdownRef}>
+          <div 
+            className="h-10 bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-lg min-w-[150px] cursor-pointer inline-flex items-center justify-between gap-2 shadow-md border-none text-sm font-medium transition-colors"
+            onClick={toggleDropdown}
+          >
+            <span>{currentSprint}</span>
+            <ChevronDown size={16} />
           </div>
           
           {dropdownOpen && (
-            <div 
-              className="sprint-dropdown"
-              onClick={(e) => e.stopPropagation()}
-              style={{
-                position: 'fixed',
-                top: `${dropdownPosition.top}px`,
-                right: `${dropdownPosition.right}px`,
-                width: `${dropdownPosition.width}px`,
-                maxHeight: '250px',
-                overflowY: 'auto',
-                zIndex: 9999,
-                backgroundColor: '#fff',
-                border: '1px solid #e0e0e0',
-                borderRadius: '6px',
-                boxShadow: '0 3px 8px rgba(0,0,0,0.1)',
-                padding: '4px 0'
-              }}
-            >
+            <div className="absolute top-full right-0 mt-1.5 bg-white rounded-lg shadow-lg w-[200px] z-[1000] max-h-[300px] overflow-y-auto border border-gray-200">
               <div 
-                key="all-sprints" 
-                className={`sprint-option ${sprint === 'all' ? 'active' : ''}`}
-                onClick={(e) => handleSprintSelect('all', e)}
-                style={{
-                  padding: '8px 12px',
-                  cursor: 'pointer',
-                  backgroundColor: sprint === 'all' ? '#f5f5f5' : 'transparent',
-                  fontWeight: sprint === 'all' ? '500' : 'normal',
-                  borderRadius: '4px',
-                  margin: '2px 4px',
-                  transition: 'background-color 0.2s'
-                }}
+                className={`p-2.5 cursor-pointer transition-colors text-gray-700 flex items-center justify-between ${sprint === "all" ? 'text-blue-600 font-medium bg-blue-50' : 'hover:bg-gray-100'}`}
+                onClick={() => handleSprintSelect("all")}
               >
                 All Sprints
+                {sprint === "all" && (
+                  <span className="w-3 h-3 bg-[url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%233b82f6\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'20 6 9 17 4 12\'%3E%3C/polyline%3E%3C/svg%3E')] bg-contain bg-no-repeat"></span>
+                )}
               </div>
-              
-              {validSprints.length > 0 ? (
-                validSprints.map(s => (
-                  <div 
-                    key={s.sprintId} 
-                    className={`sprint-option ${s.sprintId === sprint ? 'active' : ''}`}
-                    onClick={(e) => handleSprintSelect(s.sprintId, e)}
-                    style={{
-                      padding: '8px 12px',
-                      cursor: 'pointer',
-                      backgroundColor: s.sprintId === sprint ? '#f5f5f5' : 'transparent',
-                      fontWeight: s.sprintId === sprint ? '500' : 'normal',
-                      borderRadius: '4px',
-                      margin: '2px 4px',
-                      transition: 'background-color 0.2s'
-                    }}
-                  >
-                    {s.name || `Sprint ${s.sprintId}`}
-                  </div>
-                ))
-              ) : (
+              {Array.isArray(sprints) && sprints.length > 0 ? sprints.map(spr => (
                 <div 
-                  className="sprint-option disabled"
-                  style={{
-                    padding: '8px 12px',
-                    color: '#999',
-                    cursor: 'not-allowed'
-                  }}
+                  key={spr.sprintId} 
+                  className={`p-2.5 cursor-pointer transition-colors text-gray-700 flex items-center justify-between ${parseInt(sprint) === spr.sprintId ? 'text-blue-600 font-medium bg-blue-50' : 'hover:bg-gray-100'}`}
+                  onClick={() => handleSprintSelect(spr.sprintId.toString())}
                 >
-                  No sprints available
+                  <span>{spr.name}</span>
+                  <button
+                    className="p-1 rounded-full hover:bg-gray-200"
+                    onClick={(e) => handleEditSprint(e, spr)}
+                  >
+                    <Edit size={14} className="text-gray-500" />
+                  </button>
                 </div>
+              )) : (
+                <div className="p-2.5 text-gray-700">No sprints available</div>
               )}
-              <div 
-                className="sprint-option add-sprint"
-                onClick={handleAddSprintClick}
-                style={{ 
-                  borderTop: '1px solid #e0e0e0',
-                  padding: '8px 12px',
-                  marginTop: '5px',
-                  color: '#0066cc',
-                  fontWeight: '500',
-                  textAlign: 'center',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center'
-                }}
-              >
-                <span style={{ marginRight: '2px' }}>+</span>Add Sprint
-              </div>
             </div>
           )}
         </div>
       </div>
     </div>
   );
-};
+}
 
 export default ProjectHeader;

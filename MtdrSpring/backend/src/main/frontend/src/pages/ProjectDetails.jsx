@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import '../styles/ProjectDetails.css';
 import ProjectHeader from '../components/ProjectDetails/ProjectHeader';
 import ProjectDescription from '../components/ProjectDetails/ProjectDescription';
 import ProjectOverview from '../components/ProjectDetails/ProjectOverview';
@@ -1096,28 +1095,37 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
 
   if (loading && !projectData) {
     return (
-      <div className="loading-container">
+      <div className="flex items-center justify-center h-screen">
         <Loader />
       </div>
     );
   }
 
   if (error) {
-    return <div className="error">Error: {error}</div>;
+    return <div className="p-5 text-center text-red-700">Error: {error}</div>;
   }
 
   if (!projectData) {
-    return <div className="no-data">No project data available</div>;
+    return <div className="p-5 text-center text-red-700">No project data available</div>;
   }
 
   return (
-    <div className="project-details-wrapper">
+    <div className="flex flex-col h-auto w-full overflow-x-hidden bg-gray-50">
       {toast.show && (
-        <div className={`uh-toast-notification ${toast.type}`}>
-          <div className="uh-toast-content">
-            <span>{toast.message}</span>
+        <div className={`fixed top-4 right-4 z-50 ${toast.type === 'success' ? 'bg-green-100 border-green-500' : 'bg-red-100 border-red-500'} border-l-4 p-4 shadow-lg rounded-lg max-w-md transition-opacity`}>
+          <div className="flex items-center">
+            {toast.type === 'success' ? (
+              <svg className="h-6 w-6 text-green-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+              </svg>
+            ) : (
+              <svg className="h-6 w-6 text-red-500 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            )}
+            <span className={`${toast.type === 'success' ? 'text-green-800' : 'text-red-800'} font-medium`}>{toast.message}</span>
           </div>
-          <div className="uh-toast-timeline"></div>
+          <div className={`mt-2 h-1 ${toast.type === 'success' ? 'bg-green-500' : 'bg-red-500'} rounded animate-shrink`}></div>
         </div>
       )}
 
@@ -1167,11 +1175,11 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         onAddSprint={openAddSprintPopup}
         onEditSprint={openEditSprintPopup}
       />
-      <div className="project-details-container">
-        {loading && <div className="loading-overlay">Loading data...</div>}
-        <div className="project-details-grid">
-          <div className="project-left-col">
-            <div className="project-description-container">
+      <div className="p-2.5 flex-1 relative">
+        {loading && <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10 text-gray-800 font-medium">Loading data...</div>}
+        <div className="w-full flex h-[calc(100vh-80px)] min-h-[800px]">
+          <div className="w-2/5 grid grid-rows-[300px_320px_1fr] gap-4 py-2.5 px-1.5 pl-2.5">
+            <div className="bg-white rounded-lg md:rounded-xl shadow-lg border border-gray-200 p-4 h-[300px] min-h-[300px] overflow-y-auto flex flex-col transition-all duration-300 hover:shadow-xl">
               <ProjectDescription
                 description={projectData.description}
                 startDate={projectData.startDate}
@@ -1183,10 +1191,10 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
                 allSprints={projectData.sprints || []}
               />
             </div>
-            <div className="project-overview-container">
+            <div className="bg-white rounded-lg md:rounded-xl shadow-lg border border-gray-200 p-4 h-[320px] min-h-[320px] flex flex-col transition-all duration-300 hover:shadow-xl">
               <ProjectOverview tasksInfo={projectData.tasksInfo} />
             </div>
-            <div className="project-users-container">
+            <div className="bg-white rounded-lg md:rounded-xl shadow-lg border border-gray-200 p-4 min-h-[300px] flex-grow flex flex-col transition-all duration-300 hover:shadow-xl">
               <ProjectUsers
                 users={projectData?.users || []}
                 tasks={projectData?.formattedTasks || []}
@@ -1195,15 +1203,15 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
               />
             </div>
           </div>
-          <div className="project-right-col">
-            <div className="project-tasks-container">
+          <div className="w-3/5 grid grid-rows-[1fr_435px] gap-4 py-2.5 px-1.5 overflow-visible min-h-0">
+            <div className="bg-white rounded-lg md:rounded-xl shadow-lg border border-gray-200 p-4 row-start-1 flex-grow min-h-[500px] overflow-y-auto flex flex-col transition-all duration-300 hover:shadow-xl">
               <ProjectTasks
                 tasks={projectData.formattedTasks}
                 onAddTask={openAddTaskPopup}
                 onEditTask={openEditTaskPopup}
               />
             </div>
-            <div className="project-performance-container">
+            <div className="bg-white rounded-lg md:rounded-xl shadow-lg border border-gray-200 p-4 row-start-2 min-h-[435px] h-auto flex flex-col overflow-visible transition-all duration-300 hover:shadow-xl">
               <ProjectPerformance
                 chartData={performanceData}
                 sprintChartData={sprintPerformanceData}
