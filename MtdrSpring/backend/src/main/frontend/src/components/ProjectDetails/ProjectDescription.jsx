@@ -1,19 +1,18 @@
 import React, { useMemo } from 'react';
-import '../../styles/ProjectDetails/ProjectDescription.css';
 
 const ProjectDescription = ({ description, startDate, dueDate, status, currentSprint, allSprints = [] }) => {
   const getStatusBadgeClass = (status) => {
-    if (!status) return 'status-badge-default';
+    if (!status) return 'bg-blue-50 text-blue-700 border-blue-200';
     
     const statusLower = status.toLowerCase();
     if (statusLower === 'completed' || statusLower.includes('done') || statusLower.includes('complete') || statusLower === 'finalizada') {
-      return 'status-badge-success';
+      return 'bg-green-50 text-green-700 border-green-200';
     } else if (statusLower === 'in progress' || statusLower.includes('progress') || statusLower === 'en progreso') {
-      return 'status-badge-warning';
+      return 'bg-yellow-50 text-yellow-700 border-yellow-200';
     } else if (statusLower === 'pending' || statusLower.includes('pending') || statusLower.includes('to do')) {
-      return 'status-badge-info';
+      return 'bg-blue-50 text-blue-700 border-blue-200';
     } else {
-      return 'status-badge-danger';
+      return 'bg-red-50 text-red-700 border-red-200';
     }
   };
 
@@ -27,11 +26,9 @@ const ProjectDescription = ({ description, startDate, dueDate, status, currentSp
     }
   };
 
-  // Determine the current active sprint based on date
   const activeSprintByDate = useMemo(() => {
     const today = new Date();
     
-    // Find a sprint where today is between startDate and endDate
     const currentActiveSprint = allSprints.find(sprint => {
       if (!sprint.startDate || !sprint.endDate) return false;
       
@@ -45,7 +42,6 @@ const ProjectDescription = ({ description, startDate, dueDate, status, currentSp
       return currentActiveSprint;
     }
     
-    // If no current sprint is found, find the next upcoming sprint
     const upcomingSprints = allSprints
       .filter(sprint => {
         if (!sprint.startDate) return false;
@@ -60,32 +56,34 @@ const ProjectDescription = ({ description, startDate, dueDate, status, currentSp
   }, [allSprints]);
 
   return (
-    <div className="project-description">
-      <h2>Project Information</h2>
-      <div className="description-content">
-        <div className="description-text">
+    <div className="flex flex-col h-full">
+      <h2 className="text-lg font-semibold mb-3.5 pb-2 border-b border-gray-200 text-gray-800">
+        Project Information
+      </h2>
+      <div className="flex flex-col flex-grow px-1.5">
+        <div className="mb-2.5 leading-relaxed text-gray-700 flex-grow overflow-y-auto">
           <p>{description || 'No description available'}</p>
         </div>
-        <div className="project-details-table">
-          <div className="project-detail-item">
-            <span className="detail-label">Start Date:</span>
-            <span className="detail-value">{formatDate(startDate)}</span>
+        <div className="flex flex-col gap-2.5 mt-auto">
+          <div className="flex justify-between py-2 border-b border-gray-100">
+            <span className="text-sm font-medium text-gray-600">Start Date:</span>
+            <span className="text-sm text-gray-800">{formatDate(startDate)}</span>
           </div>
-          <div className="project-detail-item">
-            <span className="detail-label">Due Date:</span>
-            <span className="detail-value">{formatDate(dueDate)}</span>
+          <div className="flex justify-between py-2 border-b border-gray-100">
+            <span className="text-sm font-medium text-gray-600">Due Date:</span>
+            <span className="text-sm text-gray-800">{formatDate(dueDate)}</span>
           </div>
-          <div className="project-detail-item">
-            <span className="detail-label">Current Sprint:</span>
-            <span className="detail-value">
+          <div className="flex justify-between py-2 border-b border-gray-100">
+            <span className="text-sm font-medium text-gray-600">Current Sprint:</span>
+            <span className="text-sm text-gray-800">
               {activeSprintByDate 
                 ? activeSprintByDate.name 
                 : 'No active sprint'}
             </span>
           </div>
-          <div className="project-detail-item">
-            <span className="detail-label">Status:</span>
-            <span className={`status-badge ${getStatusBadgeClass(status)}`}>
+          <div className="flex justify-between py-2 border-b border-gray-100">
+            <span className="text-sm font-medium text-gray-600">Status:</span>
+            <span className={`inline-block px-3 py-1 text-xs font-medium rounded-full border ${getStatusBadgeClass(status)}`}>
               {status || 'Not set'}
             </span>
           </div>
