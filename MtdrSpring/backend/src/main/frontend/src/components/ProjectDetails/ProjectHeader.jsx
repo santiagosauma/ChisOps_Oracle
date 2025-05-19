@@ -9,6 +9,10 @@ function ProjectHeader({ projectName, sprint, sprints, onSprintChange, onBack, o
     ? "All Sprints" 
     : (Array.isArray(sprints) && sprints.find(s => s.sprintId === parseInt(sprint))?.name) || "Loading sprints...";
 
+  const currentSprintObject = sprint !== "all" && Array.isArray(sprints) 
+    ? sprints.find(s => s.sprintId === parseInt(sprint)) 
+    : null;
+
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -33,10 +37,9 @@ function ProjectHeader({ projectName, sprint, sprints, onSprintChange, onBack, o
     setDropdownOpen(false);
   };
 
-  const handleEditSprint = (e, sprint) => {
-    e.stopPropagation();
-    if (onEditSprint) {
-      onEditSprint(sprint);
+  const handleEditCurrentSprint = () => {
+    if (currentSprintObject && onEditSprint) {
+      onEditSprint(currentSprintObject);
     }
   };
 
@@ -50,15 +53,26 @@ function ProjectHeader({ projectName, sprint, sprints, onSprintChange, onBack, o
       </div>
       <div className="flex gap-2.5">
         <button 
-          className="h-10 bg-blue-600 hover:bg-blue-700 text-white border-none rounded-lg px-4 flex items-center justify-center gap-1.5 text-sm font-medium transition-colors"
+          className="h-10 bg-red-500 hover:bg-red-600 text-white border-none rounded-lg px-4 flex items-center justify-center gap-1.5 text-sm font-medium transition-colors"
           onClick={onAddSprint}
         >
           <Plus size={16} />
           Add Sprint
         </button>
+        
+        {sprint !== "all" && currentSprintObject && (
+          <button 
+            className="h-10 bg-red-500 hover:bg-red-600 text-white border-none rounded-lg px-4 flex items-center justify-center gap-1.5 text-sm font-medium transition-colors"
+            onClick={handleEditCurrentSprint}
+          >
+            <Edit size={16} />
+            Edit Sprint
+          </button>
+        )}
+        
         <div className="relative" ref={dropdownRef}>
           <div 
-            className="h-10 bg-blue-600 hover:bg-blue-700 text-white px-4 rounded-lg min-w-[150px] cursor-pointer inline-flex items-center justify-between gap-2 shadow-md border-none text-sm font-medium transition-colors"
+            className="h-10 bg-red-500 hover:bg-red-600 text-white px-4 rounded-lg min-w-[150px] cursor-pointer inline-flex items-center justify-between gap-2 shadow-md border-none text-sm font-medium transition-colors"
             onClick={toggleDropdown}
           >
             <span>{currentSprint}</span>
@@ -68,27 +82,24 @@ function ProjectHeader({ projectName, sprint, sprints, onSprintChange, onBack, o
           {dropdownOpen && (
             <div className="absolute top-full right-0 mt-1.5 bg-white rounded-lg shadow-lg w-[200px] z-[1000] max-h-[300px] overflow-y-auto border border-gray-200">
               <div 
-                className={`p-2.5 cursor-pointer transition-colors text-gray-700 flex items-center justify-between ${sprint === "all" ? 'text-blue-600 font-medium bg-blue-50' : 'hover:bg-gray-100'}`}
+                className={`p-2.5 cursor-pointer transition-colors text-gray-700 flex items-center justify-between ${sprint === "all" ? 'text-red-600 font-medium bg-red-50' : 'hover:bg-gray-100'}`}
                 onClick={() => handleSprintSelect("all")}
               >
                 All Sprints
                 {sprint === "all" && (
-                  <span className="w-3 h-3 bg-[url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%233b82f6\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'20 6 9 17 4 12\'%3E%3C/polyline%3E%3C/svg%3E')] bg-contain bg-no-repeat"></span>
+                  <span className="w-3 h-3 bg-[url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23ef4444\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'20 6 9 17 4 12\'%3E%3C/polyline%3E%3C/svg%3E')] bg-contain bg-no-repeat"></span>
                 )}
               </div>
               {Array.isArray(sprints) && sprints.length > 0 ? sprints.map(spr => (
                 <div 
                   key={spr.sprintId} 
-                  className={`p-2.5 cursor-pointer transition-colors text-gray-700 flex items-center justify-between ${parseInt(sprint) === spr.sprintId ? 'text-blue-600 font-medium bg-blue-50' : 'hover:bg-gray-100'}`}
+                  className={`p-2.5 cursor-pointer transition-colors text-gray-700 flex items-center justify-between ${parseInt(sprint) === spr.sprintId ? 'text-red-600 font-medium bg-red-50' : 'hover:bg-gray-100'}`}
                   onClick={() => handleSprintSelect(spr.sprintId.toString())}
                 >
                   <span>{spr.name}</span>
-                  <button
-                    className="p-1 rounded-full hover:bg-gray-200"
-                    onClick={(e) => handleEditSprint(e, spr)}
-                  >
-                    <Edit size={14} className="text-gray-500" />
-                  </button>
+                  {parseInt(sprint) === spr.sprintId && (
+                    <span className="w-3 h-3 bg-[url('data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewBox=\'0 0 24 24\' fill=\'none\' stroke=\'%23ef4444\' stroke-width=\'2\' stroke-linecap=\'round\' stroke-linejoin=\'round\'%3E%3Cpolyline points=\'20 6 9 17 4 12\'%3E%3C/polyline%3E%3C/svg%3E')] bg-contain bg-no-repeat"></span>
+                  )}
                 </div>
               )) : (
                 <div className="p-2.5 text-gray-700">No sprints available</div>
