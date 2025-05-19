@@ -44,7 +44,7 @@ function ProjectHeader({ projectName, sprint, sprints, onSprintChange, onBack, o
   };
 
   return (
-    <div className="bg-[#423E3A] h-[65px] min-h-[65px] px-5 flex items-center justify-between shadow-md mb-1 md:mb-2">
+    <div className="bg-[#423E3A] h-[65px] min-h-[65px] px-5 flex items-center justify-between shadow-md">
       <div className="flex items-center">
         <button className="bg-transparent border-none cursor-pointer flex items-center justify-center p-2 rounded-full text-white transition-colors hover:bg-white/10 mr-3" onClick={onBack}>
           <ArrowLeft size={20} />

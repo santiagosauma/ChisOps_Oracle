@@ -1110,7 +1110,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
   }
 
   return (
-    <div className="flex flex-col h-auto w-full overflow-x-hidden bg-gray-50">
+    <div className="flex flex-col h-screen w-full overflow-hidden bg-gray-50">
       {toast.show && (
         <div className={`fixed top-4 right-4 z-50 ${toast.type === 'success' ? 'bg-green-100 border-green-500' : 'bg-red-100 border-red-500'} border-l-4 p-4 shadow-lg rounded-lg max-w-md transition-opacity`}>
           <div className="flex items-center">
@@ -1175,26 +1175,28 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         onAddSprint={openAddSprintPopup}
         onEditSprint={openEditSprintPopup}
       />
-      <div className="p-2.5 flex-1 relative">
+      <div className="flex-1 p-2.5 overflow-hidden relative">
         {loading && <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10 text-gray-800 font-medium">Loading data...</div>}
-        <div className="w-full flex h-[calc(100vh-80px)] min-h-[800px]">
-          <div className="w-2/5 grid grid-rows-[300px_320px_1fr] gap-4 py-2.5 px-1.5 pl-2.5">
-            <div className="bg-white rounded-lg md:rounded-xl shadow-lg border border-gray-200 p-4 h-[300px] min-h-[300px] overflow-y-auto flex flex-col transition-all duration-300 hover:shadow-xl">
-              <ProjectDescription
-                description={projectData.description}
-                startDate={projectData.startDate}
-                dueDate={projectData.endDate}
-                status={projectData.status}
-                currentSprint={selectedSprint === 'all'
-                  ? 'all'
-                  : projectData.sprints?.find(s => s.sprintId === selectedSprint)}
-                allSprints={projectData.sprints || []}
-              />
+        <div className="w-full h-full flex overflow-auto">
+          <div className="w-2/5 flex flex-col gap-4 py-2.5 px-1.5 pl-2.5 min-h-full">
+            <div className="flex-1 flex flex-col gap-4">
+              <div className="bg-white rounded-lg md:rounded-xl shadow-lg border border-gray-200 p-4 h-[320px] min-h-[320px] overflow-y-auto flex flex-col transition-all duration-300 hover:shadow-xl">
+                <ProjectDescription
+                  description={projectData.description}
+                  startDate={projectData.startDate}
+                  dueDate={projectData.endDate}
+                  status={projectData.status}
+                  currentSprint={selectedSprint === 'all'
+                    ? 'all'
+                    : projectData.sprints?.find(s => s.sprintId === selectedSprint)}
+                  allSprints={projectData.sprints || []}
+                />
+              </div>
+              <div className="bg-white rounded-lg md:rounded-xl shadow-lg border border-gray-200 p-4 h-[320px] min-h-[320px] flex flex-col transition-all duration-300 hover:shadow-xl">
+                <ProjectOverview tasksInfo={projectData.tasksInfo} />
+              </div>
             </div>
-            <div className="bg-white rounded-lg md:rounded-xl shadow-lg border border-gray-200 p-4 h-[320px] min-h-[320px] flex flex-col transition-all duration-300 hover:shadow-xl">
-              <ProjectOverview tasksInfo={projectData.tasksInfo} />
-            </div>
-            <div className="bg-white rounded-lg md:rounded-xl shadow-lg border border-gray-200 p-4 min-h-[300px] flex-grow flex flex-col transition-all duration-300 hover:shadow-xl">
+            <div className="bg-white rounded-lg md:rounded-xl shadow-lg border border-gray-200 p-4 h-[400px] min-h-[400px] flex flex-col transition-all duration-300 hover:shadow-xl overflow-auto">
               <ProjectUsers
                 users={projectData?.users || []}
                 tasks={projectData?.formattedTasks || []}
@@ -1203,15 +1205,16 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
               />
             </div>
           </div>
-          <div className="w-3/5 grid grid-rows-[1fr_435px] gap-4 py-2.5 px-1.5 overflow-visible min-h-0">
-            <div className="bg-white rounded-lg md:rounded-xl shadow-lg border border-gray-200 p-4 row-start-1 flex-grow min-h-[500px] overflow-y-auto flex flex-col transition-all duration-300 hover:shadow-xl">
+
+          <div className="w-3/5 flex flex-col gap-4 py-2.5 px-1.5 overflow-visible min-h-full">
+            <div className="flex-1 bg-white rounded-lg md:rounded-xl shadow-lg border border-gray-200 p-4 min-h-[650px] overflow-y-auto flex flex-col transition-all duration-300 hover:shadow-xl">
               <ProjectTasks
                 tasks={projectData.formattedTasks}
                 onAddTask={openAddTaskPopup}
                 onEditTask={openEditTaskPopup}
               />
             </div>
-            <div className="bg-white rounded-lg md:rounded-xl shadow-lg border border-gray-200 p-4 row-start-2 min-h-[435px] h-auto flex flex-col overflow-visible transition-all duration-300 hover:shadow-xl">
+            <div className="bg-white rounded-lg md:rounded-xl shadow-lg border border-gray-200 p-4 h-[400px] min-h-[400px] flex flex-col overflow-visible transition-all duration-300 hover:shadow-xl">
               <ProjectPerformance
                 chartData={performanceData}
                 sprintChartData={sprintPerformanceData}
