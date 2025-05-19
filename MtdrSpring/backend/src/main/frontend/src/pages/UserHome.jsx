@@ -6,6 +6,7 @@ import dropdownIcon from '../resources/dropdown.png';
 import dropupIcon from '../resources/dropup.png';
 import pencilIcon from '../resources/pencil.png';
 import TasksTable from '../components/TasksTable';
+import KanbanBoard from '../components/KanbanBoard';
 
 export default function UserHome() {
   const [currentMonth, setCurrentMonth] = useState(2)
@@ -54,6 +55,8 @@ export default function UserHome() {
     message: '',
     type: 'success'
   });
+
+  const [viewMode, setViewMode] = useState('table');
 
   useEffect(() => {
     try {
@@ -710,7 +713,7 @@ export default function UserHome() {
           fontSize: '14px'
         }}
       >
-        ✎
+        o
       </span>
     ) : (
       <img 
@@ -732,6 +735,10 @@ export default function UserHome() {
         }}
       />
     );
+  };
+
+  const toggleViewMode = (mode) => {
+    setViewMode(mode);
   };
 
   return (
@@ -1007,43 +1014,84 @@ export default function UserHome() {
                 </div>
               </div>
 
-              <TasksTable 
-                tasks={tasks}
-                loading={loading.tasks}
-                error={error.tasks}
-                onUpdateTask={openUpdatePopup}
-                filters={filters}
-                activeFilters={activeFilters}
-                onFilterChange={applyFilter}
-                onFilterRemove={removeFilter}
-                onClearFilters={clearAllFilters}
-                onShowFiltersToggle={toggleShowFilters}
-                showFilters={showFilters}
-                cssPrefix="uh-"
-                editButtonProps={{
-                  className: "uh-edit-button",
-                  style: {
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    width: "32px",
-                    height: "32px",
-                    margin: "0 auto",
-                    border: "none",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                    background: "transparent"
-                  }
-                }}
-                editIconProps={{
-                  element: <EditIcon />,
-                  className: "uh-edit-icon",
-                  style: {
-                    width: "16px",
-                    height: "16px"
-                  }
-                }}
-              />
+              <div className="uh-view-toggle">
+                <button 
+                  className={`uh-view-button ${viewMode === 'table' ? 'uh-active-view' : ''}`}
+                  onClick={() => toggleViewMode('table')}
+                >
+                  Table View
+                </button>
+                <button 
+                  className={`uh-view-button ${viewMode === 'kanban' ? 'uh-active-view' : ''}`}
+                  onClick={() => toggleViewMode('kanban')}
+                >
+                  Kanban Board
+                </button>
+              </div>
+
+              {/* Conditional rendering based on view mode */}
+              {viewMode === 'table' ? (
+                <TasksTable 
+                  tasks={tasks}
+                  loading={loading.tasks}
+                  error={error.tasks}
+                  onUpdateTask={openUpdatePopup}
+                  filters={filters}
+                  activeFilters={activeFilters}
+                  onFilterChange={applyFilter}
+                  onFilterRemove={removeFilter}
+                  onClearFilters={clearAllFilters}
+                  onShowFiltersToggle={toggleShowFilters}
+                  showFilters={showFilters}
+                  cssPrefix="uh-"
+                  editButtonProps={{
+                    className: "uh-edit-button",
+                    style: {
+                      display: "flex",
+                      justifyContent: "center",
+                      alignItems: "center",
+                      width: "32px",
+                      height: "32px",
+                      margin: "0 auto",
+                      border: "none",
+                      borderRadius: "4px",
+                      cursor: "pointer",
+                      background: "transparent"
+                    }
+                  }}
+                  editIconProps={{
+                    element: <EditIcon />,
+                    className: "uh-edit-icon",
+                    style: {
+                      width: "16px",
+                      height: "16px"
+                    }
+                  }}
+                />
+              ) : (
+                <KanbanBoard 
+                  tasks={tasks}
+                  loading={loading.tasks}
+                  error={error.tasks}
+                  onUpdateTask={openUpdatePopup}
+                  onTaskStatusChange={(taskId, newStatus) => {
+                    // Find the task
+                    const task = tasks.find(t => t.id === taskId);
+                    if (task) {
+                      // Set as current task
+                      setCurrentTask(task);
+                      // Update the form
+                      setUpdateTaskForm({
+                        status: newStatus,
+                        hoursTaken: task.hoursTaken || 0
+                      });
+                      // Call the update function
+                      handleUpdateTask();
+                    }
+                  }}
+                  filters={filters}
+                />
+              )}
             </div>
           )}
         </div>
