@@ -1,10 +1,10 @@
 import React from 'react';
-import '../../styles/ProjectDetails/ProjectOverview.css';
+import { PieChart } from 'lucide-react';
 
 const ProjectOverview = ({ tasksInfo }) => {
   const info = {
     overdue: tasksInfo?.overdue || 0,
-    progress: tasksInfo?.progress || '0%',
+    progress: tasksInfo?.progress || 0,
     completed: tasksInfo?.completed || 0,
     pending: tasksInfo?.pending || 0,
     total: tasksInfo?.total || 0
@@ -19,9 +19,8 @@ const ProjectOverview = ({ tasksInfo }) => {
     progressWidth = `${info.progress}%`;
   }
 
-  // Calculate the task status distribution for visualization
   const calculateDistribution = () => {
-    const total = Math.max(1, info.total); // Avoid division by zero
+    const total = Math.max(1, info.total);
     
     const completedPercent = (info.completed / total) * 100;
     const pendingPercent = (info.pending / total) * 100;
@@ -37,72 +36,78 @@ const ProjectOverview = ({ tasksInfo }) => {
   const distribution = calculateDistribution();
 
   return (
-    <div className="project-overview">
-      <h2>Tasks Info</h2>
-      <div className="project-overview-cards">
-        <div className="overview-card overdue">
-          <h3>Overdue</h3>
-          <span className="card-value">{info.overdue}</span>
+    <div className="flex flex-col h-full">
+      <h2 className="text-lg font-semibold mb-3.5 pb-2 border-b border-gray-200 text-gray-800 flex items-center">
+        <PieChart size={18} className="mr-2 text-gray-600" />
+        Tasks Summary
+      </h2>
+
+      <div className="flex justify-between gap-2.5 mb-4">
+        <div className="flex-1 py-2.5 px-3 rounded-md bg-red-50 text-red-800 flex flex-col items-center justify-center min-w-[90px]">
+          <h3 className="text-sm font-medium mb-1 text-center">Overdue</h3>
+          <span className="text-2xl font-semibold">{info.overdue}</span>
         </div>
-        <div className="overview-card progress">
-          <h3>Progress</h3>
-          <span className="card-value">{progressDisplay}</span>
+        
+        <div className="flex-1 py-2.5 px-3 rounded-md bg-blue-50 text-blue-800 flex flex-col items-center justify-center min-w-[90px]">
+          <h3 className="text-sm font-medium mb-1 text-center">Progress</h3>
+          <span className="text-2xl font-semibold">{progressDisplay}</span>
         </div>
-        <div className="overview-card completed-pending">
-          <h3>Completed/Pending</h3>
-          <span className="card-value">{info.completed}/{info.pending}</span>
+        
+        <div className="flex-1 py-2.5 px-3 rounded-md bg-green-50 text-green-800 flex flex-col items-center justify-center min-w-[90px]">
+          <h3 className="text-sm font-medium mb-1 text-center">Completed/Pending</h3>
+          <span className="text-2xl font-semibold">{info.completed}/{info.pending}</span>
         </div>
       </div>
       
-      <div className="project-progress-outer-container">
-        <div className="project-progress-label">
-          <span>Overall Progress</span>
-          <span className="project-progress-percentage">{progressDisplay}</span>
+      <div className="mt-4">
+        <div className="flex justify-between mb-1.5">
+          <span className="text-sm text-gray-600">Overall Progress</span>
+          <span className="text-sm font-medium text-gray-800">{progressDisplay}</span>
         </div>
-        <div className="project-progress-bar-container">
+        <div className="w-full h-2.5 bg-gray-200 rounded-full overflow-hidden">
           <div 
-            className="project-progress-bar" 
+            className="h-full bg-green-500 rounded-full transition-all duration-300"
             style={{ width: progressWidth }}
           ></div>
         </div>
       </div>
       
-      {/* Task Breakdown Section */}
-      <div className="task-breakdown-section">
-        <div className="task-breakdown-label">
-          <span>Tasks Breakdown</span>
+      <div className="mt-4">
+        <div className="flex justify-between mb-1.5">
+          <span className="text-sm text-gray-600">Tasks Breakdown</span>
         </div>
-        <div className="task-breakdown-container">
-          <div className="task-breakdown-bar">
+        <div className="w-full h-2 bg-gray-200 rounded-md overflow-hidden">
+          <div className="flex h-full w-full">
             <div 
-              className="breakdown-segment completed" 
+              className="h-full bg-green-500 transition-all duration-300"
               style={{ width: `${distribution.completed}%` }}
               title={`Completed: ${info.completed} tasks (${distribution.completed.toFixed(0)}%)`}
             ></div>
             <div 
-              className="breakdown-segment pending" 
+              className="h-full bg-amber-500 transition-all duration-300"
               style={{ width: `${distribution.pending}%` }}
               title={`In Progress: ${info.pending} tasks (${distribution.pending.toFixed(0)}%)`}
             ></div>
             <div 
-              className="breakdown-segment overdue" 
+              className="h-full bg-red-500 transition-all duration-300"
               style={{ width: `${distribution.overdue}%` }}
               title={`Overdue: ${info.overdue} tasks (${distribution.overdue.toFixed(0)}%)`}
             ></div>
           </div>
         </div>
-        <div className="task-breakdown-legend">
-          <div className="legend-item">
-            <div className="legend-color completed"></div>
-            <span className="legend-label">Completed</span>
+        
+        <div className="flex justify-between mt-2 flex-wrap">
+          <div className="flex items-center mr-3 mb-1">
+            <div className="w-2 h-2 bg-green-500 rounded-sm mr-1.5"></div>
+            <span className="text-xs text-gray-600">Completed</span>
           </div>
-          <div className="legend-item">
-            <div className="legend-color pending"></div>
-            <span className="legend-label">In Progress</span>
+          <div className="flex items-center mr-3 mb-1">
+            <div className="w-2 h-2 bg-amber-500 rounded-sm mr-1.5"></div>
+            <span className="text-xs text-gray-600">In Progress</span>
           </div>
-          <div className="legend-item">
-            <div className="legend-color overdue"></div>
-            <span className="legend-label">Overdue</span>
+          <div className="flex items-center mb-1">
+            <div className="w-2 h-2 bg-red-500 rounded-sm mr-1.5"></div>
+            <span className="text-xs text-gray-600">Overdue</span>
           </div>
         </div>
       </div>
