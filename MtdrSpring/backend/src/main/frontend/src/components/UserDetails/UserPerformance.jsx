@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import '../../styles/UserDetails/UserPerformance.css';
 import {
   LineChart,
   Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -38,24 +39,46 @@ function UserPerformance({ assignedVsCompleted, hoursData, selectedSprint, tasks
         data={assignedVsCompleted}
         margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
       >  
-        <CartesianGrid strokeDasharray="3 3" vertical={false} />
-        {/* eje X sin etiquetas */}
-        <XAxis dataKey="sprint" tick={false} />
-        <YAxis tick={{ fontSize: 12 }} />
-        <Tooltip />
-        <Legend wrapperStyle={{ fontSize: '12px' }} />
+        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eaeaea" />
+        <XAxis 
+          dataKey="sprint" 
+          tick={false}
+          axisLine={{ stroke: '#e0e0e0' }}
+          tickLine={{ stroke: '#e0e0e0' }}
+        />
+        <YAxis 
+          tick={{ fontSize: 12, fill: '#666' }} 
+          axisLine={{ stroke: '#e0e0e0' }}
+          tickLine={{ stroke: '#e0e0e0' }}
+        />
+        <Tooltip 
+          contentStyle={{ 
+            backgroundColor: 'white', 
+            border: '1px solid #e0e0e0',
+            borderRadius: '4px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }} 
+        />
+        <Legend 
+          wrapperStyle={{ 
+            paddingTop: '10px', 
+            fontSize: '12px',
+            paddingBottom: '10px' 
+          }} 
+        />
         <Line
           type="monotone"
           dataKey="completed"
-          stroke="#e74c3c"
-          activeDot={{ r: 6 }}
+          stroke="#22c55e"
+          activeDot={{ r: 6, fill: '#16a34a', stroke: 'white', strokeWidth: 2 }}
           name="Completed"
           strokeWidth={2}
         />
         <Line
           type="monotone"
           dataKey="assigned"
-          stroke="#f1c40f"
+          stroke="#3b82f6"
+          activeDot={{ r: 6, fill: '#2563eb', stroke: 'white', strokeWidth: 2 }}
           name="Assigned"
           strokeWidth={2}
         />
@@ -65,32 +88,51 @@ function UserPerformance({ assignedVsCompleted, hoursData, selectedSprint, tasks
   
   const renderMultiSprintHoursChart = () => (
     <ResponsiveContainer width="100%" height={300}>
-      <LineChart
+      <BarChart
         data={hoursData}
         margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+        barGap={8}
       >
-        <CartesianGrid strokeDasharray="3 3" vertical={false} />
-        {/* eje X sin etiquetas */}
-        <XAxis dataKey="sprint" tick={false} />
-        <YAxis tick={{ fontSize: 12 }} />
-        <Tooltip />
-        <Legend wrapperStyle={{ fontSize: '12px' }} />
-        <Line
-          type="monotone"
-          dataKey="real"
-          stroke="#e74c3c"
-          activeDot={{ r: 6 }}
-          name="Real Hours"
-          strokeWidth={2}
+        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eaeaea" />
+        <XAxis 
+          dataKey="sprint" 
+          tick={false}
+          axisLine={{ stroke: '#e0e0e0' }}
+          tickLine={{ stroke: '#e0e0e0' }}
         />
-        <Line
-          type="monotone"
+        <YAxis 
+          tick={{ fontSize: 12, fill: '#666' }} 
+          axisLine={{ stroke: '#e0e0e0' }}
+          tickLine={{ stroke: '#e0e0e0' }}
+        />
+        <Tooltip 
+          contentStyle={{ 
+            backgroundColor: 'white', 
+            border: '1px solid #e0e0e0',
+            borderRadius: '4px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+          }}
+          formatter={(value) => [`${value.toFixed(1)} hours`, '']}
+        />
+        <Legend 
+          wrapperStyle={{ 
+            paddingTop: '10px', 
+            fontSize: '12px' 
+          }} 
+        />
+        <Bar
           dataKey="estimated"
-          stroke="#3498db"
+          fill="#93c5fd"
           name="Estimated Hours"
-          strokeWidth={2}
+          radius={[4, 4, 0, 0]}
         />
-      </LineChart>
+        <Bar
+          dataKey="real"
+          fill="#f87171"
+          name="Actual Hours"
+          radius={[4, 4, 0, 0]}
+        />
+      </BarChart>
     </ResponsiveContainer>
   );
   
@@ -99,55 +141,81 @@ function UserPerformance({ assignedVsCompleted, hoursData, selectedSprint, tasks
     
     return (
       <ResponsiveContainer width="100%" height={300}>
-        <LineChart
+        <BarChart
           data={singleSprintData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 70 }}
+          margin={{ top: 20, right: 30, left: 15, bottom: 30 }}
+          barGap={6}
         >
-          <CartesianGrid strokeDasharray="3 3" vertical={false} />
-          {/* eje X sin etiquetas */}
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eaeaea" />
           <XAxis 
             dataKey="name"
+            height={30}
             tick={false}
-            height={70}
+            axisLine={{ stroke: '#e0e0e0' }}
+            tickLine={{ stroke: '#e0e0e0' }}
           />
-          <YAxis tick={{ fontSize: 12 }} />
-          <Tooltip />
-          <Legend wrapperStyle={{ fontSize: '12px' }} />
-          <Line
-            type="monotone"
+          <YAxis 
+            tick={{ fontSize: 11, fill: '#666' }} 
+            axisLine={{ stroke: '#e0e0e0' }}
+            tickLine={{ stroke: '#e0e0e0' }}
+            width={40}
+          />
+          <Tooltip 
+            contentStyle={{ 
+              backgroundColor: 'white', 
+              border: '1px solid #e0e0e0',
+              borderRadius: '4px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            }}
+            formatter={(value) => [`${value.toFixed(1)} hours`, '']}
+          />
+          <Legend 
+            wrapperStyle={{ 
+              paddingTop: '5px', 
+              fontSize: '11px',
+              paddingBottom: '5px' 
+            }} 
+          />
+          <Bar
             dataKey="estimatedHours"
-            stroke="#3498db"
-            activeDot={{ r: 6 }}
+            fill="#93c5fd"
             name="Estimated Hours"
-            strokeWidth={2}
+            radius={[4, 4, 0, 0]}
+            maxBarSize={25}
           />
-          <Line
-            type="monotone"
+          <Bar
             dataKey="actualHours"
-            stroke="#e74c3c"
-            activeDot={{ r: 6 }}
+            fill="#f87171"
             name="Actual Hours"
-            strokeWidth={2}
+            radius={[4, 4, 0, 0]}
+            maxBarSize={25}
           />
-        </LineChart>
+        </BarChart>
       </ResponsiveContainer>
     );
   };
 
   return (
-    <div className="user-performance">
-      <div className="performance-header">
-        <h2>Performance Metrics</h2>
+    <div className="flex flex-col h-full">
+      <div className="flex justify-between items-center mb-4">
         {selectedSprint === 'all' && (
-          <div className="chart-selector">
+          <div className="flex gap-2">
             <button 
-              className={`chart-btn ${activeChart === 'tasks' ? 'active' : ''}`}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                activeChart === 'tasks' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
               onClick={() => setActiveChart('tasks')}
             >
               Tasks
             </button>
             <button 
-              className={`chart-btn ${activeChart === 'hours' ? 'active' : ''}`}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                activeChart === 'hours' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              }`}
               onClick={() => setActiveChart('hours')}
             >
               Hours
@@ -155,7 +223,7 @@ function UserPerformance({ assignedVsCompleted, hoursData, selectedSprint, tasks
           </div>
         )}
       </div>
-      <div className="performance-content">
+      <div className="flex-grow flex items-center justify-center">
         {selectedSprint === 'all' ? (
           activeChart === 'tasks'
             ? renderMultiSprintTasksChart()

@@ -6,7 +6,13 @@ import UserProjectHistory from '../components/UserDetails/UserProjectHistory';
 import UserTasks from '../components/UserDetails/UserTasks';
 import UserPerformance from '../components/UserDetails/UserPerformance';
 import Loader from '../components/Loader';
-import { ListCheck } from 'lucide-react';
+import { 
+  ListCheck, 
+  UserCircle, 
+  BarChart2, 
+  History, 
+  PieChart 
+} from 'lucide-react';
 
 function UserDetails({ userId, projectId, onBack }) {
   const [userData, setUserData] = useState(null);
@@ -238,8 +244,9 @@ function UserDetails({ userId, projectId, onBack }) {
         <div className="h-full overflow-auto">
           <div className="h-auto p-4 flex flex-wrap">
             <div className="w-full lg:w-2/5 pr-0 lg:pr-2 space-y-4">
-              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 h-[350px] min-h-[350px] flex flex-col transition-all duration-300 hover:shadow-xl">
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 h-[310px] min-h-[310px] flex flex-col transition-all duration-300 hover:shadow-xl">
                 <h2 className="text-lg font-semibold mb-3.5 pb-2 border-b border-gray-200 text-gray-800 flex items-center">
+                  <UserCircle size={18} className="mr-2 text-gray-600" />
                   User Information
                 </h2>
                 <div className="flex-grow">
@@ -247,8 +254,9 @@ function UserDetails({ userId, projectId, onBack }) {
                 </div>
               </div>
               
-              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 h-[250px] min-h-[250px] flex flex-col transition-all duration-300 hover:shadow-xl">
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 h-[320px] min-h-[320px] flex flex-col transition-all duration-300 hover:shadow-xl">
                 <h2 className="text-lg font-semibold mb-3.5 pb-2 border-b border-gray-200 text-gray-800 flex items-center">
+                  <PieChart size={18} className="mr-2 text-gray-600" />
                   Tasks Statistics
                 </h2>
                 <div className="flex-grow">
@@ -256,8 +264,9 @@ function UserDetails({ userId, projectId, onBack }) {
                 </div>
               </div>
               
-              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 flex-1 min-h-[350px] flex flex-col transition-all duration-300 hover:shadow-xl">
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 flex-1 min-h-[320px] flex flex-col transition-all duration-300 hover:shadow-xl">
                 <h2 className="text-lg font-semibold mb-3.5 pb-2 border-b border-gray-200 text-gray-800 flex items-center">
+                  <History size={18} className="mr-2 text-gray-600" />
                   Project History
                 </h2>
                 <div className="flex-grow overflow-auto">
@@ -273,7 +282,7 @@ function UserDetails({ userId, projectId, onBack }) {
             <div className="w-full lg:w-3/5 pl-0 lg:pl-2 mt-4 lg:mt-0 space-y-4">
               <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 h-[510px] min-h-[510px] flex-1 flex flex-col transition-all duration-300 hover:shadow-xl">
                 <h2 className="text-lg font-semibold mb-3.5 pb-2 border-b border-gray-200 text-gray-800 flex items-center">
-                  <ListCheck size={18} className="mr-2 text-gray-600" />  {/* Changed ListTodo to ListCheck */}
+                  <ListCheck size={18} className="mr-2 text-gray-600" />
                   User Tasks
                 </h2>
                 <div className="flex-grow overflow-auto">
@@ -283,6 +292,7 @@ function UserDetails({ userId, projectId, onBack }) {
               
               <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 h-[450px] min-h-[450px] flex flex-col transition-all duration-300 hover:shadow-xl">
                 <h2 className="text-lg font-semibold mb-3.5 pb-2 border-b border-gray-200 text-gray-800 flex items-center">
+                  <BarChart2 size={18} className="mr-2 text-gray-600" />
                   Performance Metrics
                 </h2>
                 <div className="flex-grow">
