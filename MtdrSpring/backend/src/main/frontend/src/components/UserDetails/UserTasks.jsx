@@ -1,9 +1,15 @@
 import React, { useState } from 'react';
 import { ArrowUp, ArrowDown } from 'lucide-react';
 
-function UserTasks({ tasks }) {
+function UserTasks({ tasks = [] }) {
   const [sortField, setSortField] = useState('taskId');
   const [sortDirection, setSortDirection] = useState('asc');
+
+  // Add check early
+  if (!Array.isArray(tasks)) {
+    console.error("tasks is not an array:", tasks);
+    tasks = [];
+  }
 
   const handleSort = (field) => {
     if (sortField === field) {
@@ -145,8 +151,8 @@ function UserTasks({ tasks }) {
           
           {/* Table Body - Only this part is scrollable */}
           <div className="flex-grow overflow-y-auto">
-            {sortedTasks.map((task) => (
-              <div key={task.taskId} className="grid grid-cols-7 border-b border-gray-100 hover:bg-gray-50 text-sm">
+            {Array.isArray(sortedTasks) && sortedTasks.map((task) => (
+              <div key={task.taskId || task.id} className="grid grid-cols-7 border-b border-gray-100 hover:bg-gray-50 text-sm">
                 <div className="px-3 py-2.5 font-medium text-gray-700 flex items-center col-span-2 truncate">
                   {task.title}
                 </div>

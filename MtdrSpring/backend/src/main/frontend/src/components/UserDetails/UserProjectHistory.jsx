@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, ArrowUp, ArrowDown } from 'lucide-react';
 
-function UserProjectHistory({ projects, selectedProject, onProjectChange }) {
+function UserProjectHistory({ projects = [], selectedProject, onProjectChange }) {
   const [sortField, setSortField] = useState('name');
   const [sortDirection, setSortDirection] = useState('asc');
 
@@ -15,6 +15,11 @@ function UserProjectHistory({ projects, selectedProject, onProjectChange }) {
   };
 
   const getSortedProjects = () => {
+    if (!Array.isArray(projects)) {
+      console.error("projects is not an array:", projects);
+      return [];
+    }
+    
     return [...projects].sort((a, b) => {
       let aValue = sortField === 'startDate' || sortField === 'endDate' 
         ? new Date(a[sortField] || '9999-12-31') 
@@ -120,7 +125,7 @@ function UserProjectHistory({ projects, selectedProject, onProjectChange }) {
         
         {/* Table Body */}
         <div className="flex-grow overflow-y-auto">
-          {sortedProjects.length > 0 ? (
+          {Array.isArray(sortedProjects) && sortedProjects.length > 0 ? (
             sortedProjects.map((project) => (
               <div 
                 key={project.projectId} 

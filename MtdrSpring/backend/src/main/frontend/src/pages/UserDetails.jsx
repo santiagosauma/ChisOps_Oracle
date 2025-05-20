@@ -51,6 +51,14 @@ function UserDetails({ userId, projectId, onBack }) {
         }
         const projectsData = await projectsResponse.json();
         
+        // Verify that projectsData is an array
+        if (!Array.isArray(projectsData)) {
+          console.error("projectsData is not an array:", projectsData);
+          setProjects([]);
+        } else {
+          setProjects(projectsData);
+        }
+        
         const initialProject = projectId || (projectsData.length > 0 ? projectsData[0].projectId : null);
         
         let tasksData = { sprints: [] };
@@ -70,16 +78,17 @@ function UserDetails({ userId, projectId, onBack }) {
         };
 
         setUserData(processedUser);
-        setProjects(projectsData);
         setSelectedProject(initialProject);
         setSprintsWithTasks(tasksData.sprints || []);
         
         const allTasks = [];
-        tasksData.sprints.forEach(sprint => {
-          if (sprint.tasks && Array.isArray(sprint.tasks)) {
-            allTasks.push(...sprint.tasks);
-          }
-        });
+        if (Array.isArray(tasksData.sprints)) {
+          tasksData.sprints.forEach(sprint => {
+            if (sprint.tasks && Array.isArray(sprint.tasks)) {
+              allTasks.push(...sprint.tasks);
+            }
+          });
+        }
         
         setFilteredTasks(allTasks);
         
@@ -226,10 +235,10 @@ function UserDetails({ userId, projectId, onBack }) {
         userName={`${userData?.firstName} ${userData?.lastName}`}
         role={userData?.rol}
         onBack={onBack}
-        sprints={sprintsWithTasks.map(s => ({
+        sprints={Array.isArray(sprintsWithTasks) ? sprintsWithTasks.map(s => ({
           id: s.sprintId,
           name: s.sprintName
-        }))}
+        })) : []}
         selectedSprint={selectedSprint}
         onSprintChange={handleSprintChange}
       />

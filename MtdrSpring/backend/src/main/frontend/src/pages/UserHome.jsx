@@ -1,46 +1,40 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import "../styles/UserHome.css"
-import dropdownIcon from '../resources/dropdown.png';
-import dropupIcon from '../resources/dropup.png';
-import pencilIcon from '../resources/pencil.png';
+import { useState, useEffect, useMemo } from "react";
 import TasksTable from '../components/TasksTable';
+import { Pencil, ChevronDown, Filter, X, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
 
 export default function UserHome() {
-  const [currentMonth, setCurrentMonth] = useState(2)
-  const months = ["January", "February", "March", "April", "May", "June"]
+  const [projects, setProjects] = useState([]);
+  const [projectSprints, setProjectSprints] = useState({});
+  const [selectedSprintByProject, setSelectedSprintByProject] = useState({});
+  const [showSprintDropdown, setShowSprintDropdown] = useState({});
+  const [tasks, setTasks] = useState([]);
+  const [overdueTasks, setOverdueTasks] = useState(0);
+  const [pendingTasks, setPendingTasks] = useState(0);
+  const [completedTasks, setCompletedTasks] = useState(0);
   
-  const [projects, setProjects] = useState([])
-  const [projectSprints, setProjectSprints] = useState({})
-  const [selectedSprintByProject, setSelectedSprintByProject] = useState({})
-  const [showSprintDropdown, setShowSprintDropdown] = useState({})
-  const [tasks, setTasks] = useState([])
-  const [overdueTasks, setOverdueTasks] = useState(0)
-  const [pendingTasks, setPendingTasks] = useState(0)
-  const [completedTasks, setCompletedTasks] = useState(0)
-  
-  const [showFilters, setShowFilters] = useState(false)
+  const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
     status: '',
     priority: '',
     searchTerm: ''
-  })
-  const [activeFilters, setActiveFilters] = useState([])
+  });
+  const [activeFilters, setActiveFilters] = useState([]);
 
-  const [currentSelectedSprint, setCurrentSelectedSprint] = useState(null)
+  const [currentSelectedSprint, setCurrentSelectedSprint] = useState(null);
   
   const [loading, setLoading] = useState({
     projects: false,
     tasks: false
-  })
+  });
   const [error, setError] = useState({
     projects: null,
     tasks: null
-  })
+  });
 
-  const [currentUser, setCurrentUser] = useState(null)
-  const [userId, setUserId] = useState(null)
+  const [currentUser, setCurrentUser] = useState(null);
+  const [userId, setUserId] = useState(null);
 
   const [showUpdatePopup, setShowUpdatePopup] = useState(false);
   const [currentTask, setCurrentTask] = useState(null);
@@ -54,11 +48,12 @@ export default function UserHome() {
     message: '',
     type: 'success'
   });
+  
+  const [dropdownPosition, setDropdownPosition] = useState({});
 
   useEffect(() => {
     try {
       const userDataString = localStorage.getItem('user');
-      console.log("User data from localStorage:", userDataString);
       
       if (!userDataString) {
         console.error("No user data found in localStorage");
@@ -68,8 +63,6 @@ export default function UserHome() {
       }
       
       const userData = JSON.parse(userDataString);
-      console.log("Parsed user data:", userData);
-      
       const id = userData.id || userData.userId || userData.usuarioId || userData.user_id || 1;
       
       setUserId(id);
@@ -79,8 +72,6 @@ export default function UserHome() {
               (userData.firstName && userData.lastName ? `${userData.firstName} ${userData.lastName}` : null) || 
               userData.email || userData.username || "User"
       });
-      
-      console.log("Set user ID to:", id);
     } catch (error) {
       console.error("Error parsing user data from localStorage:", error);
       setUserId(1);
@@ -91,156 +82,131 @@ export default function UserHome() {
   useEffect(() => {
     if (!userId) return;
     
-    setLoading(prev => ({ ...prev, projects: true }))
-    
-    fetch('/proyectos/activos')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Error loading active projects')
-        }
-        return response.json()
-      })
-      .then(data => {
-        setProjects(data)
+    const fetchAllData = async () => {
+      setLoading({ projects: true, tasks: true });
+      
+      try {
+        const projectsResponse = await fetch('/proyectos/activos');
         
-        data.forEach(project => {
-          fetchProjectSprints(project.projectId);
+        console.log("Projects response status:", projectsResponse.status);
+        
+        if (!projectsResponse.ok) throw new Error('Error loading active projects');
+        let projectsData;
+        
+        try {
+          const responseText = await projectsResponse.text();
+          console.log("Projects response text:", responseText.substring(0, 100) + "...");
+          
+          projectsData = responseText ? JSON.parse(responseText) : [];
+          
+          if (!Array.isArray(projectsData)) {
+            console.error("Projects data is not an array:", projectsData);
+            projectsData = [];
+          }
+        } catch (parseError) {
+          console.error("Error parsing projects data:", parseError);
+          projectsData = [];
+        }
+        
+        console.log("Projects data length:", projectsData.length);
+        
+        const sprintPromises = Array.isArray(projectsData) ? projectsData.map(project => 
+          fetch(`/sprints/proyecto/${project.projectId}`)
+            .then(res => res.ok ? res.json() : [])
+            .then(sprints => {
+              if (!Array.isArray(sprints)) {
+                console.error(`Sprints for project ${project.projectId} is not an array:`, sprints);
+                return { projectId: project.projectId, sprints: [] };
+              }
+              return { projectId: project.projectId, sprints };
+            })
+            .catch(error => {
+              console.error(`Error fetching sprints for project ${project.projectId}:`, error);
+              return { projectId: project.projectId, sprints: [] };
+            })
+        ) : [];
+        
+        const sprintsResults = await Promise.all(sprintPromises);
+        
+        const sprintsMap = {};
+        const selectedSprintMap = {};
+        let firstActiveSprint = null;
+        
+        sprintsResults.forEach(({ projectId, sprints }) => {
+          sprintsMap[projectId] = sprints;
+          
+          if (sprints.length > 0) {
+            const currentDate = new Date();
+            
+            const activeSprint = sprints.find(sprint => {
+              const startDate = new Date(sprint.startDate);
+              const endDate = new Date(sprint.endDate);
+              return currentDate >= startDate && currentDate <= endDate;
+            }) || sprints[0];
+            
+            selectedSprintMap[projectId] = activeSprint;
+            
+            if (!firstActiveSprint) {
+              firstActiveSprint = { ...activeSprint, projectId };
+            }
+          }
         });
         
-        setLoading(prev => ({ ...prev, projects: false }))
-      })
-      .catch(err => {
-        console.error('Error fetching active projects:', err)
-        setError(prev => ({ ...prev, projects: err.message }))
-        setLoading(prev => ({ ...prev, projects: false }))
-      })
-  }, [userId])
-
-  const fetchProjectSprints = (projectId) => {
-    if (!userId) return;
-    
-    fetch(`/sprints/proyecto/${projectId}`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error(`Error loading sprints for project ${projectId}`)
-        }
-        return response.json()
-      })
-      .then(sprints => {
-        console.log(`Received ${sprints.length} sprints for project ${projectId}:`, sprints);
-        
-        if (sprints.length === 0) {
-          console.log("No sprints available for this project");
-          setProjects(prevProjects => {
-            return prevProjects.map(p => 
-              p.projectId === projectId ? {...p, progress: 0} : p
+        await Promise.all(projectsData.map(async project => {
+          if (sprintsMap[project.projectId]?.length > 0) {
+            const sprintIds = sprintsMap[project.projectId].map(sprint => sprint.sprintId);
+            const tasksPromises = sprintIds.map(sprintId => 
+              fetch(`/tareas/sprint/${sprintId}`)
+                .then(res => res.ok ? res.json() : [])
             );
-          });
-          return;
-        }
-        
-        const currentDate = new Date();
-        console.log("Current date:", currentDate);
-        
-        let activeSprint = null;
-        
-        for (const sprint of sprints) {
-          const startDate = new Date(sprint.startDate);
-          const endDate = new Date(sprint.endDate);
-          
-          console.log(`Sprint ${sprint.name} - startDate: ${startDate}, endDate: ${endDate}`);
-          
-          if (currentDate >= startDate && currentDate <= endDate) {
-            console.log(`Found active sprint by date: ${sprint.name}`);
-            activeSprint = sprint;
-            break;
+            
+            const sprintTasksArray = await Promise.all(tasksPromises);
+            const allTasks = sprintTasksArray.flat();
+            
+            if (allTasks.length > 0) {
+              const completedTasks = allTasks.filter(task => 
+                task.status === 'Done' || task.status === 'Completado' || task.status === 'Finalizado'
+              ).length;
+              
+              const progress = Math.round((completedTasks / allTasks.length) * 100);
+              project.progress = progress;
+              project.taskCount = allTasks.length;
+              project.completedCount = completedTasks;
+            } else {
+              project.progress = 0;
+              project.taskCount = 0;
+              project.completedCount = 0;
+            }
           }
-        }
-        
-        if (!activeSprint) {
-          activeSprint = sprints.find(sprint => 
-            sprint.status && sprint.status.toLowerCase() === 'active'
-          );
-          
-          if (activeSprint) {
-            console.log(`Found active sprint by status: ${activeSprint.name}`);
-          }
-        }
-        
-        if (!activeSprint && sprints.length > 0) {
-          activeSprint = sprints[0];
-          console.log(`Using first sprint as active: ${activeSprint.name}`);
-        }
-        
-        setProjectSprints(prev => ({
-          ...prev,
-          [projectId]: sprints
+          return project;
         }));
         
-        if (activeSprint) {
-          setSelectedSprintByProject(prev => ({
-            ...prev,
-            [projectId]: activeSprint
-          }));
-          
-          calculateProjectProgress(projectId, sprints);
-          
-          fetchUserTasksForSprint(activeSprint.sprintId);
-        }
-      })
-      .catch(err => {
-        console.error(`Error fetching sprints for project ${projectId}:`, err);
-      });
-  };
-
-  const calculateProjectProgress = (projectId, sprints) => {
-    if (!sprints || sprints.length === 0) {
-      setProjects(prevProjects => {
-        return prevProjects.map(p => 
-          p.projectId === projectId ? {...p, progress: 0} : p
-        );
-      });
-      return;
-    }
-
-    const sprintIds = sprints.map(sprint => sprint.sprintId);
-    const fetchPromises = sprintIds.map(sprintId => 
-      fetch(`/tareas/sprint/${sprintId}`)
-        .then(response => response.ok ? response.json() : [])
-    );
-    
-    Promise.all(fetchPromises)
-      .then(sprintTasksArray => {
-        const allTasks = sprintTasksArray.flat();
+        setProjects(projectsData);
+        setProjectSprints(sprintsMap);
+        setSelectedSprintByProject(selectedSprintMap);
         
-        if (allTasks.length === 0) {
-          setProjects(prevProjects => {
-            return prevProjects.map(p => 
-              p.projectId === projectId ? {...p, progress: 0} : p
-            );
-          });
-          return;
+        if (firstActiveSprint) {
+          await fetchUserTasksForSprint(firstActiveSprint.sprintId);
+        } else {
+          await fetchTasksForUser();
         }
         
-        const completedTasks = allTasks.filter(task => 
-          task.status === 'Done' || 
-          task.status === 'Completado' || 
-          task.status === 'Finalizado'
-        ).length;
-        
-        const progress = Math.round((completedTasks / allTasks.length) * 100);
-        console.log(`Project ${projectId} progress: ${progress}% (${completedTasks}/${allTasks.length} tasks)`);
-        
-        setProjects(prevProjects => {
-          return prevProjects.map(p => 
-            p.projectId === projectId ? {...p, progress, taskCount: allTasks.length, completedCount: completedTasks} : p
-          );
+      } catch (err) {
+        console.error('Error in fetchAllData:', err);
+        setError({
+          projects: err.message,
+          tasks: err.message
         });
-      })
-      .catch(err => {
-        console.error(`Error calculating progress for project ${projectId}:`, err);
-      });
-  };
+      } finally {
+        setLoading({
+          projects: false,
+          tasks: false
+        });
+      }
+    };
+    
+    fetchAllData();
+  }, [userId]);
 
   const calculateTaskStatistics = (tasks) => {
     const overdue = tasks.filter(task => 
@@ -260,8 +226,6 @@ export default function UserHome() {
   };
 
   const mapTaskStatus = (status) => {
-    console.log("Original status from backend:", status);
-    
     if (!status) return 'Incomplete';
     
     if (status === 'Incomplete' || status === 'In Progress' || status === 'Done') {
@@ -279,122 +243,100 @@ export default function UserHome() {
     }
   };
 
-  const fetchUserTasksForSprint = (sprintId) => {
+  const fetchUserTasksForSprint = async (sprintId) => {
     if (!userId) return;
     
     setLoading(prev => ({ ...prev, tasks: true }));
     setCurrentSelectedSprint(sprintId);
     
-    fetch(`/tareas/usuario/${userId}/sprint/${sprintId}`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Error loading user tasks for sprint');
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log(`Found ${data.length} user tasks in sprint ${sprintId}:`, data);
-        
-        const processedTasks = data.map(task => {
-          const mappedStatus = mapTaskStatus(task.status || task.estado);
-          console.log(`Mapped task "${task.title}" status from "${task.status}" to "${mappedStatus}"`);
-          
-          return {
-            id: task.taskId,
-            name: task.title || task.name || task.nombre || task.descripcion || 'Untitled',
-            status: mappedStatus,
-            finishDate: task.endDate || task.fechaFin || task.dueDate || task.finishDate || 'No date',
-            priority: task.priority || task.prioridad || 'Normal',
-            sprintId: task.sprint?.sprintId,
-            description: task.description,
-            startDate: task.startDate,
-            storyPoints: task.storyPoints,
-            hoursTaken: task.actualHours || 0,
-            type: task.type
-          };
-        });
-        
-        console.log("Processed tasks with mapped statuses:", processedTasks);
-        setTasks(processedTasks);
-        
-        const { overdue, pending, completed } = calculateTaskStatistics(processedTasks);
-        console.log(`Task statistics: overdue=${overdue}, pending=${pending}, completed=${completed}`);
-        
-        setOverdueTasks(overdue);
-        setPendingTasks(pending);
-        setCompletedTasks(completed);
-        
-        setLoading(prev => ({ ...prev, tasks: false }));
-      })
-      .catch(err => {
-        console.error('Error fetching user tasks for sprint:', err);
-        setError(prev => ({ ...prev, tasks: err.message }));
-        setLoading(prev => ({ ...prev, tasks: false }));
-        
-        setTasks([]);
-        setOverdueTasks(0);
-        setPendingTasks(0);
-        setCompletedTasks(0);
-      });
+    try {
+      const response = await fetch(`/tareas/usuario/${userId}/sprint/${sprintId}`);
+      if (!response.ok) {
+        throw new Error('Error loading user tasks for sprint');
+      }
+      
+      const data = await response.json();
+      
+      const processedTasks = data.map(task => ({
+        id: task.taskId,
+        name: task.title || task.name || task.nombre || task.descripcion || 'Untitled',
+        status: mapTaskStatus(task.status || task.estado),
+        finishDate: task.endDate || task.fechaFin || task.dueDate || task.finishDate || 'No date',
+        priority: task.priority || task.prioridad || 'Normal',
+        sprintId: task.sprint?.sprintId,
+        description: task.description,
+        startDate: task.startDate,
+        storyPoints: task.storyPoints,
+        hoursTaken: task.actualHours || 0,
+        type: task.type
+      }));
+      
+      setTasks(processedTasks);
+      
+      const { overdue, pending, completed } = calculateTaskStatistics(processedTasks);
+      
+      setOverdueTasks(overdue);
+      setPendingTasks(pending);
+      setCompletedTasks(completed);
+    } catch (err) {
+      console.error('Error fetching user tasks for sprint:', err);
+      setError(prev => ({ ...prev, tasks: err.message }));
+      
+      setTasks([]);
+      setOverdueTasks(0);
+      setPendingTasks(0);
+      setCompletedTasks(0);
+    } finally {
+      setLoading(prev => ({ ...prev, tasks: false }));
+    }
   };
 
-  const fetchTasksForUser = () => {
+  const fetchTasksForUser = async () => {
     if (!userId) return;
     
     setLoading(prev => ({ ...prev, tasks: true }));
     setCurrentSelectedSprint(null);
     
-    fetch(`/tareas/usuario/${userId}`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Error loading tasks');
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log(`Found ${data.length} user tasks:`, data);
-        
-        const processedTasks = data.map(task => {
-          const mappedStatus = mapTaskStatus(task.status || task.estado);
-          console.log(`Mapped task "${task.title}" status from "${task.status}" to "${mappedStatus}"`);
-          
-          return {
-            id: task.taskId,
-            name: task.title || task.name || task.nombre || task.descripcion || 'Untitled',
-            status: mappedStatus,
-            finishDate: task.endDate || task.fechaFin || task.dueDate || task.finishDate || 'No date',
-            priority: task.priority || task.prioridad || 'Normal',
-            sprintId: task.sprint?.sprintId,
-            description: task.description,
-            startDate: task.startDate,
-            storyPoints: task.storyPoints,
-            hoursTaken: task.actualHours || 0,
-            type: task.type
-          };
-        });
-        
-        console.log("Processed tasks with mapped statuses:", processedTasks);
-        setTasks(processedTasks);
-        
-        const { overdue, pending, completed } = calculateTaskStatistics(processedTasks);
-        console.log(`Task statistics: overdue=${overdue}, pending=${pending}, completed=${completed}`);
-        
-        setOverdueTasks(overdue);
-        setPendingTasks(pending);
-        setCompletedTasks(completed);
-        
-        setLoading(prev => ({ ...prev, tasks: false }));
-      })
-      .catch(err => {
-        console.error('Error fetching tasks:', err);
-        setError(prev => ({ ...prev, tasks: err.message }));
-        setLoading(prev => ({ ...prev, tasks: false }));
-        
-        setTasks([]);
-        setOverdueTasks(0);
-        setPendingTasks(0);
-        setCompletedTasks(0);
-      });
+    try {
+      const response = await fetch(`/tareas/usuario/${userId}`);
+      if (!response.ok) {
+        throw new Error('Error loading tasks');
+      }
+      
+      const data = await response.json();
+      
+      const processedTasks = data.map(task => ({
+        id: task.taskId,
+        name: task.title || task.name || task.nombre || task.descripcion || 'Untitled',
+        status: mapTaskStatus(task.status || task.estado),
+        finishDate: task.endDate || task.fechaFin || task.dueDate || task.finishDate || 'No date',
+        priority: task.priority || task.prioridad || 'Normal',
+        sprintId: task.sprint?.sprintId,
+        description: task.description,
+        startDate: task.startDate,
+        storyPoints: task.storyPoints,
+        hoursTaken: task.actualHours || 0,
+        type: task.type
+      }));
+      
+      setTasks(processedTasks);
+      
+      const { overdue, pending, completed } = calculateTaskStatistics(processedTasks);
+      
+      setOverdueTasks(overdue);
+      setPendingTasks(pending);
+      setCompletedTasks(completed);
+    } catch (err) {
+      console.error('Error fetching tasks:', err);
+      setError(prev => ({ ...prev, tasks: err.message }));
+      
+      setTasks([]);
+      setOverdueTasks(0);
+      setPendingTasks(0);
+      setCompletedTasks(0);
+    } finally {
+      setLoading(prev => ({ ...prev, tasks: false }));
+    }
   };
 
   const handleSprintChange = (projectId, sprint) => {
@@ -411,102 +353,6 @@ export default function UserHome() {
       fetchUserTasksForSprint(sprint.sprintId);
     }
   };
-
-  const fetchTasksForProject = (projectId) => {
-    setLoading(prev => ({ ...prev, tasks: true }));
-    
-    const sprints = projectSprints[projectId] || [];
-    const sprintIds = sprints.map(sprint => sprint.sprintId);
-    
-    if (sprintIds.length === 0) {
-      setTasks([]);
-      setOverdueTasks(0);
-      setPendingTasks(0);
-      setCompletedTasks(0);
-      setLoading(prev => ({ ...prev, tasks: false }));
-      return;
-    }
-    
-    const fetchPromises = sprintIds.map(sprintId => 
-      fetch(`/tareas/sprint/${sprintId}`)
-        .then(response => {
-          if (!response.ok) {
-            throw new Error(`Error loading tasks for sprint ${sprintId}`);
-          }
-          return response.json();
-        })
-    );
-    
-    Promise.all(fetchPromises)
-      .then(resultsArray => {
-        const allTasks = resultsArray.flat();
-        
-        const processedTasks = allTasks.map(task => ({
-          id: task.taskId,
-          name: task.title || task.name || task.nombre || task.descripcion || 'Untitled',
-          status: mapTaskStatus(task.status || task.estado),
-          finishDate: task.endDate || task.fechaFin || task.dueDate || task.finishDate || 'No date',
-          priority: task.priority || task.prioridad || 'Normal'
-        }));
-                
-        setTasks(processedTasks);
-        
-        const { overdue, pending, completed } = calculateTaskStatistics(processedTasks);
-        
-        setOverdueTasks(overdue);
-        setPendingTasks(pending);
-        setCompletedTasks(completed);
-        
-        setLoading(prev => ({ ...prev, tasks: false }));
-      })
-      .catch(err => {
-        console.error('Error fetching tasks for project:', err);
-        setError(prev => ({ ...prev, tasks: err.message }));
-        setLoading(prev => ({ ...prev, tasks: false }));
-        setTasks([]);
-        setOverdueTasks(0);
-        setPendingTasks(0);
-        setCompletedTasks(0);
-      });
-  };
-
-  const fetchTasksForSprint = (sprintId) => {
-    setLoading(prev => ({ ...prev, tasks: true }));
-    
-    fetch(`/tareas/sprint/${sprintId}`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Error loading tasks for sprint');
-        }
-        return response.json();
-      })
-      .then(data => {
-        const processedTasks = data.map(task => ({
-          id: task.taskId,
-          name: task.title || task.name || task.nombre || task.descripcion || 'Untitled',
-          status: mapTaskStatus(task.status || task.estado),
-          finishDate: task.endDate || task.fechaFin || task.dueDate || task.finishDate || 'No date',
-          priority: task.priority || task.prioridad || 'Normal'
-        }));
-        
-        setTasks(processedTasks);
-        
-        const { overdue, pending, completed } = calculateTaskStatistics(processedTasks);
-        
-        setOverdueTasks(overdue);
-        setPendingTasks(pending);
-        setCompletedTasks(completed);
-        
-        setLoading(prev => ({ ...prev, tasks: false }));
-      })
-      .catch(err => {
-        console.error('Error fetching tasks for sprint:', err);
-        setError(prev => ({ ...prev, tasks: err.message }));
-        setLoading(prev => ({ ...prev, tasks: false }));
-      });
-  };
-
-  const [dropdownPosition, setDropdownPosition] = useState({});
 
   const toggleSprintDropdown = (projectId, event) => {
     if (event) {
@@ -603,202 +449,137 @@ export default function UserHome() {
     }));
   };
 
-  const handleUpdateTask = () => {
+  const handleUpdateTask = async () => {
     if (!currentTask) return;
     
-    const updateData = {
-      taskId: currentTask.id,
-      title: currentTask.name,
-      description: currentTask.description || "Task description",
-      status: updateTaskForm.status,
-      priority: currentTask.priority || "Normal",
-      type: currentTask.type || "Task",
-      startDate: currentTask.startDate || new Date(),
-      endDate: currentTask.finishDate || new Date(),
-      storyPoints: currentTask.storyPoints || 0,
-      sprint: { sprintId: currentTask.sprintId },
-      usuario: { userId: userId },
-      estimatedHours: currentTask.estimatedHours,
-      actualHours: updateTaskForm.status === 'Done' ? parseFloat(updateTaskForm.hoursTaken) : null
-    };
-    
-    console.log("Sending task update:", updateData);
-    
-    fetch(`/tareas/${currentTask.id}`)
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Error fetching original task data');
-        }
-        return response.json();
-      })
-      .then(originalTask => {
-        const completeUpdateData = {
-          ...originalTask,
-          status: updateTaskForm.status,
-          actualHours: updateTaskForm.status === 'Done' ? parseFloat(updateTaskForm.hoursTaken) : originalTask.actualHours
-        };
-        
-        return fetch(`/tareas/${currentTask.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(completeUpdateData)
-        });
-      })
-      .then(response => {
-        if (!response.ok) {
-          return response.text().then(text => {
-            throw new Error(text || 'Error updating task');
-          });
-        }
-        return response.json();
-      })
-      .then(data => {
-        console.log("Task updated successfully:", data);
-        
-        if (currentSelectedSprint) {
-          fetchUserTasksForSprint(currentSelectedSprint);
-        } else {
-          fetchTasksForUser();
-        }
-        
-        // Show toast notification
-        setToast({
-          show: true,
-          message: 'Task updated successfully!',
-          type: 'success'
-        });
-        
-        // Auto-hide toast after 3 seconds
-        setTimeout(() => {
-          setToast(prev => ({ ...prev, show: false }));
-        }, 3000);
-        
-        closeUpdatePopup();
-      })
-      .catch(err => {
-        console.error('Error updating task:', err);
-        
-        // Show error toast
-        setToast({
-          show: true,
-          message: `Failed to update the task: ${err.message}`,
-          type: 'error'
-        });
-        
-        // Auto-hide toast after 4 seconds for errors
-        setTimeout(() => {
-          setToast(prev => ({ ...prev, show: false }));
-        }, 4000);
+    try {
+      const response = await fetch(`/tareas/${currentTask.id}`);
+      if (!response.ok) {
+        throw new Error('Error fetching original task data');
+      }
+      
+      const originalTask = await response.json();
+      
+      const completeUpdateData = {
+        ...originalTask,
+        status: updateTaskForm.status,
+        actualHours: updateTaskForm.status === 'Done' ? parseFloat(updateTaskForm.hoursTaken) : originalTask.actualHours
+      };
+      
+      const updateResponse = await fetch(`/tareas/${currentTask.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(completeUpdateData)
       });
+      
+      if (!updateResponse.ok) {
+        return updateResponse.text().then(text => {
+          throw new Error(text || 'Error updating task');
+        });
+      }
+      
+      if (currentSelectedSprint) {
+        await fetchUserTasksForSprint(currentSelectedSprint);
+      } else {
+        await fetchTasksForUser();
+      }
+      
+      setToast({
+        show: true,
+        message: 'Task updated successfully!',
+        type: 'success'
+      });
+      
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 3000);
+      
+      closeUpdatePopup();
+    } catch (err) {
+      console.error('Error updating task:', err);
+      
+      setToast({
+        show: true,
+        message: `Failed to update the task: ${err.message}`,
+        type: 'error'
+      });
+      
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 4000);
+    }
   };
 
-  const EditIcon = () => {
-    const [imageError, setImageError] = useState(false);
-
-    return imageError ? (
-      <span
-        style={{
-          display: 'inline-block',
-          width: '18px',
-          height: '18px',
-          lineHeight: '18px',
-          textAlign: 'center',
-          fontWeight: 'bold',
-          color: '#000',
-          fontSize: '14px'
-        }}
-      >
-        ✎
-      </span>
-    ) : (
-      <img 
-        src={`${process.env.PUBLIC_URL || ''}/resources/pencil.png`}
-        onError={() => {
-          console.error("Failed to load pencil icon");
-          setImageError(true);
-        }}
-        alt="Edit" 
-        className="uh-edit-icon"
-        style={{ 
-          width: '18px', 
-          height: '18px', 
-          display: 'block',
-          objectFit: 'contain',
-          border: '1px solid transparent', // Makes icon more visible
-          margin: '0 auto',
-          background: 'transparent'
-        }}
-      />
-    );
+  const ensureArray = (possibleArray) => {
+    if (!possibleArray) return [];
+    return Array.isArray(possibleArray) ? possibleArray : [];
   };
 
   return (
-    <div className="uh-main-container">
+    <div className="flex h-screen bg-white">
       {/* Toast notification */}
       {toast.show && (
-        <div className={`uh-toast-notification ${toast.type}`}>
-          <div className="uh-toast-content">
-            <span>{toast.message}</span>
-          </div>
-          <div className="uh-toast-timeline"></div>
+        <div className={`fixed top-4 right-4 z-50 min-w-[300px] max-w-md ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'} text-white rounded-md shadow-lg overflow-hidden`}>
+          <div className="p-4 font-medium">{toast.message}</div>
+          <div className="h-1 bg-white/50 animate-[timeline_3s_linear_forwards]"></div>
         </div>
       )}
       
+      {/* Update Task Modal */}
       {showUpdatePopup && currentTask && (
-        <div className="uh-popup-overlay">
-          <div className="uh-popup-container" style={{ backgroundColor: '#D4D7E3' }}>
-            <h2 className="uh-popup-title">Update Task</h2>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Update Task</h2>
             
-            <div className="uh-popup-form">
-              <div className="uh-form-group">
-                <label>Status</label>
-                <div className="uh-select-wrapper">
-                  <select
-                    name="status"
-                    value={updateTaskForm.status}
-                    onChange={handleUpdateFormChange}
-                  >
-                    <option value="Incomplete">Incomplete</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Done">Done</option>
-                  </select>
-                </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select
+                  name="status"
+                  value={updateTaskForm.status}
+                  onChange={handleUpdateFormChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-400 focus:border-red-400 text-sm"
+                >
+                  <option value="Incomplete">Incomplete</option>
+                  <option value="In Progress">In Progress</option>
+                  <option value="Done">Done</option>
+                </select>
               </div>
               
-              <div className="uh-form-group">
-                <label>Hours Taken</label>
-                <div className="uh-select-wrapper">
-                  {updateTaskForm.status === 'Done' ? (
-                    <input
-                      type="number"
-                      name="hoursTaken"
-                      value={updateTaskForm.hoursTaken}
-                      onChange={handleUpdateFormChange}
-                      min="0"
-                      step="0.5"
-                      className="uh-hours-input"
-                    />
-                  ) : (
-                    <div className="uh-hours-input uh-disabled-input" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      -
-                    </div>
-                  )}
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Hours Taken</label>
+                {updateTaskForm.status === 'Done' ? (
+                  <input
+                    type="number"
+                    name="hoursTaken"
+                    value={updateTaskForm.hoursTaken}
+                    onChange={handleUpdateFormChange}
+                    min="0"
+                    step="0.5"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-400 focus:border-red-400 text-sm"
+                  />
+                ) : (
+                  <div className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-400 text-sm flex items-center justify-center">
+                    –
+                  </div>
+                )}
                 {updateTaskForm.status !== 'Done' && (
-                  <small className="uh-helper-text">Hours can only be entered when status is "Done"</small>
+                  <p className="text-xs text-gray-500 mt-1 italic">Hours can only be entered when status is "Done"</p>
                 )}
               </div>
               
-              <div className="uh-popup-buttons">
-                <button className="uh-add-button" onClick={handleUpdateTask}>
+              <div className="flex justify-end space-x-3 mt-6">
+                <button 
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition-colors"
+                  onClick={handleUpdateTask}
+                >
                   Update
                 </button>
                 <button 
-                  className="uh-cancel-button" 
+                  className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg font-medium transition-colors"
                   onClick={closeUpdatePopup}
-                  style={{ backgroundColor: '#C74634' }}
                 >
                   Cancel
                 </button>
@@ -808,92 +589,86 @@ export default function UserHome() {
         </div>
       )}
 
-      <div className="uh-content-wrapper">
-        <header className="uh-page-header">
-          <h1 className="uh-page-title">
+      <div className="flex flex-col w-full">
+        <header className="bg-[#423E3A] h-16 px-5 flex items-center shadow-md">
+          <h1 className="text-2xl font-bold text-white">
             {currentUser ? `Home - ${currentUser.name}` : 'Home'}
           </h1>
         </header>
 
-        <div className="uh-content-area">
+        <div className="flex-1 bg-gray-50 p-6 overflow-auto">
           {!currentUser ? (
-            <div className="uh-card">
-              <p className="uh-loading-message">Loading user information...</p>
+            <div className="bg-white rounded-lg shadow p-6 flex items-center justify-center h-32">
+              <div className="animate-pulse text-gray-500">Loading user information...</div>
             </div>
           ) : (
-            <div className="uh-content-grid">
-              <div className="uh-card">
-                <div className="uh-card-header">
-                  <h2 className="uh-card-title">Active Projects</h2>
+            <div className="space-y-6 max-w-7xl mx-auto">
+              {/* Active Projects Card */}
+              <div className="bg-white rounded-lg shadow overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h2 className="text-lg font-semibold text-gray-800">Active Projects</h2>
                 </div>
-                <div className="uh-card-content">
+                
+                <div className="p-4">
                   {loading.projects ? (
-                    <p className="uh-loading-message">Loading projects...</p>
+                    <div className="flex items-center justify-center h-20 text-gray-500">
+                      <svg className="animate-spin h-6 w-6 mr-2" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                      </svg>
+                      Loading projects...
+                    </div>
                   ) : error.projects ? (
-                    <p className="uh-error-message">{error.projects}</p>
+                    <div className="flex items-center justify-center h-20 text-red-600">
+                      <AlertTriangle className="h-5 w-5 mr-2" /> {error.projects}
+                    </div>
                   ) : (
-                    <div className="uh-table-container">
-                      <table className="uh-data-table">
-                        <thead>
-                          <tr className="uh-table-header-row">
-                            <th className="uh-table-header-cell">Name</th>
-                            <th className="uh-table-header-cell">Finish Date</th>
-                            <th className="uh-table-header-cell">Sprint</th>
-                            <th className="uh-table-header-cell">Manager</th>
-                            <th className="uh-table-header-cell">Progress</th>
+                    <div className="overflow-x-auto">
+                      <table className="w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Finish Date</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sprint</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Manager</th>
+                            <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Progress</th>
                           </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="bg-white divide-y divide-gray-200">
                           {projects.length > 0 ? (
                             projects.map((project, index) => (
-                              <tr key={project.projectId || index} className="uh-table-row">
-                                <td className="uh-table-cell">{project.name || project.nombre || 'Unnamed'}</td>
-                                <td className="uh-table-cell">
+                              <tr key={project.projectId || index} className="hover:bg-gray-50">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-800">
+                                  {project.name || project.nombre || 'Unnamed'}
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                   {project.endDate ? new Date(project.endDate).toLocaleDateString() : 'No date'}
                                 </td>
-                                <td className="uh-table-cell">
+                                <td className="px-6 py-4 whitespace-nowrap">
                                   <div 
-                                    className="uh-sprint-selector" 
+                                    className="relative inline-flex items-center justify-between px-3 py-2 border border-gray-300 rounded-md bg-white text-sm text-gray-800 hover:bg-gray-50 min-w-[150px] cursor-pointer"
                                     onClick={(event) => toggleSprintDropdown(project.projectId, event)}
-                                    style={{ backgroundColor: "#fff", borderColor: "#ddd", color: "#000" }}
                                   >
-                                    <span>
+                                    <span className="truncate">
                                       {selectedSprintByProject[project.projectId]?.name || 'No Sprint'}
                                     </span>
-                                    <span className="uh-dropdown-indicator">▼</span>
+                                    <ChevronDown className="h-4 w-4 ml-1 text-gray-400 flex-shrink-0" />
                                   </div>
                                   
                                   {showSprintDropdown[project.projectId] && projectSprints[project.projectId]?.length > 0 && (
                                     <div 
-                                      className="uh-sprint-dropdown" 
+                                      className="fixed z-50 w-[180px] max-h-[250px] overflow-y-auto bg-white border border-gray-200 rounded-md shadow-lg"
                                       style={{
-                                        position: 'fixed',
                                         top: `${dropdownPosition.top}px`,
-                                        left: `${dropdownPosition.left}px`,
-                                        width: '180px',
-                                        maxHeight: '250px',
-                                        overflowY: 'auto',
-                                        zIndex: 9999,
-                                        backgroundColor: '#fff',
-                                        border: '1px solid #e0e0e0',
-                                        borderRadius: '6px',
-                                        boxShadow: '0 3px 8px rgba(0,0,0,0.1)',
-                                        padding: '4px 0'
+                                        left: `${dropdownPosition.left}px`
                                       }}
                                       onClick={(e) => e.stopPropagation()}
                                     >
                                       <div 
-                                        key="all-sprints" 
-                                        className="uh-sprint-option"
-                                        style={{
-                                          padding: '8px 12px',
-                                          cursor: 'pointer',
-                                          backgroundColor: selectedSprintByProject[project.projectId]?.isAllSprints ? '#f5f5f5' : 'transparent',
-                                          fontWeight: selectedSprintByProject[project.projectId]?.isAllSprints ? '500' : 'normal',
-                                          borderRadius: '4px',
-                                          margin: '2px 4px',
-                                          transition: 'background-color 0.2s'
-                                        }}
+                                        className={`px-3 py-2 text-sm cursor-pointer ${
+                                          selectedSprintByProject[project.projectId]?.isAllSprints 
+                                            ? 'bg-gray-100 font-medium' : 'hover:bg-gray-50'
+                                        }`}
                                         onClick={(e) => {
                                           e.stopPropagation();
                                           handleSprintChange(project.projectId, { 
@@ -909,16 +684,10 @@ export default function UserHome() {
                                       {projectSprints[project.projectId].map(sprint => (
                                         <div 
                                           key={sprint.sprintId} 
-                                          className="uh-sprint-option"
-                                          style={{
-                                            padding: '8px 12px',
-                                            cursor: 'pointer',
-                                            backgroundColor: selectedSprintByProject[project.projectId]?.sprintId === sprint.sprintId ? '#f5f5f5' : 'transparent',
-                                            fontWeight: selectedSprintByProject[project.projectId]?.sprintId === sprint.sprintId ? '500' : 'normal',
-                                            borderRadius: '4px',
-                                            margin: '2px 4px',
-                                            transition: 'background-color 0.2s'
-                                          }}
+                                          className={`px-3 py-2 text-sm cursor-pointer ${
+                                            selectedSprintByProject[project.projectId]?.sprintId === sprint.sprintId 
+                                              ? 'bg-gray-100 font-medium' : 'hover:bg-gray-50'
+                                          }`}
                                           onClick={(e) => {
                                             e.stopPropagation();
                                             handleSprintChange(project.projectId, sprint);
@@ -930,42 +699,29 @@ export default function UserHome() {
                                     </div>
                                   )}
                                 </td>
-                                <td className="uh-table-cell">
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                                   {project.usuario ? 
                                    `${project.usuario.firstName} ${project.usuario.lastName}` : 
                                    'Unassigned'}
                                 </td>
-                                <td className="uh-table-cell">
-                                  <div 
-                                    style={{ 
-                                      width: '100%', 
-                                      backgroundColor: '#e0e0e0', 
-                                      height: '12px', 
-                                      borderRadius: '6px',
-                                      overflow: 'hidden',
-                                      margin: '5px 0',
-                                      position: 'relative'
-                                    }}
-                                  >
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                                  <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
                                     <div 
-                                      style={{ 
-                                        width: `${Math.max(project.progress || 0, 3)}%`,
-                                        backgroundColor: '#4caf50',
-                                        height: '100%',
-                                        borderRadius: '6px',
-                                        position: 'absolute',
-                                        top: 0,
-                                        left: 0,
-                                        transition: 'width 0.3s ease-in-out'
-                                      }}
+                                      className="bg-green-500 h-2.5 rounded-full transition-all duration-300"
+                                      style={{ width: `${Math.max(project.progress || 0, 3)}%` }}
                                     ></div>
+                                  </div>
+                                  <div className="text-xs text-gray-500 mt-1 text-right">
+                                    {project.progress || 0}% Complete
                                   </div>
                                 </td>
                               </tr>
                             ))
                           ) : (
                             <tr>
-                              <td colSpan="5" className="uh-table-cell uh-no-data">No active projects</td>
+                              <td colSpan="5" className="px-6 py-8 text-center text-gray-500 italic">
+                                No active projects
+                              </td>
                             </tr>
                           )}
                         </tbody>
@@ -975,79 +731,184 @@ export default function UserHome() {
                 </div>
               </div>
 
-              <div className="uh-task-summary-grid">
-                <div className="uh-task-card uh-overdue-card">
-                  <div className="uh-task-card-header">
-                    <div className="uh-task-card-title-container">
-                      <span className="uh-alert-icon">!</span>
-                      <h2 className="uh-task-card-title">Overdue Tasks</h2>
+              {/* Tasks Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="bg-white rounded-lg shadow overflow-hidden border-t-4 border-red-500">
+                  <div className="p-5">
+                    <div className="flex items-center mb-2">
+                      <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center mr-3">
+                        <AlertTriangle className="h-4 w-4 text-red-600" />
+                      </div>
+                      <h3 className="text-base font-medium text-gray-800">Overdue Tasks</h3>
                     </div>
-                  </div>
-                  <div className="uh-task-card-content">
-                    <div className="uh-task-count">{overdueTasks}</div>
+                    <div className="text-5xl font-bold text-gray-900 text-center py-4">{overdueTasks}</div>
                   </div>
                 </div>
 
-                <div className="uh-task-card uh-pending-card">
-                  <div className="uh-task-card-header">
-                    <h2 className="uh-task-card-title">Pending Tasks</h2>
-                  </div>
-                  <div className="uh-task-card-content">
-                    <div className="uh-task-count">{pendingTasks}</div>
+                <div className="bg-white rounded-lg shadow overflow-hidden border-t-4 border-amber-500">
+                  <div className="p-5">
+                    <div className="flex items-center mb-2">
+                      <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center mr-3">
+                        <Clock className="h-4 w-4 text-amber-600" />
+                      </div>
+                      <h3 className="text-base font-medium text-gray-800">Pending Tasks</h3>
+                    </div>
+                    <div className="text-5xl font-bold text-gray-900 text-center py-4">{pendingTasks}</div>
                   </div>
                 </div>
 
-                <div className="uh-task-card uh-done-card">
-                  <div className="uh-task-card-header">
-                    <h2 className="uh-task-card-title">Tasks Done</h2>
-                  </div>
-                  <div className="uh-task-card-content">
-                    <div className="uh-task-count">{completedTasks}</div>
+                <div className="bg-white rounded-lg shadow overflow-hidden border-t-4 border-green-500">
+                  <div className="p-5">
+                    <div className="flex items-center mb-2">
+                      <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center mr-3">
+                        <CheckCircle className="h-4 w-4 text-green-600" />
+                      </div>
+                      <h3 className="text-base font-medium text-gray-800">Tasks Done</h3>
+                    </div>
+                    <div className="text-5xl font-bold text-gray-900 text-center py-4">{completedTasks}</div>
                   </div>
                 </div>
               </div>
 
-              <TasksTable 
-                tasks={tasks}
-                loading={loading.tasks}
-                error={error.tasks}
-                onUpdateTask={openUpdatePopup}
-                filters={filters}
-                activeFilters={activeFilters}
-                onFilterChange={applyFilter}
-                onFilterRemove={removeFilter}
-                onClearFilters={clearAllFilters}
-                onShowFiltersToggle={toggleShowFilters}
-                showFilters={showFilters}
-                cssPrefix="uh-"
-                editButtonProps={{
-                  className: "uh-edit-button",
-                  style: {
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    width: "32px",
-                    height: "32px",
-                    margin: "0 auto",
-                    border: "none",
-                    borderRadius: "4px",
-                    cursor: "pointer",
-                    background: "transparent"
-                  }
-                }}
-                editIconProps={{
-                  element: <EditIcon />,
-                  className: "uh-edit-icon",
-                  style: {
-                    width: "16px",
-                    height: "16px"
-                  }
-                }}
-              />
+              {/* Tasks Table */}
+              <div className="bg-white rounded-lg shadow overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                  <h2 className="text-lg font-semibold text-gray-800">My Tasks</h2>
+                  <div className="relative">
+                    <button 
+                      className="inline-flex items-center px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium rounded-md"
+                      onClick={toggleShowFilters}
+                    >
+                      <Filter className="h-4 w-4 mr-2" />
+                      {activeFilters.length > 0 ? (
+                        <>
+                          Filters
+                          <span className="ml-1.5 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">
+                            {activeFilters.length}
+                          </span>
+                        </>
+                      ) : (
+                        'Filters'
+                      )}
+                    </button>
+                    
+                    {showFilters && (
+                      <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg z-10 border border-gray-200 overflow-hidden">
+                        <div className="px-4 py-3 border-b border-gray-200">
+                          <h3 className="text-sm font-semibold text-gray-700">Filter by status</h3>
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            {['Incomplete', 'In Progress', 'Done'].map(status => (
+                              <button
+                                key={status}
+                                className={`px-2 py-1 text-xs rounded-md ${
+                                  filters.status === status
+                                    ? 'bg-gray-800 text-white'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                                onClick={() => applyFilter('status', status)}
+                              >
+                                {status}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <div className="px-4 py-3 border-b border-gray-200">
+                          <h3 className="text-sm font-semibold text-gray-700">Filter by priority</h3>
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            {['High', 'Medium', 'Low', 'Normal'].map(priority => (
+                              <button
+                                key={priority}
+                                className={`px-2 py-1 text-xs rounded-md ${
+                                  filters.priority === priority
+                                    ? 'bg-gray-800 text-white'
+                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                }`}
+                                onClick={() => applyFilter('priority', priority)}
+                              >
+                                {priority}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <div className="px-4 py-3 border-b border-gray-200">
+                          <h3 className="text-sm font-semibold text-gray-700">Search</h3>
+                          <div className="mt-2">
+                            <input
+                              type="text"
+                              placeholder="Search tasks..."
+                              value={filters.searchTerm}
+                              onChange={(e) => applyFilter('searchTerm', e.target.value)}
+                              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400"
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="px-4 py-2 bg-gray-50 text-right">
+                          <button
+                            className="text-xs text-gray-600 hover:text-gray-800 underline"
+                            onClick={clearAllFilters}
+                          >
+                            Clear all filters
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {activeFilters.length > 0 && (
+                  <div className="bg-gray-50 px-6 py-2 flex items-center flex-wrap gap-2 border-b border-gray-200">
+                    <span className="text-xs text-gray-500">Active filters:</span>
+                    {activeFilters.map((filter, index) => (
+                      <div key={index} className="inline-flex items-center px-2 py-1 rounded-md bg-gray-200 text-gray-700 text-xs">
+                        <span className="mr-1 font-medium">{filter.type}:</span> {filter.value}
+                        <button 
+                          className="ml-1.5 text-gray-400 hover:text-gray-600"
+                          onClick={() => removeFilter(filter.type)}
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                    
+                    <button 
+                      className="text-xs text-gray-500 hover:text-gray-700 ml-auto"
+                      onClick={clearAllFilters}
+                    >
+                      Clear all
+                    </button>
+                  </div>
+                )}
+                
+                <div className="overflow-x-auto">
+                  <TasksTable 
+                    tasks={ensureArray(tasks)}
+                    loading={loading.tasks}
+                    error={error.tasks}
+                    onUpdateTask={openUpdatePopup}
+                    filters={filters}
+                    activeFilters={activeFilters}
+                    onFilterChange={applyFilter}
+                    onFilterRemove={removeFilter}
+                    onClearFilters={clearAllFilters}
+                    onShowFiltersToggle={toggleShowFilters}
+                    showFilters={showFilters}
+                    cssPrefix=""
+                    editButtonProps={{
+                      className: "p-1.5 rounded-full hover:bg-gray-100",
+                    }}
+                    editIconProps={{
+                      element: <Pencil className="h-4 w-4 text-gray-500" />,
+                    }}
+                  />
+                </div>
+              </div>
             </div>
           )}
         </div>
       </div>
     </div>
-  )
+  );
 }

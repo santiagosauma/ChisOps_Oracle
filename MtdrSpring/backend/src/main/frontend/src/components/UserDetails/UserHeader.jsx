@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, ChevronDown } from 'lucide-react';
 
-function UserHeader({ userName, role, onBack, sprints, selectedSprint, onSprintChange }) {
+function UserHeader({ userName, role, onBack, sprints = [], selectedSprint, onSprintChange }) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
