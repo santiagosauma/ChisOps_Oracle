@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import '../styles/KanbanBoard.css';
 
 const TaskCard = ({ task, onUpdateTask }) => {
   const formatDate = (dateString) => {
@@ -24,13 +23,13 @@ const TaskCard = ({ task, onUpdateTask }) => {
   const getPriorityColor = (priority) => {
     switch (priority?.toLowerCase()) {
       case 'high':
-        return '#ff6b6b';
+        return 'bg-red-500';
       case 'medium':
-        return '#ffd166';
+        return 'bg-yellow-500';
       case 'low':
-        return '#06d6a0';
+        return 'bg-green-500';
       default:
-        return '#aaaaaa';
+        return 'bg-gray-400';
     }
   };
 
@@ -38,35 +37,32 @@ const TaskCard = ({ task, onUpdateTask }) => {
     e.dataTransfer.setData('taskId', task.id);
     e.dataTransfer.effectAllowed = 'move';
     setTimeout(() => {
-      e.target.classList.add('kb-dragging');
+      e.target.classList.add('opacity-50');
     }, 0);
   };
 
   const handleDragEnd = (e) => {
-    e.target.classList.remove('kb-dragging');
+    e.target.classList.remove('opacity-50');
   };
 
   return (
     <div
-      className={`kb-task-card ${isOverdue() ? 'kb-overdue' : ''}`}
+      className={`bg-white rounded-md shadow p-3 cursor-grab transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 ${isOverdue() ? 'border-l-4 border-red-500' : 'border-l-4 border-gray-600'}`}
       onClick={() => onUpdateTask(task)}
       draggable="true"
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       data-task-id={task.id}
     >
-      <div className="kb-task-header">
-        <div 
-          className="kb-priority-indicator" 
-          style={{ backgroundColor: getPriorityColor(task.priority) }}
-        ></div>
-        <div className="kb-task-title">{task.name}</div>
+      <div className="flex items-center mb-2">
+        <div className={`w-3 h-3 rounded-full mr-2 ${getPriorityColor(task.priority)}`}></div>
+        <div className="font-medium text-gray-800 truncate">{task.name}</div>
       </div>
-      <div className="kb-task-details">
-        <div className="kb-task-due-date">
+      <div className="flex justify-between text-xs text-gray-500">
+        <div className={`${isOverdue() ? 'text-red-600 font-medium' : ''}`}>
           <span>Due: {formatDate(task.finishDate)}</span>
         </div>
-        <div className="kb-task-priority">
+        <div>
           <span>{task.priority || 'Normal'}</span>
         </div>
       </div>
@@ -79,16 +75,16 @@ const TaskColumn = ({ title, status, tasks, onUpdateTask, onDrop }) => {
   const handleDragOver = (e) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
-    e.currentTarget.classList.add('kb-drop-over');
+    e.currentTarget.classList.add('bg-indigo-50');
   };
 
   const handleDragLeave = (e) => {
-    e.currentTarget.classList.remove('kb-drop-over');
+    e.currentTarget.classList.remove('bg-indigo-50');
   };
 
   const handleDrop = (e) => {
     e.preventDefault();
-    e.currentTarget.classList.remove('kb-drop-over');
+    e.currentTarget.classList.remove('bg-indigo-50');
     
     const taskId = e.dataTransfer.getData('taskId');
     if (taskId) {
@@ -101,16 +97,16 @@ const TaskColumn = ({ title, status, tasks, onUpdateTask, onDrop }) => {
 
   return (
     <div 
-      className="kb-column"
+      className="flex-1 min-w-[300px] bg-gray-100 rounded-lg shadow flex flex-col min-h-full transition-all duration-200"
       onDragOver={handleDragOver}
       onDragLeave={handleDragLeave}
       onDrop={handleDrop}
     >
-      <div className="kb-column-header">
-        <h3>{title}</h3>
-        <span className="kb-task-count">{filteredTasks.length}</span>
+      <div className="p-4 border-b border-gray-200 bg-white rounded-t-lg flex justify-between items-center">
+        <h3 className="text-lg font-semibold text-gray-700">{title}</h3>
+        <span className="bg-gray-200 text-gray-600 text-xs font-medium px-2 py-1 rounded-full">{filteredTasks.length}</span>
       </div>
-      <div className="kb-task-list">
+      <div className="p-4 flex-1 overflow-y-auto flex flex-col space-y-3">
         {filteredTasks.map(task => (
           <TaskCard 
             key={task.id} 
@@ -119,7 +115,7 @@ const TaskColumn = ({ title, status, tasks, onUpdateTask, onDrop }) => {
           />
         ))}
         {filteredTasks.length === 0 && (
-          <div className="kb-empty-column">No tasks</div>
+          <div className="text-center text-gray-400 italic p-4">No tasks</div>
         )}
       </div>
     </div>
@@ -132,7 +128,7 @@ const KanbanBoard = ({ tasks, loading, error, onUpdateTask, onTaskStatusChange, 
 
   // Apply filters to tasks
   useEffect(() => {
-    let result = [...tasks];
+    let result = Array.isArray(tasks) ? [...tasks] : [];
     
     if (filters.status) {
       result = result.filter(task => task.status === filters.status);
@@ -154,37 +150,53 @@ const KanbanBoard = ({ tasks, loading, error, onUpdateTask, onTaskStatusChange, 
     setFilteredTasks(result);
   }, [tasks, filters]);
 
+  const handleTaskStatusChange = (taskId, newStatus) => {
+    const task = filteredTasks.find(t => t.id === taskId);
+    if (task && task.status !== newStatus) {
+      const updatedTask = { ...task, status: newStatus };
+      onTaskStatusChange(updatedTask);
+    }
+  };
+
   if (loading) {
-    return <div className="kb-loading">Loading tasks...</div>;
+    return (
+      <div className="flex items-center justify-center h-60 text-gray-500">
+        <svg className="animate-spin h-6 w-6 mr-2" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+        </svg>
+        Loading tasks...
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="kb-error">Error: {error}</div>;
+    return <div className="text-red-600 text-center p-4">Error: {error}</div>;
   }
 
   return (
-    <div className="kb-board-container">
-      <div className="kb-board">
+    <div className="w-full overflow-x-auto py-4">
+      <div className="flex space-x-4 min-h-[500px] pb-4">
         <TaskColumn 
           title="Incomplete" 
           status="Incomplete" 
           tasks={filteredTasks} 
           onUpdateTask={onUpdateTask}
-          onDrop={onTaskStatusChange}
+          onDrop={handleTaskStatusChange}
         />
         <TaskColumn 
           title="In Progress" 
           status="In Progress" 
           tasks={filteredTasks} 
           onUpdateTask={onUpdateTask}
-          onDrop={onTaskStatusChange}
+          onDrop={handleTaskStatusChange}
         />
         <TaskColumn 
           title="Done" 
           status="Done" 
           tasks={filteredTasks} 
           onUpdateTask={onUpdateTask}
-          onDrop={onTaskStatusChange}
+          onDrop={handleTaskStatusChange}
         />
       </div>
     </div>

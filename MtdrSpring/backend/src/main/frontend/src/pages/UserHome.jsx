@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useMemo } from "react";
 import TasksTable from '../components/TasksTable';
-import { Pencil, ChevronDown, Filter, X, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
 import KanbanBoard from '../components/KanbanBoard';
+import { Pencil, ChevronDown, Filter, X, AlertTriangle, Clock, CheckCircle, LayoutGrid, List } from 'lucide-react';
 
 export default function UserHome() {
   const [projects, setProjects] = useState([]);
@@ -515,6 +515,67 @@ export default function UserHome() {
     }
   };
 
+  const handleTaskStatusChange = async (updatedTask) => {
+    if (!updatedTask) return;
+    
+    try {
+      const response = await fetch(`/tareas/${updatedTask.id}`);
+      if (!response.ok) {
+        throw new Error('Error fetching original task data');
+      }
+      
+      const originalTask = await response.json();
+      
+      const completeUpdateData = {
+        ...originalTask,
+        status: updatedTask.status
+      };
+      
+      const updateResponse = await fetch(`/tareas/${updatedTask.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(completeUpdateData)
+      });
+      
+      if (!updateResponse.ok) {
+        return updateResponse.text().then(text => {
+          throw new Error(text || 'Error updating task');
+        });
+      }
+      
+      // Refresh task data
+      if (currentSelectedSprint) {
+        await fetchUserTasksForSprint(currentSelectedSprint);
+      } else {
+        await fetchTasksForUser();
+      }
+      
+      setToast({
+        show: true,
+        message: 'Task updated successfully!',
+        type: 'success'
+      });
+      
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 3000);
+    } catch (err) {
+      console.error('Error updating task:', err);
+      
+      setToast({
+        show: true,
+        message: `Failed to update the task: ${err.message}`,
+        type: 'error'
+      });
+      
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 4000);
+    }
+  };
+
   const ensureArray = (possibleArray) => {
     if (!possibleArray) return [];
     return Array.isArray(possibleArray) ? possibleArray : [];
@@ -777,94 +838,125 @@ export default function UserHome() {
                 </div>
               </div>
 
-              {/* Tasks Table */}
+              {/* Tasks Table / Kanban Board */}
               <div className="bg-white rounded-lg shadow overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                   <h2 className="text-lg font-semibold text-gray-800">My Tasks</h2>
-                  <div className="relative">
-                    <button 
-                      className="inline-flex items-center px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium rounded-md"
-                      onClick={toggleShowFilters}
-                    >
-                      <Filter className="h-4 w-4 mr-2" />
-                      {activeFilters.length > 0 ? (
-                        <>
-                          Filters
-                          <span className="ml-1.5 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">
-                            {activeFilters.length}
-                          </span>
-                        </>
-                      ) : (
-                        'Filters'
-                      )}
-                    </button>
+                  <div className="flex items-center space-x-2">
+                    {/* View toggle buttons */}
+                    <div className="flex rounded-md shadow-sm mr-4" role="group">
+                      <button
+                        type="button"
+                        onClick={() => setViewMode('table')}
+                        className={`px-4 py-2 text-sm font-medium rounded-l-lg ${
+                          viewMode === 'table'
+                            ? 'bg-gray-800 text-white'
+                            : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300'
+                        }`}
+                      >
+                        Table
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setViewMode('kanban')}
+                        className={`px-4 py-2 text-sm font-medium rounded-r-lg ${
+                          viewMode === 'kanban'
+                            ? 'bg-gray-800 text-white'
+                            : 'bg-white text-gray-700 hover:bg-gray-50 border border-gray-300 border-l-0'
+                        }`}
+                      >
+                        Kanban
+                      </button>
+                    </div>
                     
-                    {showFilters && (
-                      <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg z-10 border border-gray-200 overflow-hidden">
-                        <div className="px-4 py-3 border-b border-gray-200">
-                          <h3 className="text-sm font-semibold text-gray-700">Filter by status</h3>
-                          <div className="mt-2 flex flex-wrap gap-1.5">
-                            {['Incomplete', 'In Progress', 'Done'].map(status => (
-                              <button
-                                key={status}
-                                className={`px-2 py-1 text-xs rounded-md ${
-                                  filters.status === status
-                                    ? 'bg-gray-800 text-white'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                }`}
-                                onClick={() => applyFilter('status', status)}
-                              >
-                                {status}
-                              </button>
-                            ))}
+                    {/* Filter button */}
+                    <div className="relative">
+                      <button 
+                        className="inline-flex items-center px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium rounded-md"
+                        onClick={toggleShowFilters}
+                      >
+                        <Filter className="h-4 w-4 mr-2" />
+                        {activeFilters.length > 0 ? (
+                          <>
+                            Filters
+                            <span className="ml-1.5 px-1.5 py-0.5 bg-red-500 text-white text-xs rounded-full">
+                              {activeFilters.length}
+                            </span>
+                          </>
+                        ) : (
+                          'Filters'
+                        )}
+                      </button>
+                      
+                      {/* Filter dropdown - keep existing code */}
+                      {showFilters && (
+                        <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg z-10 border border-gray-200 overflow-hidden">
+                          <div className="px-4 py-3 border-b border-gray-200">
+                            <h3 className="text-sm font-semibold text-gray-700">Filter by status</h3>
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {['Incomplete', 'In Progress', 'Done'].map(status => (
+                                <button
+                                  key={status}
+                                  className={`px-2 py-1 text-xs rounded-md ${
+                                    filters.status === status
+                                      ? 'bg-gray-800 text-white'
+                                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                  }`}
+                                  onClick={() => applyFilter('status', status)}
+                                >
+                                  {status}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <div className="px-4 py-3 border-b border-gray-200">
+                            <h3 className="text-sm font-semibold text-gray-700">Filter by priority</h3>
+                            <div className="mt-2 flex flex-wrap gap-1.5">
+                              {['High', 'Medium', 'Low', 'Normal'].map(priority => (
+                                <button
+                                  key={priority}
+                                  className={`px-2 py-1 text-xs rounded-md ${
+                                    filters.priority === priority
+                                      ? 'bg-gray-800 text-white'
+                                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                  }`}
+                                  onClick={() => applyFilter('priority', priority)}
+                                >
+                                  {priority}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                          
+                          <div className="px-4 py-3 border-b border-gray-200">
+                            <h3 className="text-sm font-semibold text-gray-700">Search</h3>
+                            <div className="mt-2">
+                              <input
+                                type="text"
+                                placeholder="Search tasks..."
+                                value={filters.searchTerm}
+                                onChange={(e) => applyFilter('searchTerm', e.target.value)}
+                                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400"
+                              />
+                            </div>
+                          </div>
+                          
+                          <div className="px-4 py-2 bg-gray-50 text-right">
+                            <button
+                              className="text-xs text-gray-600 hover:text-gray-800 underline"
+                              onClick={clearAllFilters}
+                            >
+                              Clear all filters
+                            </button>
                           </div>
                         </div>
-                        
-                        <div className="px-4 py-3 border-b border-gray-200">
-                          <h3 className="text-sm font-semibold text-gray-700">Filter by priority</h3>
-                          <div className="mt-2 flex flex-wrap gap-1.5">
-                            {['High', 'Medium', 'Low', 'Normal'].map(priority => (
-                              <button
-                                key={priority}
-                                className={`px-2 py-1 text-xs rounded-md ${
-                                  filters.priority === priority
-                                    ? 'bg-gray-800 text-white'
-                                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                                }`}
-                                onClick={() => applyFilter('priority', priority)}
-                              >
-                                {priority}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                        
-                        <div className="px-4 py-3 border-b border-gray-200">
-                          <h3 className="text-sm font-semibold text-gray-700">Search</h3>
-                          <div className="mt-2">
-                            <input
-                              type="text"
-                              placeholder="Search tasks..."
-                              value={filters.searchTerm}
-                              onChange={(e) => applyFilter('searchTerm', e.target.value)}
-                              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400"
-                            />
-                          </div>
-                        </div>
-                        
-                        <div className="px-4 py-2 bg-gray-50 text-right">
-                          <button
-                            className="text-xs text-gray-600 hover:text-gray-800 underline"
-                            onClick={clearAllFilters}
-                          >
-                            Clear all filters
-                          </button>
-                        </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </div>
                 
+                {/* Active filters - keep existing code */}
                 {activeFilters.length > 0 && (
                   <div className="bg-gray-50 px-6 py-2 flex items-center flex-wrap gap-2 border-b border-gray-200">
                     <span className="text-xs text-gray-500">Active filters:</span>
@@ -890,26 +982,37 @@ export default function UserHome() {
                 )}
                 
                 <div className="overflow-x-auto">
-                  <TasksTable 
-                    tasks={ensureArray(tasks)}
-                    loading={loading.tasks}
-                    error={error.tasks}
-                    onUpdateTask={openUpdatePopup}
-                    filters={filters}
-                    activeFilters={activeFilters}
-                    onFilterChange={applyFilter}
-                    onFilterRemove={removeFilter}
-                    onClearFilters={clearAllFilters}
-                    onShowFiltersToggle={toggleShowFilters}
-                    showFilters={showFilters}
-                    cssPrefix=""
-                    editButtonProps={{
-                      className: "p-1.5 rounded-full hover:bg-gray-100",
-                    }}
-                    editIconProps={{
-                      element: <Pencil className="h-4 w-4 text-gray-500" />,
-                    }}
-                  />
+                  {viewMode === 'table' ? (
+                    <TasksTable 
+                      tasks={ensureArray(tasks)}
+                      loading={loading.tasks}
+                      error={error.tasks}
+                      onUpdateTask={openUpdatePopup}
+                      filters={filters}
+                      activeFilters={activeFilters}
+                      onFilterChange={applyFilter}
+                      onFilterRemove={removeFilter}
+                      onClearFilters={clearAllFilters}
+                      onShowFiltersToggle={toggleShowFilters}
+                      showFilters={showFilters}
+                      cssPrefix=""
+                      editButtonProps={{
+                        className: "p-1.5 rounded-full hover:bg-gray-100",
+                      }}
+                      editIconProps={{
+                        element: <Pencil className="h-4 w-4 text-gray-500" />,
+                      }}
+                    />
+                  ) : (
+                    <KanbanBoard
+                      tasks={ensureArray(tasks)}
+                      loading={loading.tasks}
+                      error={error.tasks}
+                      onUpdateTask={openUpdatePopup}
+                      onTaskStatusChange={handleTaskStatusChange}
+                      filters={filters}
+                    />
+                  )}
                 </div>
               </div>
             </div>
