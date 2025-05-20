@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import { Info } from 'lucide-react';
 
 const ProjectDescription = ({ description, startDate, dueDate, status, currentSprint, allSprints = [] }) => {
   const getStatusBadgeClass = (status) => {
@@ -57,7 +58,8 @@ const ProjectDescription = ({ description, startDate, dueDate, status, currentSp
 
   return (
     <div className="flex flex-col h-full">
-      <h2 className="text-lg font-semibold mb-3.5 pb-2 border-b border-gray-200 text-gray-800">
+      <h2 className="text-lg font-semibold mb-3.5 pb-2 border-b border-gray-200 text-gray-800 flex items-center">
+        <Info size={18} className="mr-2 text-gray-600" />
         Project Information
       </h2>
       <div className="flex flex-col flex-grow px-1.5">

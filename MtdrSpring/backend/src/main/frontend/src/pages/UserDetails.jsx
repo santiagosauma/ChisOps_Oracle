@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import '../styles/UserDetails.css';
 import UserHeader from '../components/UserDetails/UserHeader';
 import UserInformation from '../components/UserDetails/UserInformation';
 import UserStatistics from '../components/UserDetails/UserStatistics';
@@ -7,6 +6,7 @@ import UserProjectHistory from '../components/UserDetails/UserProjectHistory';
 import UserTasks from '../components/UserDetails/UserTasks';
 import UserPerformance from '../components/UserDetails/UserPerformance';
 import Loader from '../components/Loader';
+import { ListCheck } from 'lucide-react';
 
 function UserDetails({ userId, projectId, onBack }) {
   const [userData, setUserData] = useState(null);
@@ -58,7 +58,6 @@ function UserDetails({ userId, projectId, onBack }) {
           tasksData = await tasksResponse.json();
         }
 
-        // Procesar datos para el estado
         const processedUser = {
           ...user,
           status: user.deleted === 0 ? 'Active' : 'Inactive'
@@ -69,7 +68,6 @@ function UserDetails({ userId, projectId, onBack }) {
         setSelectedProject(initialProject);
         setSprintsWithTasks(tasksData.sprints || []);
         
-        // Extraer todas las tareas para mostrarlas inicialmente
         const allTasks = [];
         tasksData.sprints.forEach(sprint => {
           if (sprint.tasks && Array.isArray(sprint.tasks)) {
@@ -79,17 +77,15 @@ function UserDetails({ userId, projectId, onBack }) {
         
         setFilteredTasks(allTasks);
         
-        // Calcular estadísticas iniciales
         const done = allTasks.filter(t => t.status === 'Done').length;
         const inProgress = allTasks.filter(t => t.status !== 'Done').length;
         
         setFilteredTaskStats({
-          overdue: 0, // Asumimos que no hay tareas vencidas inicialmente
+          overdue: 0,
           pending: inProgress,
           completed: done
         });
         
-        // Calcular métricas de rendimiento
         calculatePerformanceMetrics(tasksData.sprints || []);
 
       } catch (err) {
@@ -140,18 +136,15 @@ function UserDetails({ userId, projectId, onBack }) {
   useEffect(() => {
     if (!sprintsWithTasks || sprintsWithTasks.length === 0) return;
 
-    // Filtrar las tareas según el sprint seleccionado
     let tasksToShow = [];
     
     if (selectedSprint === "all") {
-      // Mostrar todas las tareas de todos los sprints
       sprintsWithTasks.forEach(sprint => {
         if (sprint.tasks && Array.isArray(sprint.tasks)) {
           tasksToShow = [...tasksToShow, ...sprint.tasks];
         }
       });
     } else {
-      // Buscar el sprint seleccionado y mostrar sus tareas
       const selectedSprintData = sprintsWithTasks.find(s => s.sprintId === parseInt(selectedSprint));
       if (selectedSprintData && selectedSprintData.tasks) {
         tasksToShow = selectedSprintData.tasks;
@@ -160,7 +153,6 @@ function UserDetails({ userId, projectId, onBack }) {
     
     setFilteredTasks(tasksToShow);
     
-    // Recalcular estadísticas basadas en las tareas filtradas
     const overdue = tasksToShow.filter(task => 
       new Date(task.endDate) < new Date() && task.status !== 'Done'
     ).length;
@@ -191,7 +183,7 @@ function UserDetails({ userId, projectId, onBack }) {
       
       setSelectedProject(projectId);
       setSprintsWithTasks(data.sprints || []);
-      setSelectedSprint("all"); // Resetear a mostrar todas las tareas
+      setSelectedSprint("all");
       calculatePerformanceMetrics(data.sprints || []);
       
     } catch (err) {
@@ -208,22 +200,22 @@ function UserDetails({ userId, projectId, onBack }) {
 
   if (loading && !userData) {
     return (
-      <div className="loading-container">
+      <div className="flex items-center justify-center h-screen">
         <Loader />
       </div>
     );
   }
 
   if (error) {
-    return <div className="error">Error: {error}</div>;
+    return <div className="flex items-center justify-center h-screen text-red-600 text-lg font-medium">Error: {error}</div>;
   }
 
   if (!userData) {
-    return <div className="no-data">No user data available</div>;
+    return <div className="flex items-center justify-center h-screen text-gray-600 text-lg font-medium">No user data available</div>;
   }
 
   return (
-    <div className="user-details-wrapper">
+    <div className="flex flex-col h-screen w-full bg-gray-50">
       <UserHeader 
         userName={`${userData?.firstName} ${userData?.lastName}`}
         role={userData?.rol}
@@ -234,39 +226,74 @@ function UserDetails({ userId, projectId, onBack }) {
         }))}
         selectedSprint={selectedSprint}
         onSprintChange={handleSprintChange}
-        style={{ height: 'calc(100% + 50px)' }}
       />
 
-      <div className="user-details-container">
-        {loading && <div className="loading-overlay">Loading data...</div>}
-        
-        <div className="user-details-grid">
-          <div className="user-left-col">
-            <div className="user-information-container">
-              <UserInformation userData={userData} />
-            </div>
-            <div className="user-statistics-container">
-              <UserStatistics taskStats={filteredTaskStats} />
-            </div>
-            <div className="user-project-history-container">
-              <UserProjectHistory 
-                projects={projects} 
-                selectedProject={selectedProject}
-                onProjectChange={handleProjectChange}
-              />
-            </div>
+      <div className="flex-1 overflow-hidden relative">
+        {loading && (
+          <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10 text-gray-800 font-medium">
+            Loading data...
           </div>
-          <div className="user-right-col">
-            <div className="user-tasks-container">
-              <UserTasks tasks={filteredTasks} />
+        )}
+        
+        <div className="h-full overflow-auto">
+          <div className="h-auto p-4 flex flex-wrap">
+            <div className="w-full lg:w-2/5 pr-0 lg:pr-2 space-y-4">
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 h-[350px] min-h-[350px] flex flex-col transition-all duration-300 hover:shadow-xl">
+                <h2 className="text-lg font-semibold mb-3.5 pb-2 border-b border-gray-200 text-gray-800 flex items-center">
+                  User Information
+                </h2>
+                <div className="flex-grow">
+                  <UserInformation userData={userData} />
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 h-[250px] min-h-[250px] flex flex-col transition-all duration-300 hover:shadow-xl">
+                <h2 className="text-lg font-semibold mb-3.5 pb-2 border-b border-gray-200 text-gray-800 flex items-center">
+                  Tasks Statistics
+                </h2>
+                <div className="flex-grow">
+                  <UserStatistics taskStats={filteredTaskStats} />
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 flex-1 min-h-[350px] flex flex-col transition-all duration-300 hover:shadow-xl">
+                <h2 className="text-lg font-semibold mb-3.5 pb-2 border-b border-gray-200 text-gray-800 flex items-center">
+                  Project History
+                </h2>
+                <div className="flex-grow overflow-auto">
+                  <UserProjectHistory 
+                    projects={projects} 
+                    selectedProject={selectedProject}
+                    onProjectChange={handleProjectChange}
+                  />
+                </div>
+              </div>
             </div>
-            <div className="user-performance-container">
-              <UserPerformance 
-                assignedVsCompleted={performanceData.assignedVsCompleted} 
-                hoursData={performanceData.hoursData} 
-                selectedSprint={selectedSprint}
-                tasks={filteredTasks}
-              />
+            
+            <div className="w-full lg:w-3/5 pl-0 lg:pl-2 mt-4 lg:mt-0 space-y-4">
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 h-[510px] min-h-[510px] flex-1 flex flex-col transition-all duration-300 hover:shadow-xl">
+                <h2 className="text-lg font-semibold mb-3.5 pb-2 border-b border-gray-200 text-gray-800 flex items-center">
+                  <ListCheck size={18} className="mr-2 text-gray-600" />  {/* Changed ListTodo to ListCheck */}
+                  User Tasks
+                </h2>
+                <div className="flex-grow overflow-auto">
+                  <UserTasks tasks={filteredTasks} />
+                </div>
+              </div>
+              
+              <div className="bg-white rounded-lg shadow-lg border border-gray-200 p-4 h-[450px] min-h-[450px] flex flex-col transition-all duration-300 hover:shadow-xl">
+                <h2 className="text-lg font-semibold mb-3.5 pb-2 border-b border-gray-200 text-gray-800 flex items-center">
+                  Performance Metrics
+                </h2>
+                <div className="flex-grow">
+                  <UserPerformance 
+                    assignedVsCompleted={performanceData.assignedVsCompleted} 
+                    hoursData={performanceData.hoursData} 
+                    selectedSprint={selectedSprint}
+                    tasks={filteredTasks}
+                  />
+                </div>
+              </div>
             </div>
           </div>
         </div>

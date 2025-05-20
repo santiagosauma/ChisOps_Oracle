@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Filter } from 'lucide-react';
+import { Plus, Search, Filter, ClipboardList } from 'lucide-react';
 
 const ProjectTasks = ({ tasks, onAddTask, onEditTask }) => {
   const [filteredTasks, setFilteredTasks] = useState([]);
@@ -99,8 +99,11 @@ const ProjectTasks = ({ tasks, onAddTask, onEditTask }) => {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-800">Tasks</h2>
+      <div className="flex justify-between items-center mb-3.5 pb-2 border-b border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-800 flex items-center">
+          <ClipboardList size={18} className="mr-2 text-gray-600" />
+          Project Tasks
+        </h2>
         <button 
           className="flex items-center gap-1.5 bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded-md text-sm font-medium transition-colors shadow-sm"
           onClick={onAddTask}

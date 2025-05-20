@@ -228,7 +228,6 @@ public ResponseEntity<List<Map<String, Object>>> getProyectosSimplificadosByUsua
             response.put("totalProjects", allProjects.size());
             response.put("activeCount", activeProjects.size());
             
-            // Count by status for debugging
             Map<String, Long> statusCounts = allProjects.stream()
                 .collect(Collectors.groupingBy(
                     Proyecto::getStatus,

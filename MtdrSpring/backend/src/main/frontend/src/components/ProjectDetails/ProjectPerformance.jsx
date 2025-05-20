@@ -1,4 +1,5 @@
 import React from 'react';
+import { BarChart2 } from 'lucide-react';
 import '../../styles/ProjectDetails/ProjectPerformance.css';
 import {
   LineChart,
@@ -220,9 +221,12 @@ function ProjectPerformance({
   };
 
   return (
-    <div className="project-performance">
-      <div className="project-performance-header">
-        <h2>Performance Metrics</h2>
+    <div className="flex flex-col h-full">
+      <div className="flex justify-between items-center mb-3.5 pb-2 border-b border-gray-200">
+        <h2 className="text-lg font-semibold text-gray-800 flex items-center">
+          <BarChart2 size={18} className="mr-2 text-gray-600" />
+          Performance Metrics
+        </h2>
         {renderViewToggle()}
       </div>
       <div className="project-performance-content">
