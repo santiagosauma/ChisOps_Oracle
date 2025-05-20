@@ -144,7 +144,6 @@ function Invoke-CommandWithFeedback {
         Write-Host "$GREEN$CHECK $message completado $YELLOW(Tiempo: ${mins}m ${secs}s)$RESET"
     }
     else {
-        # Special handling for Maven and Docker commands
         if ($message -like "*Maven*" -or $message -like "*Docker*") {
             Write-Host "$BLUE`Ejecutando: $BOLD$command$RESET"
             $startTime = Get-Date
