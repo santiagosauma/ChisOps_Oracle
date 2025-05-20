@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import TasksTable from '../components/TasksTable';
 import { Pencil, ChevronDown, Filter, X, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
+import KanbanBoard from '../components/KanbanBoard';
 
 export default function UserHome() {
   const [projects, setProjects] = useState([]);
@@ -50,6 +51,8 @@ export default function UserHome() {
   });
   
   const [dropdownPosition, setDropdownPosition] = useState({});
+
+  const [viewMode, setViewMode] = useState('table');
 
   useEffect(() => {
     try {
@@ -515,6 +518,10 @@ export default function UserHome() {
   const ensureArray = (possibleArray) => {
     if (!possibleArray) return [];
     return Array.isArray(possibleArray) ? possibleArray : [];
+  };
+
+  const toggleViewMode = (mode) => {
+    setViewMode(mode);
   };
 
   return (
