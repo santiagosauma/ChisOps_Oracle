@@ -1,9 +1,6 @@
 import React from 'react';
 import { BarChart2 } from 'lucide-react';
-import '../../styles/ProjectDetails/ProjectPerformance.css';
 import {
-  LineChart,
-  Line,
   BarChart,
   Bar,
   XAxis,
@@ -14,182 +11,157 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
-function ProjectPerformance({ 
-  chartData, 
-  sprintChartData, 
-  viewType, 
-  viewMode = 'lineChart', 
+function ProjectPerformance({
+  chartData,
+  sprintChartData,
+  viewType,
+  viewMode = 'barChart',
   onChangeViewMode,
   users = []
 }) {
   const chartTitle = viewType === 'allSprints'
-    ? "Hours by Developer (All Sprints)"
-    : "Hours by Developer (Selected Sprint)";
+    ? "Horas por Desarrollador (Todos los Sprints)"
+    : "Horas por Desarrollador (Sprint Seleccionado)";
 
-  const COLORS = ['#8884d8', '#82ca9d', '#ffc658', '#ff7300'];
+  const COLORS = [
+    '#6366f1', '#22d3ee', '#fbbf24', '#f87171',
+    '#34d399', '#a78bfa', '#f472b6', '#60a5fa',
+  ];
 
-  const renderLineChart = () => (
+  const renderDeveloperBarChart = () => (
     <>
-      <h3 className="chart-title">
-        {viewType === 'allSprints' ? chartTitle : chartTitle}
-      </h3>
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart
+      <h3 className="text-center text-lg font-semibold text-gray-700 mb-2">{chartTitle}</h3>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
           data={chartData}
-          margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
+          margin={{ top: 30, right: 30, left: 20, bottom: 20 }}
+          barGap={8}
         >
           <CartesianGrid strokeDasharray="3 3" vertical={false} />
           <XAxis
             dataKey="name"
-            axisLine={true}
-            tickLine={true}
-            tick={{ fontSize: 12, fill: '#666' }}
+            axisLine
+            tickLine
+            tick={{ fontSize: 13, fill: '#64748b', fontWeight: 500 }}
             height={60}
             interval={0}
             angle={-20}
             textAnchor="end"
           />
           <YAxis
-            tick={{ fontSize: 12 }}
+            tick={{ fontSize: 13, fill: '#64748b' }}
             label={{
-              value: 'Hours',
+              value: 'Horas',
               angle: -90,
               position: 'insideLeft',
-              style: { textAnchor: 'middle' }
+              style: { textAnchor: 'middle', fill: '#64748b', fontWeight: 500 }
             }}
           />
-          <Tooltip />
-          <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
-          <Line
-            type="monotone"
+          <Tooltip
+            contentStyle={{ background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb' }}
+            formatter={(value, name) => [`${value} horas`, name === 'actual' ? 'Reales' : 'Estimadas']}
+          />
+          <Legend 
+            verticalAlign="top"
+            align="right"
+            iconType="circle"
+            wrapperStyle={{ 
+              fontSize: '12px',
+              paddingBottom: '10px'
+            }} 
+          />
+          <Bar
             dataKey="actual"
-            stroke="#e74c3c"
-            activeDot={{ r: 6 }}
-            name="Actual Hours"
-            strokeWidth={2}
+            name="Horas Reales"
+            fill="#6366f1"
+            radius={[6, 6, 0, 0]}
+            barSize={32}
           />
-          <Line
-            type="monotone"
-            dataKey="estimated"
-            stroke="#3498db"
-            name="Estimated Hours"
-            strokeWidth={2}
-          />
-        </LineChart>
+        </BarChart>
       </ResponsiveContainer>
     </>
   );
 
   const renderSprintBarChart = () => {
     if (!sprintChartData || sprintChartData.length === 0) {
-      console.log("No sprint chart data available:", {
-        data: sprintChartData,
-        length: sprintChartData?.length || 0
-      });
-      
       return (
-        <div className="no-data-message">
-          <p>No sprint performance data available.</p>
-          <p className="debug-info">
-            Ensure tasks are assigned to sprints and users, with estimated/actual hours.
+        <div className="flex flex-col items-center justify-center text-gray-400 py-8">
+          <p className="text-base font-medium">No hay datos de desempeño por sprint.</p>
+          <p className="text-xs mt-2 text-gray-400">
+            Asegúrate de que las tareas estén asignadas a sprints y usuarios, con horas reales.
           </p>
-          <button 
-            className="reload-btn"
+          <button
+            className="mt-4 px-4 py-2 bg-indigo-500 text-white rounded shadow hover:bg-indigo-600 transition"
             onClick={() => window.location.reload()}
           >
-            Reload Data
+            Recargar Datos
           </button>
         </div>
       );
     }
 
-    console.log("Rendering sprint bar chart with data:", sprintChartData);
-
-    // Get unique developer names from the data
-    const developerBars = [];
-    
-    // For each user, create bars for estimated and actual hours
-    users.forEach((user, index) => {
-      // Check if this user has any data in the sprints
-      const hasData = sprintChartData.some(sprint => 
-        sprint[`${user.name}_estimated`] > 0 || 
-        sprint[`${user.name}_actual`] > 0
-      );
-      
-      if (index < 4 && hasData) { // Limit to 4 developers and only those with data
-        developerBars.push(
-          <Bar 
-            key={`${user.name}-estimated`} 
-            dataKey={`${user.name}_estimated`} 
-            name={`${user.name} (Est.)`} 
-            fill={COLORS[index]} 
-            fillOpacity={0.8}
-          />
-        );
-        developerBars.push(
-          <Bar 
-            key={`${user.name}-actual`} 
-            dataKey={`${user.name}_actual`} 
-            name={`${user.name} (Act.)`} 
-            fill={COLORS[index]} 
-            fillOpacity={0.4}
-            pattern={<pattern id={`pattern-${index}`} patternUnits="userSpaceOnUse" width="4" height="4">
-              <path d="M-1,1 l2,-2 M0,4 l4,-4 M3,5 l2,-2" stroke={COLORS[index]} strokeWidth="1"/>
-            </pattern>}
-          />
-        );
-      }
-    });
-
-    if (developerBars.length === 0) {
+    const developerBars = users.slice(0, 6).map((user, idx) => {
+      const hasActual = sprintChartData.some(sprint => sprint[`${user.name}_actual`] > 0);
+      if (!hasActual) return null;
       return (
-        <div className="no-data-message">
-          <p>No developer hour data available for these sprints.</p>
-        </div>
+        <Bar
+          key={`${user.name}-actual`}
+          dataKey={`${user.name}_actual`}
+          name={user.name}
+          fill={COLORS[idx % COLORS.length]}
+          radius={[6, 6, 0, 0]}
+          barSize={22}
+        />
       );
-    }
+    });
 
     return (
       <>
-        <h3 className="chart-title">Hours by Sprint and Developer</h3>
-        <ResponsiveContainer width="100%" height={450}>
+        <h3 className="text-center text-lg font-semibold text-gray-700 mb-2">Horas Reales por Sprint y Desarrollador</h3>
+        <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={sprintChartData}
-            margin={{ top: 20, right: 30, left: 20, bottom: 170 }}
+            margin={{ top: 30, right: 30, left: 20, bottom: 20 }}
+            barGap={8}
           >
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis
               dataKey="name"
-              axisLine={true}
-              tickLine={true}
-              tick={{ fontSize: 12, fill: '#666' }}
+              axisLine
+              tickLine
+              tick={{ fontSize: 13, fill: '#64748b', fontWeight: 500 }}
               height={60}
               interval={0}
               angle={-30}
               textAnchor="end"
             />
             <YAxis
-              tick={{ fontSize: 12 }}
+              tick={{ fontSize: 13, fill: '#64748b' }}
               label={{
-                value: 'Hours',
+                value: 'Horas',
                 angle: -90,
                 position: 'insideLeft',
-                style: { textAnchor: 'middle' }
+                style: { textAnchor: 'middle', fill: '#64748b', fontWeight: 500 }
               }}
             />
-            <Tooltip 
-              formatter={(value) => [`${value.toFixed(1)} hours`, '']} 
-              labelFormatter={(label) => `Sprint: ${label}`}
+            <Tooltip
+              formatter={(value, name) => [`${value} horas`, name]}
+              labelFormatter={label => `Sprint: ${label}`}
+              contentStyle={{ background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb' }}
             />
-            <Legend 
-              wrapperStyle={{ 
-                fontSize: '12px', 
-                paddingTop: '10px',
-                bottom: 200,
-                position: 'relative',
-                maxHeight: 40,
-                overflowY: 'auto'
-              }} 
+            <Legend
+              verticalAlign="top"
+              align="right"
+              iconType="circle"
+              layout="vertical"
+              wrapperStyle={{
+                fontSize: '12px',
+                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                border: '1px solid #e5e7eb',
+                borderRadius: '5px',
+                padding: '5px',
+                lineHeight: '20px'
+              }}
             />
             {developerBars}
           </BarChart>
@@ -199,46 +171,52 @@ function ProjectPerformance({
   };
 
   const renderViewToggle = () => {
-    // Only show the toggle in "allSprints" mode
     if (viewType !== 'allSprints') return null;
-
     return (
-      <div className="view-toggle-buttons">
-        <button 
-          className={`view-toggle-btn ${viewMode === 'lineChart' ? 'active' : ''}`}
-          onClick={() => onChangeViewMode('lineChart')}
-        >
-          Developer Hours
-        </button>
-        <button 
-          className={`view-toggle-btn ${viewMode === 'barChart' ? 'active' : ''}`}
+      <div className="flex gap-2 mb-2">
+        <button
+          className={`px-4 py-1.5 rounded border text-sm font-medium transition ${
+            viewMode === 'barChart'
+              ? 'bg-indigo-500 text-white border-indigo-600 shadow'
+              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+          }`}
           onClick={() => onChangeViewMode('barChart')}
         >
-          Hours by Sprint and Developer
+          Horas por Desarrollador
+        </button>
+        <button
+          className={`px-4 py-1.5 rounded border text-sm font-medium transition ${
+            viewMode === 'sprintBarChart'
+              ? 'bg-indigo-500 text-white border-indigo-600 shadow'
+              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+          }`}
+          onClick={() => onChangeViewMode('sprintBarChart')}
+        >
+          Horas por Sprint y Desarrollador
         </button>
       </div>
     );
   };
 
   return (
-    <div className="flex flex-col h-full">
-      <div className="flex justify-between items-center mb-3.5 pb-2 border-b border-gray-200">
-        <h2 className="text-lg font-semibold text-gray-800 flex items-center">
-          <BarChart2 size={18} className="mr-2 text-gray-600" />
-          Performance Metrics
+    <div className="flex flex-col h-full w-full">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 pb-2 border-b border-gray-200">
+        <h2 className="text-xl font-bold text-gray-800 flex items-center mb-2 sm:mb-0">
+          <BarChart2 size={22} className="mr-2 text-indigo-500" />
+          Métricas de Desempeño
         </h2>
         {renderViewToggle()}
       </div>
-      <div className="project-performance-content">
+      <div className="flex-1 flex flex-col min-h-0">
         {chartData && chartData.length > 0 ? (
-          <div className="project-chart-container">
-            {viewType === 'allSprints' && viewMode === 'barChart' 
-              ? renderSprintBarChart() 
-              : renderLineChart()}
+          <div className="flex-1 flex flex-col items-center w-full">
+            {viewType === 'allSprints' && viewMode === 'sprintBarChart'
+              ? renderSprintBarChart()
+              : renderDeveloperBarChart()}
           </div>
         ) : (
-          <div className="no-data-message">
-            <p>No performance data available for this view.</p>
+          <div className="flex flex-1 flex-col items-center justify-center text-gray-400 py-8">
+            <p className="text-base font-medium">No hay datos de desempeño para esta vista.</p>
           </div>
         )}
       </div>

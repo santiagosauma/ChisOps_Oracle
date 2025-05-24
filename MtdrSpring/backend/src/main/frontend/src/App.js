@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import './styles/index.css';
 import Sidebar from './Sidebar';
 import Home from './pages/Home';
-import ManageTasks from './ManageTasks';
 import Projects from './pages/Projects';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -127,7 +126,6 @@ function App() {
       <div style={{ marginLeft: '60px', flex: 1, padding: '0px' }}>
         {page === 'UserHome' && requireAuth(UserHome, {})}
         {page === 'Home' && requireAuth(Home, {})}
-        {page === 'Projects' && userRole === 'admin' && requireAuth(ManageTasks, {})}
         {page === 'ProjectsTrue' && !selectedProjectId && requireAuth(Projects, { 
           onSelectProject: handleSelectProject 
         })}
