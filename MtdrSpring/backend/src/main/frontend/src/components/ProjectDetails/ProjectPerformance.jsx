@@ -14,6 +14,7 @@ import {
 function ProjectPerformance({
   chartData,
   sprintChartData,
+  completedTasksData,
   viewType,
   viewMode = 'barChart',
   onChangeViewMode,
@@ -81,6 +82,62 @@ function ProjectPerformance({
       </ResponsiveContainer>
     </>
   );
+
+  const renderCompletedTasksChart = () => {
+    if (!completedTasksData || completedTasksData.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center text-gray-400 py-8">
+          <p className="text-base font-medium">No hay datos de tareas completadas disponibles.</p>
+        </div>
+      );
+    }
+
+    return (
+      <>
+        <h3 className="text-center text-lg font-semibold text-gray-700 mb-2">Tareas Completadas por Usuario</h3>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={completedTasksData}
+            margin={{ top: 30, right: 30, left: 20, bottom: 20 }}
+            barGap={8}
+          >
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis
+              dataKey="name"
+              axisLine
+              tickLine
+              tick={{ fontSize: 13, fill: '#64748b', fontWeight: 500 }}
+              height={60}
+              interval={0}
+              angle={-20}
+              textAnchor="end"
+            />
+            <YAxis
+              tick={{ fontSize: 13, fill: '#64748b' }}
+              label={{
+                value: 'Tareas',
+                angle: -90,
+                position: 'insideLeft',
+                style: { textAnchor: 'middle', fill: '#64748b', fontWeight: 500 }
+              }}
+            />
+            <Tooltip
+              contentStyle={{ background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb' }}
+              formatter={(value) => [`${value} tareas`]}
+              labelFormatter={(name) => `Usuario: ${name}`}
+            />
+            <Bar
+              dataKey="completedTasks"
+              name="Tareas Completadas"
+              fill="#34d399"
+              radius={[6, 6, 0, 0]}
+              barSize={32}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </>
+    );
+  };
 
   const renderSprintBarChart = () => {
     if (!sprintChartData || sprintChartData.length === 0) {
@@ -173,7 +230,7 @@ function ProjectPerformance({
   const renderViewToggle = () => {
     if (viewType !== 'allSprints') return null;
     return (
-      <div className="flex gap-2 mb-2">
+      <div className="flex flex-wrap gap-2 mb-2">
         <button
           className={`px-4 py-1.5 rounded border text-sm font-medium transition ${
             viewMode === 'barChart'
@@ -192,7 +249,17 @@ function ProjectPerformance({
           }`}
           onClick={() => onChangeViewMode('sprintBarChart')}
         >
-          Horas por Sprint y Desarrollador
+          Horas por Sprint
+        </button>
+        <button
+          className={`px-4 py-1.5 rounded border text-sm font-medium transition ${
+            viewMode === 'completedTasksChart'
+              ? 'bg-indigo-500 text-white border-indigo-600 shadow'
+              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+          }`}
+          onClick={() => onChangeViewMode('completedTasksChart')}
+        >
+          Tareas Completadas
         </button>
       </div>
     );
@@ -208,16 +275,12 @@ function ProjectPerformance({
         {renderViewToggle()}
       </div>
       <div className="flex-1 flex flex-col min-h-0">
-        {chartData && chartData.length > 0 ? (
-          <div className="flex-1 flex flex-col items-center w-full">
-            {viewType === 'allSprints' && viewMode === 'sprintBarChart'
-              ? renderSprintBarChart()
-              : renderDeveloperBarChart()}
-          </div>
+        {viewMode === 'completedTasksChart' ? (
+          renderCompletedTasksChart()
         ) : (
-          <div className="flex flex-1 flex-col items-center justify-center text-gray-400 py-8">
-            <p className="text-base font-medium">No hay datos de desempeño para esta vista.</p>
-          </div>
+          viewType === 'allSprints' && viewMode === 'sprintBarChart'
+            ? renderSprintBarChart()
+            : renderDeveloperBarChart()
         )}
       </div>
     </div>

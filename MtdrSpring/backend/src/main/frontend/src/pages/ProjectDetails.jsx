@@ -21,6 +21,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
   const [performanceData, setPerformanceData] = useState([]);
   const [performanceViewMode, setPerformanceViewMode] = useState('lineChart');
   const [sprintPerformanceData, setSprintPerformanceData] = useState([]);
+  const [completedTasksData, setCompletedTasksData] = useState([]);
 
   const [showAddTaskPopup, setShowAddTaskPopup] = useState(false);
   const [addTaskForm, setAddTaskForm] = useState({
@@ -92,6 +93,31 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         actual: actualHours
       };
     });
+  };
+
+  const generateCompletedTasksData = (tasks, users) => {
+    if (!users || !tasks) return [];
+
+    return users.map(user => {
+      const userTasks = tasks.filter(task => {
+        return task.userId === user.id ||
+          String(task.userId) === String(user.id) ||
+          (task.usuario && (task.usuario.userId === user.id || String(task.usuario.userId) === String(user.id)));
+      });
+
+      const completedTasks = userTasks.filter(task => {
+        const status = task.status?.toLowerCase() || '';
+        return status === 'completed' || 
+               status === 'done' || 
+               status === 'finalizada' || 
+               status === 'completado';
+      }).length;
+
+      return {
+        name: user.name,
+        completedTasks: completedTasks
+      };
+    }).filter(user => user.completedTasks > 0); // Only show users with completed tasks
   };
 
   const generateSprintPerformanceData = () => {
@@ -256,6 +282,10 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
 
         const performanceMetrics = generatePerformanceData(allTasks, formattedUsers, 'all');
         setPerformanceData(performanceMetrics);
+        
+        // Generate completed tasks data
+        const tasksCompletedData = generateCompletedTasksData(allTasks, formattedUsers);
+        setCompletedTasksData(tasksCompletedData);
 
         setProjectData({
           id: projectFull.projectId,
@@ -487,6 +517,13 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         sprintId
       );
       setPerformanceData(updatedPerformanceData);
+      
+      // Update completed tasks data when sprint changes
+      const updatedCompletedTasksData = generateCompletedTasksData(
+        formattedTasks,
+        projectData.users
+      );
+      setCompletedTasksData(updatedCompletedTasksData);
 
       if (sprintId === 'all') {
         console.log("Regenerating sprint performance data for 'all' view");
@@ -1218,6 +1255,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
               <ProjectPerformance
                 chartData={performanceData}
                 sprintChartData={sprintPerformanceData}
+                completedTasksData={completedTasksData}
                 viewType={performanceViewType}
                 viewMode={performanceViewMode}
                 onChangeViewMode={togglePerformanceViewMode}
