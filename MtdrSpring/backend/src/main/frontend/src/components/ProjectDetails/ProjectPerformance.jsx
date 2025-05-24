@@ -20,7 +20,6 @@ function ProjectPerformance({
   onChangeViewMode,
   users = []
 }) {
-  // Update chart titles to include information about sprint selection
   const chartTitle = viewType === 'allSprints'
     ? "Hours per Developer (All Sprints)"
     : "Hours per Developer (Selected Sprint)";

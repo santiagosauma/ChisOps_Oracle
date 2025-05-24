@@ -1,4 +1,3 @@
-//User Header
 import React, { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, ChevronDown } from 'lucide-react';
 

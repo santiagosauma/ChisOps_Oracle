@@ -51,7 +51,6 @@ function UserDetails({ userId, projectId, onBack }) {
         }
         const projectsData = await projectsResponse.json();
         
-        // Verify that projectsData is an array
         if (!Array.isArray(projectsData)) {
           console.error("projectsData is not an array:", projectsData);
           setProjects([]);

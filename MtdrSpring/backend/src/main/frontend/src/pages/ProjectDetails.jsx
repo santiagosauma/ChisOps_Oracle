@@ -287,7 +287,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         const performanceMetrics = generatePerformanceData(allTasks, formattedUsers, 'all');
         setPerformanceData(performanceMetrics);
         
-        // Update to pass sprintId parameter
         const tasksCompletedData = generateCompletedTasksData(allTasks, formattedUsers, 'all');
         setCompletedTasksData(tasksCompletedData);
 
@@ -522,7 +521,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       );
       setPerformanceData(updatedPerformanceData);
       
-      // Update to pass sprintId parameter
       const updatedCompletedTasksData = generateCompletedTasksData(
         formattedTasks,
         projectData.users,

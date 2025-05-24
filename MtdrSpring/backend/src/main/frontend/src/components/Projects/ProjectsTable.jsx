@@ -21,7 +21,6 @@ function ProjectsTable({ onSelectProject }) {
   const progressTimestamps = React.useRef({});
   const CACHE_TTL = 60000;
 
-   // Add project popup state
    const [showAddProjectPopup, setShowAddProjectPopup] = useState(false);
    const [addProjectForm, setAddProjectForm] = useState({
      name: '',
@@ -38,7 +37,6 @@ function ProjectsTable({ onSelectProject }) {
      type: 'success'
    });
 
-   // Edit project popup state
   const [showEditProjectPopup, setShowEditProjectPopup] = useState(false);
   const [editProjectForm, setEditProjectForm] = useState({
     projectId: '',
@@ -310,7 +308,6 @@ function ProjectsTable({ onSelectProject }) {
       onSelectProject(projectId);
     }
   };
-   // Format date string for input fields
    const formatDateForInput = (dateString) => {
     if (!dateString) return '';
     
@@ -342,7 +339,6 @@ function ProjectsTable({ onSelectProject }) {
 
 
   const openAddProjectPopup = () => {
-    // Set current date as default start date
     const today = new Date().toISOString().split('T')[0];
     
     setAddProjectForm({
@@ -416,7 +412,6 @@ function ProjectsTable({ onSelectProject }) {
       const location = response.headers.get('location');
       console.log("Project created successfully, ID:", location);
   
-      // Para fines de demostración, simplemente mostrar los usuarios que se hubieran asignado
       if (addProjectForm.selectedUsers.length > 0) {
         console.log("Selected users that would be associated with the project:", 
           addProjectForm.selectedUsers.map(userId => {
@@ -431,8 +426,7 @@ function ProjectsTable({ onSelectProject }) {
         message: 'Project added successfully!',
         type: 'success'
       });
-  
-      // Refresh the projects list
+
       fetch('/proyectos')
         .then(response => response.json())
         .then(data => {
@@ -533,7 +527,6 @@ function ProjectsTable({ onSelectProject }) {
         type: 'success'
       });
 
-      // Refresh the projects list
       fetch('/proyectos')
         .then(response => response.json())
         .then(data => {
@@ -579,7 +572,6 @@ function ProjectsTable({ onSelectProject }) {
         type: 'success'
       });
 
-      // Refresh the projects list
       fetch('/proyectos')
         .then(response => response.json())
         .then(data => {

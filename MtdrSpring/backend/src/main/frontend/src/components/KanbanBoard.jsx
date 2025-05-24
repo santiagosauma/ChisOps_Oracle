@@ -11,7 +11,6 @@ const TaskCard = ({ task, onUpdateTask }) => {
     }
   };
 
-  // Determine if task is overdue
   const isOverdue = () => {
     if (task.status === 'Done' || task.finishDate === 'No date') return false;
     const today = new Date();
@@ -19,7 +18,6 @@ const TaskCard = ({ task, onUpdateTask }) => {
     return dueDate < today;
   };
 
-  // Get priority color
   const getPriorityColor = (priority) => {
     switch (priority?.toLowerCase()) {
       case 'high':
@@ -70,7 +68,6 @@ const TaskCard = ({ task, onUpdateTask }) => {
   );
 };
 
-// Column component for tasks with the same status
 const TaskColumn = ({ title, status, tasks, onUpdateTask, onDrop }) => {
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -92,7 +89,6 @@ const TaskColumn = ({ title, status, tasks, onUpdateTask, onDrop }) => {
     }
   };
 
-  // Filter tasks that match this column's status
   const filteredTasks = tasks.filter(task => task.status === status);
 
   return (
@@ -122,11 +118,9 @@ const TaskColumn = ({ title, status, tasks, onUpdateTask, onDrop }) => {
   );
 };
 
-// Main Kanban board component
 const KanbanBoard = ({ tasks, loading, error, onUpdateTask, onTaskStatusChange, filters }) => {
   const [filteredTasks, setFilteredTasks] = useState([]);
 
-  // Apply filters to tasks
   useEffect(() => {
     let result = Array.isArray(tasks) ? [...tasks] : [];
     

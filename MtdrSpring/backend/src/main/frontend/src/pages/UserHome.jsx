@@ -545,7 +545,6 @@ export default function UserHome() {
         });
       }
       
-      // Refresh task data
       if (currentSelectedSprint) {
         await fetchUserTasksForSprint(currentSelectedSprint);
       } else {
