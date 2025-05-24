@@ -36,7 +36,8 @@ function ProjectPerformance({
         <BarChart
           data={chartData}
           margin={{ top: 30, right: 30, left: 20, bottom: 20 }}
-          barGap={8}
+          barGap={12}
+          barCategoryGap="30%"
         >
           <CartesianGrid strokeDasharray="3 3" vertical={false} />
           <XAxis
@@ -76,7 +77,7 @@ function ProjectPerformance({
             name="Horas Reales"
             fill="#6366f1"
             radius={[6, 6, 0, 0]}
-            barSize={32}
+            barSize={100}
           />
         </BarChart>
       </ResponsiveContainer>
@@ -99,7 +100,8 @@ function ProjectPerformance({
           <BarChart
             data={completedTasksData}
             margin={{ top: 30, right: 30, left: 20, bottom: 20 }}
-            barGap={8}
+            barGap={12}
+            barCategoryGap="30%"
           >
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis
@@ -131,7 +133,7 @@ function ProjectPerformance({
               name="Tareas Completadas"
               fill="#34d399"
               radius={[6, 6, 0, 0]}
-              barSize={32}
+              barSize={100}
             />
           </BarChart>
         </ResponsiveContainer>
@@ -167,7 +169,7 @@ function ProjectPerformance({
           name={user.name}
           fill={COLORS[idx % COLORS.length]}
           radius={[6, 6, 0, 0]}
-          barSize={22}
+          barSize={28}
         />
       );
     });
@@ -179,7 +181,8 @@ function ProjectPerformance({
           <BarChart
             data={sprintChartData}
             margin={{ top: 30, right: 30, left: 20, bottom: 20 }}
-            barGap={8}
+            barGap={20}
+            barCategoryGap="80%"
           >
             <CartesianGrid strokeDasharray="3 3" vertical={false} />
             <XAxis

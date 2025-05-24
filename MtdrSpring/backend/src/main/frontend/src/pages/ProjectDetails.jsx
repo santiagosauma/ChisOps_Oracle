@@ -117,7 +117,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         name: user.name,
         completedTasks: completedTasks
       };
-    }).filter(user => user.completedTasks > 0); // Only show users with completed tasks
+    }).filter(user => user.completedTasks > 0);
   };
 
   const generateSprintPerformanceData = () => {
@@ -283,7 +283,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         const performanceMetrics = generatePerformanceData(allTasks, formattedUsers, 'all');
         setPerformanceData(performanceMetrics);
         
-        // Generate completed tasks data
         const tasksCompletedData = generateCompletedTasksData(allTasks, formattedUsers);
         setCompletedTasksData(tasksCompletedData);
 
@@ -518,7 +517,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       );
       setPerformanceData(updatedPerformanceData);
       
-      // Update completed tasks data when sprint changes
       const updatedCompletedTasksData = generateCompletedTasksData(
         formattedTasks,
         projectData.users
