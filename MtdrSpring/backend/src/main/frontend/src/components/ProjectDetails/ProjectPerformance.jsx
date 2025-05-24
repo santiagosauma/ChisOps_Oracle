@@ -76,6 +76,9 @@ function ProjectPerformance({
               paddingBottom: '10px'
             }} 
           />
+          {/* 
+            Horas estimadas en All Sprints y en cada sprint
+          
           <Bar
             dataKey="estimated"
             name="Estimated Hours"
@@ -83,6 +86,7 @@ function ProjectPerformance({
             radius={[6, 6, 0, 0]}
             barSize={100}
           />
+          */}
           <Bar
             dataKey="actual"
             name="Actual Hours"
