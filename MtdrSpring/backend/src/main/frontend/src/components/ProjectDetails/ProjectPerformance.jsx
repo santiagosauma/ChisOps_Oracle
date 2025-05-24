@@ -20,13 +20,18 @@ function ProjectPerformance({
   onChangeViewMode,
   users = []
 }) {
+  // Update chart titles to include information about sprint selection
   const chartTitle = viewType === 'allSprints'
-    ? "Horas por Desarrollador (Todos los Sprints)"
-    : "Horas por Desarrollador (Sprint Seleccionado)";
+    ? "Hours per Developer (All Sprints)"
+    : "Hours per Developer (Selected Sprint)";
+    
+  const completedTasksTitle = viewType === 'allSprints'
+    ? "Tasks Completed by User (All Sprints)"
+    : "Tasks Completed by User (Selected Sprint)";
 
   const COLORS = [
-    '#6366f1', '#22d3ee', '#fbbf24', '#f87171',
-    '#34d399', '#a78bfa', '#f472b6', '#60a5fa',
+    '#4f46e5', '#0ea5e9', '#f59e0b', '#ef4444',
+    '#10b981', '#8b5cf6', '#ec4899', '#3b82f6',
   ];
 
   const renderDeveloperBarChart = () => (
@@ -53,7 +58,7 @@ function ProjectPerformance({
           <YAxis
             tick={{ fontSize: 13, fill: '#64748b' }}
             label={{
-              value: 'Horas',
+              value: 'Hours',
               angle: -90,
               position: 'insideLeft',
               style: { textAnchor: 'middle', fill: '#64748b', fontWeight: 500 }
@@ -61,7 +66,7 @@ function ProjectPerformance({
           />
           <Tooltip
             contentStyle={{ background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb' }}
-            formatter={(value, name) => [`${value} horas`, name === 'actual' ? 'Reales' : 'Estimadas']}
+            formatter={(value, name) => [`${value} hours`, name === 'actual' ? 'Actual' : 'Estimated']}
           />
           <Legend 
             verticalAlign="top"
@@ -73,9 +78,16 @@ function ProjectPerformance({
             }} 
           />
           <Bar
+            dataKey="estimated"
+            name="Estimated Hours"
+            fill="#64748b" 
+            radius={[6, 6, 0, 0]}
+            barSize={100}
+          />
+          <Bar
             dataKey="actual"
-            name="Horas Reales"
-            fill="#6366f1"
+            name="Actual Hours"
+            fill="#4f46e5"
             radius={[6, 6, 0, 0]}
             barSize={100}
           />
@@ -88,14 +100,19 @@ function ProjectPerformance({
     if (!completedTasksData || completedTasksData.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center text-gray-400 py-8">
-          <p className="text-base font-medium">No hay datos de tareas completadas disponibles.</p>
+          <p className="text-base font-medium">No completed tasks data available.</p>
+          {viewType !== 'allSprints' && (
+            <p className="text-xs mt-2 text-gray-400">
+              Try selecting a different sprint or view all sprints.
+            </p>
+          )}
         </div>
       );
     }
 
     return (
       <>
-        <h3 className="text-center text-lg font-semibold text-gray-700 mb-2">Tareas Completadas por Usuario</h3>
+        <h3 className="text-center text-lg font-semibold text-gray-700 mb-2">{completedTasksTitle}</h3>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={completedTasksData}
@@ -117,7 +134,7 @@ function ProjectPerformance({
             <YAxis
               tick={{ fontSize: 13, fill: '#64748b' }}
               label={{
-                value: 'Tareas',
+                value: 'Tasks',
                 angle: -90,
                 position: 'insideLeft',
                 style: { textAnchor: 'middle', fill: '#64748b', fontWeight: 500 }
@@ -125,13 +142,13 @@ function ProjectPerformance({
             />
             <Tooltip
               contentStyle={{ background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb' }}
-              formatter={(value) => [`${value} tareas`]}
-              labelFormatter={(name) => `Usuario: ${name}`}
+              formatter={(value) => [`${value} tasks`]}
+              labelFormatter={(name) => `User: ${name}`}
             />
             <Bar
               dataKey="completedTasks"
-              name="Tareas Completadas"
-              fill="#34d399"
+              name="Completed Tasks"
+              fill="#10b981"
               radius={[6, 6, 0, 0]}
               barSize={100}
             />
@@ -145,15 +162,15 @@ function ProjectPerformance({
     if (!sprintChartData || sprintChartData.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center text-gray-400 py-8">
-          <p className="text-base font-medium">No hay datos de desempeño por sprint.</p>
+          <p className="text-base font-medium">No sprint performance data available.</p>
           <p className="text-xs mt-2 text-gray-400">
-            Asegúrate de que las tareas estén asignadas a sprints y usuarios, con horas reales.
+            Make sure tasks are assigned to sprints and users, with actual hours.
           </p>
           <button
             className="mt-4 px-4 py-2 bg-indigo-500 text-white rounded shadow hover:bg-indigo-600 transition"
             onClick={() => window.location.reload()}
           >
-            Recargar Datos
+            Reload Data
           </button>
         </div>
       );
@@ -176,7 +193,7 @@ function ProjectPerformance({
 
     return (
       <>
-        <h3 className="text-center text-lg font-semibold text-gray-700 mb-2">Horas Reales por Sprint y Desarrollador</h3>
+        <h3 className="text-center text-lg font-semibold text-gray-700 mb-2">Actual Hours by Sprint and Developer</h3>
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
             data={sprintChartData}
@@ -198,14 +215,14 @@ function ProjectPerformance({
             <YAxis
               tick={{ fontSize: 13, fill: '#64748b' }}
               label={{
-                value: 'Horas',
+                value: 'Hours',
                 angle: -90,
                 position: 'insideLeft',
                 style: { textAnchor: 'middle', fill: '#64748b', fontWeight: 500 }
               }}
             />
             <Tooltip
-              formatter={(value, name) => [`${value} horas`, name]}
+              formatter={(value, name) => [`${value} hours`, name]}
               labelFormatter={label => `Sprint: ${label}`}
               contentStyle={{ background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb' }}
             />
@@ -231,38 +248,39 @@ function ProjectPerformance({
   };
 
   const renderViewToggle = () => {
-    if (viewType !== 'allSprints') return null;
     return (
-      <div className="flex flex-wrap gap-2 mb-2">
+      <div className="flex flex-wrap gap-2 mb-2 justify-center sm:justify-start">
         <button
-          className={`px-4 py-1.5 rounded border text-sm font-medium transition ${
+          className={`px-3 py-1.5 rounded border text-xs sm:text-sm font-medium transition ${
             viewMode === 'barChart'
-              ? 'bg-indigo-500 text-white border-indigo-600 shadow'
-              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+              ? 'bg-indigo-600 text-white border-indigo-700 shadow'
+              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
           }`}
           onClick={() => onChangeViewMode('barChart')}
         >
-          Horas por Desarrollador
+          Hours by Developer
         </button>
+        {viewType === 'allSprints' && (
+          <button
+            className={`px-3 py-1.5 rounded border text-xs sm:text-sm font-medium transition ${
+              viewMode === 'sprintBarChart'
+                ? 'bg-indigo-600 text-white border-indigo-700 shadow'
+                : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+            }`}
+            onClick={() => onChangeViewMode('sprintBarChart')}
+          >
+            Hours by Sprint
+          </button>
+        )}
         <button
-          className={`px-4 py-1.5 rounded border text-sm font-medium transition ${
-            viewMode === 'sprintBarChart'
-              ? 'bg-indigo-500 text-white border-indigo-600 shadow'
-              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
-          }`}
-          onClick={() => onChangeViewMode('sprintBarChart')}
-        >
-          Horas por Sprint
-        </button>
-        <button
-          className={`px-4 py-1.5 rounded border text-sm font-medium transition ${
+          className={`px-3 py-1.5 rounded border text-xs sm:text-sm font-medium transition ${
             viewMode === 'completedTasksChart'
-              ? 'bg-indigo-500 text-white border-indigo-600 shadow'
-              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
+              ? 'bg-indigo-600 text-white border-indigo-700 shadow'
+              : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
           }`}
           onClick={() => onChangeViewMode('completedTasksChart')}
         >
-          Tareas Completadas
+          Completed Tasks
         </button>
       </div>
     );
@@ -273,7 +291,7 @@ function ProjectPerformance({
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 pb-2 border-b border-gray-200">
         <h2 className="text-xl font-bold text-gray-800 flex items-center mb-2 sm:mb-0">
           <BarChart2 size={22} className="mr-2 text-indigo-500" />
-          Métricas de Desempeño
+          Performance Metrics
         </h2>
         {renderViewToggle()}
       </div>

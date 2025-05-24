@@ -19,7 +19,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [performanceData, setPerformanceData] = useState([]);
-  const [performanceViewMode, setPerformanceViewMode] = useState('lineChart');
+  const [performanceViewMode, setPerformanceViewMode] = useState('barChart');
   const [sprintPerformanceData, setSprintPerformanceData] = useState([]);
   const [completedTasksData, setCompletedTasksData] = useState([]);
 
@@ -95,11 +95,15 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
     });
   };
 
-  const generateCompletedTasksData = (tasks, users) => {
+  const generateCompletedTasksData = (tasks, users, sprintId) => {
     if (!users || !tasks) return [];
+    
+    const filteredTasks = sprintId !== 'all' 
+      ? tasks.filter(task => task.sprintId === sprintId || String(task.sprintId) === String(sprintId))
+      : tasks;
 
     return users.map(user => {
-      const userTasks = tasks.filter(task => {
+      const userTasks = filteredTasks.filter(task => {
         return task.userId === user.id ||
           String(task.userId) === String(user.id) ||
           (task.usuario && (task.usuario.userId === user.id || String(task.usuario.userId) === String(user.id)));
@@ -283,7 +287,8 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         const performanceMetrics = generatePerformanceData(allTasks, formattedUsers, 'all');
         setPerformanceData(performanceMetrics);
         
-        const tasksCompletedData = generateCompletedTasksData(allTasks, formattedUsers);
+        // Update to pass sprintId parameter
+        const tasksCompletedData = generateCompletedTasksData(allTasks, formattedUsers, 'all');
         setCompletedTasksData(tasksCompletedData);
 
         setProjectData({
@@ -517,16 +522,16 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       );
       setPerformanceData(updatedPerformanceData);
       
+      // Update to pass sprintId parameter
       const updatedCompletedTasksData = generateCompletedTasksData(
         formattedTasks,
-        projectData.users
+        projectData.users,
+        sprintId
       );
       setCompletedTasksData(updatedCompletedTasksData);
 
-      if (sprintId === 'all') {
-        console.log("Regenerating sprint performance data for 'all' view");
-        const sprintData = generateSprintPerformanceData();
-        setSprintPerformanceData(sprintData);
+      if (performanceViewMode === 'sprintBarChart' && sprintId !== 'all') {
+        setPerformanceViewMode('barChart');
       }
 
       setSelectedSprint(sprintId);
