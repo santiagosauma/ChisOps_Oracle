@@ -649,7 +649,6 @@ function ProjectsTable({ onSelectProject }) {
       />
 
       <div className="bg-white rounded-lg shadow-md border border-gray-200 flex-1 flex flex-col overflow-hidden">
-        {/* Toolbar */}
         <div className="flex justify-between items-center p-4 border-b border-gray-200">
           <div className="flex items-center">
             <svg className="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -697,7 +696,6 @@ function ProjectsTable({ onSelectProject }) {
           </div>
         </div>
         
-        {/* Filter Panel */}
         {filterActive && (
           <div className="flex flex-wrap items-center gap-4 p-4 bg-gray-50 border-b border-gray-200">
             <div className="flex items-center">
@@ -738,7 +736,6 @@ function ProjectsTable({ onSelectProject }) {
           </div>
         )}
         
-        {/* Table Container */}
         <div className="flex-1 overflow-auto p-4">
           {loading ? (
             <div className="flex justify-center items-center h-full">
@@ -764,7 +761,6 @@ function ProjectsTable({ onSelectProject }) {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    {/* Header for ID */}
                     <th 
                       scope="col" 
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
@@ -790,7 +786,6 @@ function ProjectsTable({ onSelectProject }) {
                       </div>
                     </th>
                     
-                    {/* Header for Name */}
                     <th 
                       scope="col" 
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
@@ -816,7 +811,6 @@ function ProjectsTable({ onSelectProject }) {
                       </div>
                     </th>
                     
-                    {/* Similar pattern for other column headers */}
                     <th 
                       scope="col" 
                       className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
@@ -825,7 +819,6 @@ function ProjectsTable({ onSelectProject }) {
                       <div className="flex items-center">
                         Start Date
                         <span className="ml-1">
-                          {/* Similar SVG pattern */}
                         </span>
                       </div>
                     </th>
@@ -838,7 +831,6 @@ function ProjectsTable({ onSelectProject }) {
                       <div className="flex items-center">
                         Finish Date
                         <span className="ml-1">
-                          {/* Similar SVG pattern */}
                         </span>
                       </div>
                     </th>
@@ -851,7 +843,6 @@ function ProjectsTable({ onSelectProject }) {
                       <div className="flex items-center">
                         Status
                         <span className="ml-1">
-                          {/* Similar SVG pattern */}
                         </span>
                       </div>
                     </th>
@@ -864,7 +855,6 @@ function ProjectsTable({ onSelectProject }) {
                       <div className="flex items-center">
                         Num. of Users
                         <span className="ml-1">
-                          {/* Similar SVG pattern */}
                         </span>
                       </div>
                     </th>

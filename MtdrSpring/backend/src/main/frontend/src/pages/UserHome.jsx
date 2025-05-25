@@ -586,7 +586,6 @@ export default function UserHome() {
 
   return (
     <div className="flex h-screen bg-white">
-      {/* Toast notification */}
       {toast.show && (
         <div className={`fixed top-4 right-4 z-50 min-w-[300px] max-w-md ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'} text-white rounded-md shadow-lg overflow-hidden`}>
           <div className="p-4 font-medium">{toast.message}</div>
@@ -594,7 +593,6 @@ export default function UserHome() {
         </div>
       )}
       
-      {/* Update Task Modal */}
       {showUpdatePopup && currentTask && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 relative">
@@ -670,7 +668,6 @@ export default function UserHome() {
             </div>
           ) : (
             <div className="space-y-6 max-w-7xl mx-auto">
-              {/* Active Projects Card */}
               <div className="bg-white rounded-lg shadow overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200">
                   <h2 className="text-lg font-semibold text-gray-800">Active Projects</h2>
@@ -798,7 +795,6 @@ export default function UserHome() {
                 </div>
               </div>
 
-              {/* Tasks Summary Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="bg-white rounded-lg shadow overflow-hidden border-t-4 border-red-500">
                   <div className="p-5">
@@ -837,12 +833,10 @@ export default function UserHome() {
                 </div>
               </div>
 
-              {/* Tasks Table / Kanban Board */}
               <div className="bg-white rounded-lg shadow overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                   <h2 className="text-lg font-semibold text-gray-800">My Tasks</h2>
                   <div className="flex items-center space-x-2">
-                    {/* View toggle buttons */}
                     <div className="flex rounded-md shadow-sm mr-4" role="group">
                       <button
                         type="button"
@@ -868,7 +862,6 @@ export default function UserHome() {
                       </button>
                     </div>
                     
-                    {/* Filter button */}
                     <div className="relative">
                       <button 
                         className="inline-flex items-center px-4 py-2 bg-gray-800 hover:bg-gray-700 text-white text-sm font-medium rounded-md"
@@ -887,7 +880,6 @@ export default function UserHome() {
                         )}
                       </button>
                       
-                      {/* Filter dropdown - keep existing code */}
                       {showFilters && (
                         <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg z-10 border border-gray-200 overflow-hidden">
                           <div className="px-4 py-3 border-b border-gray-200">
@@ -955,7 +947,6 @@ export default function UserHome() {
                   </div>
                 </div>
                 
-                {/* Active filters - keep existing code */}
                 {activeFilters.length > 0 && (
                   <div className="bg-gray-50 px-6 py-2 flex items-center flex-wrap gap-2 border-b border-gray-200">
                     <span className="text-xs text-gray-500">Active filters:</span>

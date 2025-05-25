@@ -81,4 +81,12 @@ public interface ProyectoRepository extends JpaRepository<Proyecto, Integer> {
     @Query("SELECT p FROM Proyecto p WHERE (LOWER(p.name) LIKE LOWER(CONCAT('%', :searchTerm, '%')) " +
            "OR LOWER(p.description) LIKE LOWER(CONCAT('%', :searchTerm, '%'))) AND p.deleted = 0")
     List<Proyecto> searchByNameOrDescription(@Param("searchTerm") String searchTerm);
+
+    /**
+     * Busca proyectos por ID de usuario responsable (sin eliminar)
+     * 
+     * @param userId ID del usuario
+     * @return Lista de proyectos asignados al usuario
+     */
+    List<Proyecto> findByUsuario_UserId(int userId);
 }

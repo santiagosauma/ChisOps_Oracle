@@ -6,8 +6,6 @@ function UserHeader({ userName, role, onBack, sprints = [], selectedSprint, onSp
   const dropdownRef = useRef(null);
 
   useEffect(() => {
-    console.log("UserHeader - Sprints data:", sprints);
-    console.log("UserHeader - Selected Sprint:", selectedSprint);
   }, [sprints, selectedSprint]);
 
   const currentSprintName = selectedSprint === "all" 
@@ -28,7 +26,6 @@ function UserHeader({ userName, role, onBack, sprints = [], selectedSprint, onSp
   }, []); 
 
   const handleSprintSelect = (sprintId) => {
-    console.log("Sprint selected:", sprintId);
     if (onSprintChange) {
       onSprintChange(sprintId);
     }
@@ -36,7 +33,6 @@ function UserHeader({ userName, role, onBack, sprints = [], selectedSprint, onSp
   };
 
   const toggleDropdown = () => {
-    console.log("Toggling dropdown, current state:", dropdownOpen);
     setDropdownOpen(!dropdownOpen);
   };
 
