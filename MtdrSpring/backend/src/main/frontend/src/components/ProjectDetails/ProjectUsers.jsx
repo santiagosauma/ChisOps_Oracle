@@ -17,7 +17,7 @@ const ProjectUsers = ({ users: initialUsers = [], tasks = [], projectID, onSelec
       const response = await axios.get(`/proyectos/${projectID}/usuarios-asignados`);
       
       if (response.data) {
-        console.log("Fetched project users:", response.data);
+        //console.log("Fetched project users:", response.data);
         
         const formattedUsers = response.data.map(user => ({
           id: user.userId,
