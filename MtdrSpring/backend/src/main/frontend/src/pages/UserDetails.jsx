@@ -11,7 +11,8 @@ import {
   UserCircle, 
   BarChart2, 
   History, 
-  PieChart 
+  PieChart,
+  AlertTriangle 
 } from 'lucide-react';
 
 function UserDetails({ userId, projectId, onBack }) {
@@ -34,6 +35,10 @@ function UserDetails({ userId, projectId, onBack }) {
     assignedVsCompleted: [],
     hoursData: []
   });
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deletingUser, setDeletingUser] = useState(false);
+  const [deleteError, setDeleteError] = useState(null);
+  const [toast, setToast] = useState({ show: false, message: '', type: '' });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -264,6 +269,75 @@ function UserDetails({ userId, projectId, onBack }) {
     }
   }, [userId, selectedProject]);
 
+  const handleDeleteUser = async () => {
+    if (!userId) return;
+    
+    try {
+      setDeletingUser(true);
+      setDeleteError(null);
+      
+      // 1. Mark the user as deleted
+      const userResponse = await fetch(`/usuarios/${userId}`, {
+        method: 'DELETE'
+      });
+      
+      if (!userResponse.ok) {
+        throw new Error(`Failed to delete user: ${userResponse.statusText}`);
+      }
+      
+      // 2. Get all projects the user is assigned to
+      const projectsResponse = await fetch(`/usuarios/${userId}/proyectos`);
+      let userProjects = [];
+      
+      if (projectsResponse.ok) {
+        userProjects = await projectsResponse.json();
+        if (!Array.isArray(userProjects)) {
+          userProjects = [];
+        }
+      }
+      
+      // 3. Remove the user from all projects
+      const removePromises = userProjects.map(project => 
+        fetch(`/usuarios-proyectos/eliminar?userId=${userId}&projectId=${project.projectId}`, {
+          method: 'DELETE'
+        })
+      );
+      
+      await Promise.all(removePromises);
+      
+      // Show success message
+      setToast({
+        show: true,
+        message: 'User successfully deleted',
+        type: 'success'
+      });
+      
+      // Close the confirmation dialog
+      setShowDeleteConfirm(false);
+      
+      // Wait a moment before redirecting
+      setTimeout(() => {
+        if (onBack) onBack();
+      }, 1500);
+      
+    } catch (err) {
+      console.error("Error deleting user:", err);
+      setDeleteError(err.message);
+    } finally {
+      setDeletingUser(false);
+    }
+  };
+
+  // Toast auto-hide
+  useEffect(() => {
+    if (toast.show) {
+      const timer = setTimeout(() => {
+        setToast({ ...toast, show: false });
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
+
   if (loading && !userData) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -282,10 +356,20 @@ function UserDetails({ userId, projectId, onBack }) {
 
   return (
     <div className="flex flex-col h-screen w-full bg-gray-50">
+      {/* Toast notification */}
+      {toast.show && (
+        <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-md shadow-lg ${
+          toast.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+        }`}>
+          {toast.message}
+        </div>
+      )}
+
       <UserHeader 
         userName={`${userData?.firstName} ${userData?.lastName}`}
         role={userData?.rol}
         onBack={onBack}
+        onDeleteClick={() => setShowDeleteConfirm(true)}
         sprints={Array.isArray(sprintsWithTasks) ? sprintsWithTasks.map(s => ({
           id: s.sprintId,
           name: s.sprintName
@@ -293,6 +377,55 @@ function UserDetails({ userId, projectId, onBack }) {
         selectedSprint={selectedSprint}
         onSprintChange={handleSprintChange}
       />
+
+      {/* Delete confirmation modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+            <div className="flex items-center mb-4 text-red-600">
+              <AlertTriangle className="mr-2" size={24} />
+              <h3 className="text-xl font-bold">Confirm User Deletion</h3>
+            </div>
+            
+            <p className="mb-6">
+              Are you sure you want to delete the user <strong>{userData.firstName} {userData.lastName}</strong>? This action can't be undone.
+            </p>
+            
+            {deleteError && (
+              <div className="mb-4 p-3 bg-red-100 border-l-4 border-red-500 text-red-700 text-sm">
+                {deleteError}
+              </div>
+            )}
+            
+            <div className="flex justify-end space-x-3">
+              <button 
+                onClick={() => setShowDeleteConfirm(false)}
+                className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-md font-medium"
+                disabled={deletingUser}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleDeleteUser}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md font-medium flex items-center"
+                disabled={deletingUser}
+              >
+                {deletingUser ? (
+                  <>
+                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Deleting...
+                  </>
+                ) : (
+                  'Delete User'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="flex-1 overflow-hidden relative">
         {loading && (

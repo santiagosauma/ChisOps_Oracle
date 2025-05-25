@@ -1,7 +1,15 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, ChevronDown } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ArrowLeftCircle, UserX } from 'lucide-react';
 
-function UserHeader({ userName, role, onBack, sprints = [], selectedSprint, onSprintChange }) {
+function UserHeader({ 
+  userName, 
+  role, 
+  onBack, 
+  onDeleteClick, 
+  sprints = [], 
+  selectedSprint, 
+  onSprintChange 
+}) {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -45,7 +53,13 @@ function UserHeader({ userName, role, onBack, sprints = [], selectedSprint, onSp
         <h1 className="text-2xl md:text-3xl font-bold text-white m-0">{userName} - Details</h1>
       </div>
       <div className="flex gap-2.5">
-        <button className="h-10 bg-red-500 hover:bg-red-600 text-white border-none rounded-lg px-4 flex items-center justify-center text-sm font-medium transition-colors">Delete User from Project</button>
+        <button 
+          onClick={onDeleteClick}
+          className="flex items-center px-3 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-md transition-colors"
+        >
+          <UserX size={16} className="mr-1.5" />
+          <span className="text-sm font-medium">Delete User</span>
+        </button>
         <div className="relative" ref={dropdownRef}>
           <div 
             className="h-10 bg-red-500 hover:bg-red-600 text-white px-4 rounded-lg min-w-[150px] cursor-pointer inline-flex items-center justify-between gap-2 shadow-md border-none text-sm font-medium transition-colors"
