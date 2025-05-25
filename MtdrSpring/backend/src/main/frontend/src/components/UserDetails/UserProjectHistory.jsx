@@ -9,21 +9,11 @@ function UserProjectHistory({ userId, projects = [], selectedProject, onProjectC
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Log props for debugging
   useEffect(() => {
-    console.log("🔍 UserProjectHistory props received:", { 
-      userId, 
-      projects: projects.length > 0 ? `${projects.length} projects` : "empty array", 
-      selectedProject 
-    });
     
-    // Store the projects in local state when they arrive from props
     if (Array.isArray(projects) && projects.length > 0) {
-      console.log("📋 Setting local projects from props:", projects);
       setLocalProjects(projects);
     } else if (userId) {
-      // If no projects in props but we have userId, try fetching directly
-      console.log("🔍 No projects in props, fetching directly...");
       fetchProjects();
     }
   }, [projects, userId]);
@@ -35,24 +25,18 @@ function UserProjectHistory({ userId, projects = [], selectedProject, onProjectC
     setError(null);
     
     try {
-      // Try both endpoints
       try {
         const response = await axios.get(`/usuarios/${userId}/proyectos/simplificados`);
         if (response.data && Array.isArray(response.data) && response.data.length > 0) {
-          console.log("📊 Projects fetched directly:", response.data);
           setLocalProjects(response.data);
           return;
         }
       } catch (err) {
-        console.log("⚠️ Failed to fetch from new endpoint, trying fallback");
       }
       
-      // Fallback endpoint
       const fallbackResponse = await axios.get(`/proyectos/usuario/${userId}/simplificados`);
-      console.log("📊 Projects fetched from fallback:", fallbackResponse.data);
       setLocalProjects(fallbackResponse.data || []);
     } catch (err) {
-      console.error("❌ Error fetching user projects:", err);
       setError("Failed to load projects. Please try again later.");
     } finally {
       setLoading(false);
@@ -68,14 +52,10 @@ function UserProjectHistory({ userId, projects = [], selectedProject, onProjectC
     }
   };
 
-  // Use local projects for rendering
   const getSortedProjects = () => {
     if (!Array.isArray(localProjects) || localProjects.length === 0) {
-      console.warn("⚠️ No projects to sort");
       return [];
     }
-    
-    console.log("🔄 Sorting projects:", localProjects.length);
     
     return [...localProjects].sort((a, b) => {
       let aValue = sortField === 'startDate' || sortField === 'endDate' 
@@ -127,8 +107,6 @@ function UserProjectHistory({ userId, projects = [], selectedProject, onProjectC
 
   const sortedProjects = getSortedProjects();
 
-  // Log the actual data that will be rendered
-  console.log("📊 Rendering projects:", sortedProjects.length > 0 ? sortedProjects : "No projects available");
 
   if (loading) {
     return (

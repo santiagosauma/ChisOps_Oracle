@@ -38,57 +38,44 @@ function UserDetails({ userId, projectId, onBack }) {
     const fetchData = async () => {
       try {
         setLoading(true);
-        console.log("🔍 Fetching data for user:", userId);
         
         const userResponse = await fetch(`/usuarios/${userId}`);
         if (!userResponse.ok) {
           throw new Error('Failed to fetch user data');
         }
         const user = await userResponse.json();
-        console.log("👤 User data fetched successfully:", user);
-        
-        console.log("📋 Fetching projects using new endpoint...");
         let projectsData = [];
         try {
           const projectsResponse = await fetch(`/usuarios/${userId}/proyectos/simplificados`);
           if (projectsResponse.ok) {
             projectsData = await projectsResponse.json();
-            console.log("📊 Projects data (new endpoint):", projectsData);
             
             if (!Array.isArray(projectsData)) {
-              console.error("❌ projectsData is not an array:", projectsData);
               projectsData = [];
             } else if (projectsData.length === 0) {
-              console.warn("⚠️ No projects found for user with new endpoint");
             }
           } else {
             throw new Error(`HTTP Error: ${projectsResponse.status}`);
           }
         } catch (projectError) {
-          console.warn("⚠️ Error with new endpoint, falling back to legacy endpoint:", projectError.message);
           
           const fallbackResponse = await fetch(`/proyectos/usuario/${userId}/simplificados`);
           if (!fallbackResponse.ok) {
             throw new Error('Failed to fetch projects with fallback endpoint');
           }
           projectsData = await fallbackResponse.json();
-          console.log("📊 Projects data (fallback endpoint):", projectsData);
           
           if (!Array.isArray(projectsData)) {
-            console.error("❌ fallbackData is not an array:", projectsData);
             projectsData = [];
           }
         }
         
         setProjects(projectsData);
-        console.log("🔄 Projects state updated with:", projectsData);
         
         const initialProject = projectId || (projectsData.length > 0 ? projectsData[0].projectId : null);
-        console.log("🎯 Selected initial project:", initialProject);
         
         let tasksData = { sprints: [] };
         if (initialProject) {
-          console.log("🔍 Fetching tasks for project:", initialProject);
           const tasksResponse = await fetch(
             `/tareas/usuario/${userId}/proyecto/${initialProject}/organizadas`
           );
@@ -96,7 +83,6 @@ function UserDetails({ userId, projectId, onBack }) {
             throw new Error('Failed to fetch tasks data');
           }
           tasksData = await tasksResponse.json();
-          console.log("📝 Tasks data fetched:", tasksData);
         }
 
         const processedUser = {
@@ -131,7 +117,6 @@ function UserDetails({ userId, projectId, onBack }) {
         calculatePerformanceMetrics(tasksData.sprints || []);
 
       } catch (err) {
-        console.error("❌ Error fetching data:", err);
         setError(err.message);
       } finally {
         setLoading(false);
@@ -229,7 +214,6 @@ function UserDetails({ userId, projectId, onBack }) {
       calculatePerformanceMetrics(data.sprints || []);
       
     } catch (err) {
-      console.error("Error changing project:", err);
       setError(err.message);
     } finally {
       setLoading(false);

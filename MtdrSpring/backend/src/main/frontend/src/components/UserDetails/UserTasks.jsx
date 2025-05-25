@@ -6,7 +6,6 @@ function UserTasks({ tasks = [] }) {
   const [sortDirection, setSortDirection] = useState('asc');
 
   if (!Array.isArray(tasks)) {
-    console.error("tasks is not an array:", tasks);
     tasks = [];
   }
 

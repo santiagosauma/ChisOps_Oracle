@@ -59,7 +59,6 @@ export default function UserHome() {
       const userDataString = localStorage.getItem('user');
       
       if (!userDataString) {
-        console.error("No user data found in localStorage");
         setUserId(1);
         setCurrentUser({ id: 1, name: "Default User" });
         return;
@@ -76,7 +75,6 @@ export default function UserHome() {
               userData.email || userData.username || "User"
       });
     } catch (error) {
-      console.error("Error parsing user data from localStorage:", error);
       setUserId(1);
       setCurrentUser({ id: 1, name: "Default User" });
     }
@@ -91,40 +89,31 @@ export default function UserHome() {
       try {
         const projectsResponse = await fetch('/proyectos/activos');
         
-        console.log("Projects response status:", projectsResponse.status);
-        
         if (!projectsResponse.ok) throw new Error('Error loading active projects');
         let projectsData;
         
         try {
           const responseText = await projectsResponse.text();
-          console.log("Projects response text:", responseText.substring(0, 100) + "...");
           
           projectsData = responseText ? JSON.parse(responseText) : [];
           
           if (!Array.isArray(projectsData)) {
-            console.error("Projects data is not an array:", projectsData);
             projectsData = [];
           }
         } catch (parseError) {
-          console.error("Error parsing projects data:", parseError);
           projectsData = [];
         }
-        
-        console.log("Projects data length:", projectsData.length);
         
         const sprintPromises = Array.isArray(projectsData) ? projectsData.map(project => 
           fetch(`/sprints/proyecto/${project.projectId}`)
             .then(res => res.ok ? res.json() : [])
             .then(sprints => {
               if (!Array.isArray(sprints)) {
-                console.error(`Sprints for project ${project.projectId} is not an array:`, sprints);
                 return { projectId: project.projectId, sprints: [] };
               }
               return { projectId: project.projectId, sprints };
             })
             .catch(error => {
-              console.error(`Error fetching sprints for project ${project.projectId}:`, error);
               return { projectId: project.projectId, sprints: [] };
             })
         ) : [];
@@ -195,7 +184,6 @@ export default function UserHome() {
         }
         
       } catch (err) {
-        console.error('Error in fetchAllData:', err);
         setError({
           projects: err.message,
           tasks: err.message
@@ -282,7 +270,6 @@ export default function UserHome() {
       setPendingTasks(pending);
       setCompletedTasks(completed);
     } catch (err) {
-      console.error('Error fetching user tasks for sprint:', err);
       setError(prev => ({ ...prev, tasks: err.message }));
       
       setTasks([]);
@@ -330,7 +317,6 @@ export default function UserHome() {
       setPendingTasks(pending);
       setCompletedTasks(completed);
     } catch (err) {
-      console.error('Error fetching tasks:', err);
       setError(prev => ({ ...prev, tasks: err.message }));
       
       setTasks([]);
@@ -501,7 +487,6 @@ export default function UserHome() {
       
       closeUpdatePopup();
     } catch (err) {
-      console.error('Error updating task:', err);
       
       setToast({
         show: true,
@@ -561,7 +546,6 @@ export default function UserHome() {
         setToast(prev => ({ ...prev, show: false }));
       }, 3000);
     } catch (err) {
-      console.error('Error updating task:', err);
       
       setToast({
         show: true,

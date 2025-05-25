@@ -126,103 +126,8 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
 
   const generateSprintPerformanceData = () => {
     if (!projectData?.sprints || !projectData?.users) {
-      console.log("Missing data for sprint performance chart:", {
-        hasProjects: !!projectData,
-        hasSprints: !!projectData?.sprints,
-        sprintsLength: projectData?.sprints?.length || 0,
-        hasUsers: !!projectData?.users,
-        usersLength: projectData?.users?.length || 0
-      });
       return [];
     }
-
-    const sprintData = [];
-    const processedSprints = new Set();
-    
-    const loadSprintTasks = async (sprint) => {
-      try {
-        console.log(`Fetching tasks for sprint: ${sprint.name} (ID: ${sprint.sprintId})`);
-        const response = await fetch(`/tareas/sprint/${sprint.sprintId}`);
-        if (!response.ok) {
-          console.error(`Error fetching tasks for sprint ${sprint.sprintId}: ${response.statusText}`);
-          return [];
-        }
-        
-        const tasks = await response.json();
-        console.log(`Fetched ${tasks.length} tasks for sprint ${sprint.name}`);
-        
-        if (tasks.length > 0) {
-          console.log("Sample task structure:", JSON.stringify(tasks[0], null, 2));
-        }
-        
-        return tasks;
-      } catch (error) {
-        console.error(`Error loading tasks for sprint ${sprint.sprintId}:`, error);
-        return [];
-      }
-    };
-    
-    const processSprint = async (sprint) => {
-      if (processedSprints.has(sprint.sprintId)) return null;
-      processedSprints.add(sprint.sprintId);
-      
-      console.log(`Processing sprint: ${sprint.name} (ID: ${sprint.sprintId})`);
-      
-      const sprintTasks = await loadSprintTasks(sprint);
-      
-      if (sprintTasks.length === 0) {
-        console.log(`No tasks found for sprint ${sprint.name}`);
-        return null;
-      }
-      
-      const sprintEntry = {
-        name: sprint.name,
-        sprintId: sprint.sprintId
-      };
-      
-      let hasData = false;
-      
-      projectData.users.forEach((user, index) => {
-        if (index < 4) {
-          const userTasks = sprintTasks.filter(task => {
-            const taskUserId = 
-              task.userId || 
-              (task.usuario && (task.usuario.userId || task.usuario.id)) || 
-              null;
-            
-            const userMatch = 
-              taskUserId === user.id || 
-              String(taskUserId) === String(user.id);
-            
-            return userMatch;
-          });
-          
-          console.log(`User ${user.name} has ${userTasks.length} tasks in sprint ${sprint.name}`);
-          
-          const estimatedHours = userTasks.reduce((sum, task) => {
-            const hours = Number(task.estimatedHours || task.estimatedHour || 0);
-            return isNaN(hours) ? sum : sum + hours;
-          }, 0);
-          
-          const actualHours = userTasks.reduce((sum, task) => {
-            const hours = Number(task.actualHours || task.realHours || 0);
-            return isNaN(hours) ? sum : sum + hours;
-          }, 0);
-          
-          console.log(`User ${user.name} hours in sprint ${sprint.name}: Est=${estimatedHours}, Act=${actualHours}`);
-          
-          if (estimatedHours > 0 || actualHours > 0) {
-            sprintEntry[`${user.name}_estimated`] = estimatedHours;
-            sprintEntry[`${user.name}_actual`] = actualHours;
-            sprintEntry[`${user.name}`] = user.name;
-            hasData = true;
-          }
-        }
-      });
-      
-      return hasData ? sprintEntry : null;
-    };
-    
     return [];
   };
 
@@ -261,7 +166,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
             projectSprints = await sprintsResponse.json();
           }
         } catch (err) {
-          console.error("Error fetching sprints:", err);
+          // Silent fail for sprint fetching
         }
 
         setSelectedSprint('all');
@@ -278,7 +183,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
             allTasks = tasksArrays.flat();
             setAllSprintTasks(allTasks);
           } catch (err) {
-            console.error("Error fetching all tasks:", err);
+            // Silent fail for task fetching
           }
         }
 
@@ -305,8 +210,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
 
         setLoading(false);
       } catch (err) {
-        console.error('Error loading project data:', err);
-        setError(err.message);
+        setError('Failed to load project data');
         setLoading(false);
       }
     };
@@ -317,20 +221,13 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
   useEffect(() => {
     if (projectData?.sprints && projectData?.users) {
       const fetchSprintPerformanceData = async () => {
-        console.log("Fetching sprint performance data with:", {
-          sprintsCount: projectData.sprints.length,
-          usersCount: projectData.users.length
-        });
-        
         try {
           const sprintPromises = projectData.sprints.map(async (sprint) => {
             try {
-              console.log(`Fetching tasks for sprint: ${sprint.name} (ID: ${sprint.sprintId})`);
               const response = await fetch(`/tareas/sprint/${sprint.sprintId}`);
               if (!response.ok) return null;
               
               const tasks = await response.json();
-              console.log(`Fetched ${tasks.length} tasks for sprint ${sprint.name}`);
               
               if (tasks.length === 0) return null;
               
@@ -377,18 +274,15 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
               
               return hasData ? sprintEntry : null;
             } catch (error) {
-              console.error(`Error processing sprint ${sprint.sprintId}:`, error);
               return null;
             }
           });
           
           const results = await Promise.all(sprintPromises);
           const validResults = results.filter(result => result !== null);
-          console.log(`Generated sprint performance data with ${validResults.length} entries`);
           
           setSprintPerformanceData(validResults);
         } catch (error) {
-          console.error("Error fetching sprint performance data:", error);
           setSprintPerformanceData([]);
         }
       };
@@ -620,9 +514,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       });
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("Server error response:", errorText);
-        throw new Error(`Error creating task: ${errorText}`);
+        throw new Error(`Error creating task`);
       }
 
       setToast({
@@ -639,11 +531,9 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         setToast(prev => ({ ...prev, show: false }));
       }, 3000);
     } catch (error) {
-      console.error('Error adding task:', error);
-
       setToast({
         show: true,
-        message: `Failed to add task: ${error.message}`,
+        message: 'Failed to add task',
         type: 'error'
       });
 
@@ -846,8 +736,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         endDate: editSprintForm.endDate
       };
 
-      console.log("Updating sprint with data:", updatedSprint);
-
       const updateResponse = await fetch(`/sprints/${editSprintForm.id}`, {
         method: 'PUT',
         headers: {
@@ -858,8 +746,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
 
       if (!updateResponse.ok) {
         const errorText = await updateResponse.text();
-        console.error("Server error response:", errorText);
-        throw new Error(`Error updating sprint: ${errorText}`);
+        throw new Error(`Error updating sprint`);
       }
 
       setToast({
@@ -887,11 +774,9 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         setToast(prev => ({ ...prev, show: false }));
       }, 3000);
     } catch (error) {
-      console.error('Error updating sprint:', error);
-
       setToast({
         show: true,
-        message: `Failed to update sprint: ${error.message}`,
+        message: 'Failed to update sprint',
         type: 'error'
       });
 

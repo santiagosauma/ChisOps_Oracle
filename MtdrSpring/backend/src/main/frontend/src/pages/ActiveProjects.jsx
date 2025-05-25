@@ -17,7 +17,6 @@ function ActiveProjects() {
         return res.json();
       })
       .then(data => {
-        console.log("Server response:", data);
         setDiagnosticInfo(data);
         
         const activeProjects = data.activeProjects || [];
@@ -59,7 +58,6 @@ function ActiveProjects() {
         
         Promise.all(projectPromises)
           .then(projectsWithProgress => {
-            console.log("Projects with progress:", projectsWithProgress);
             setProjects(projectsWithProgress);
             setLoading(false);
           });

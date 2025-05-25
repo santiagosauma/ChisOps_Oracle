@@ -55,7 +55,6 @@ function ProjectsTable({ onSelectProject }) {
         return JSON.parse(userStr);
       }
     } catch (e) {
-      console.error('Error parsing user from localStorage:', e);
     }
     return { userId: 1 }; 
   };
@@ -87,7 +86,6 @@ function ProjectsTable({ onSelectProject }) {
         setLoading(false);
       })
       .catch(err => {
-        console.error('Error fetching projects:', err);
         setError(err.message);
         setProjects([]);
         setAllProjects([]);
@@ -105,7 +103,6 @@ function ProjectsTable({ onSelectProject }) {
         setUsers(data);
       })
       .catch(err => {
-        console.error('Error fetching users:', err);
       });
 
 
@@ -317,7 +314,6 @@ function ProjectsTable({ onSelectProject }) {
       
       return date.toISOString().split('T')[0];
     } catch (error) {
-      console.error('Error formatting date:', error);
       return '';
     }
   };
@@ -393,8 +389,6 @@ function ProjectsTable({ onSelectProject }) {
         deleted: 0
       };
   
-      console.log("Sending project data:", JSON.stringify(newProject, null, 2));
-  
       const response = await fetch('/proyectos', {
         method: 'POST',
         headers: {
@@ -405,20 +399,7 @@ function ProjectsTable({ onSelectProject }) {
   
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("Server error response:", errorText);
         throw new Error(`Error creating project: ${errorText}`);
-      }
-  
-      const location = response.headers.get('location');
-      console.log("Project created successfully, ID:", location);
-  
-      if (addProjectForm.selectedUsers.length > 0) {
-        console.log("Selected users that would be associated with the project:", 
-          addProjectForm.selectedUsers.map(userId => {
-            const user = users.find(u => u.userId === userId);
-            return user ? `${user.firstName} ${user.lastName}` : `User ID: ${userId}`;
-          })
-        );
       }
   
       setToast({
@@ -440,7 +421,6 @@ function ProjectsTable({ onSelectProject }) {
         setToast(prev => ({ ...prev, show: false }));
       }, 3000);
     } catch (error) {
-      console.error('Error adding project:', error);
   
       setToast({
         show: true,
@@ -505,8 +485,6 @@ function ProjectsTable({ onSelectProject }) {
 
       };
 
-      console.log("Sending updated project data:", JSON.stringify(updatedProject, null, 2));
-
       const response = await fetch(`/proyectos/${editProjectForm.projectId}`, {
         method: 'PUT',
         headers: {
@@ -517,7 +495,6 @@ function ProjectsTable({ onSelectProject }) {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("Server error response:", errorText);
         throw new Error(`Error updating project: ${errorText}`);
       }
 
@@ -540,7 +517,6 @@ function ProjectsTable({ onSelectProject }) {
         setToast(prev => ({ ...prev, show: false }));
       }, 3000);
     } catch (error) {
-      console.error('Error updating project:', error);
 
       setToast({
         show: true,
@@ -562,7 +538,6 @@ function ProjectsTable({ onSelectProject }) {
 
       if (!response.ok) {
         const errorText = await response.text();
-        console.error("Server error response:", errorText);
         throw new Error(`Error deleting project: ${errorText}`);
       }
 
@@ -585,7 +560,6 @@ function ProjectsTable({ onSelectProject }) {
         setToast(prev => ({ ...prev, show: false }));
       }, 3000);
     } catch (error) {
-      console.error('Error deleting project:', error);
 
       setToast({
         show: true,

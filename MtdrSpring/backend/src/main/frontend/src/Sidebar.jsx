@@ -7,7 +7,6 @@ function Sidebar({ currentPage, onNav, userRole, onLogout }) {
 
   const handleLogout = async (e) => {
     e.preventDefault();
-    console.log('🚪 Iniciando proceso de logout desde Sidebar');
     
     try {
       const response = await fetch('/usuarios/logout', {
