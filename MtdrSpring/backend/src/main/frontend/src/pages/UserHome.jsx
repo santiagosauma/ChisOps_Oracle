@@ -1,9 +1,9 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import TasksTable from '../components/TasksTable';
 import KanbanBoard from '../components/KanbanBoard';
-import { Pencil, ChevronDown, Filter, X, AlertTriangle, Clock, CheckCircle, LayoutGrid, List } from 'lucide-react';
+import { Pencil, ChevronDown, Filter, X, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
 
 export default function UserHome() {
   const [projects, setProjects] = useState([]);
@@ -87,22 +87,54 @@ export default function UserHome() {
       setLoading({ projects: true, tasks: true });
       
       try {
-        const projectsResponse = await fetch('/proyectos/activos');
+        let projectsResponse;
+        try {
+          projectsResponse = await fetch(`/usuarios/${userId}/proyectos`);
+          if (!projectsResponse.ok) {
+            console.log("First endpoint failed, trying second endpoint...");
+            projectsResponse = await fetch(`/proyectos/usuario/${userId}`);
+          }
+        } catch (error) {
+          console.log("First endpoint error:", error);
+          projectsResponse = await fetch(`/proyectos/usuario/${userId}`);
+        }
         
-        if (!projectsResponse.ok) throw new Error('Error loading active projects');
+        if (!projectsResponse.ok) throw new Error('Error loading user projects');
         let projectsData;
         
         try {
           const responseText = await projectsResponse.text();
+          console.log("Projects API response:", responseText);
           
           projectsData = responseText ? JSON.parse(responseText) : [];
           
           if (!Array.isArray(projectsData)) {
-            projectsData = [];
+            console.warn("Projects data is not an array, converting:", projectsData);
+            projectsData = projectsData && typeof projectsData === 'object' ? 
+              (projectsData.projectId ? [projectsData] : []) : [];
           }
+          
+          console.log("Parsed projects before filtering:", projectsData);
         } catch (parseError) {
+          console.error("Error parsing projects:", parseError);
           projectsData = [];
         }
+        
+        projectsData = projectsData.filter(project => {
+          if (project.deleted === 1) return false;
+          
+          if (!project.status) return true;
+          
+          const status = project.status.toLowerCase();
+          
+          return !(status === 'deleted' || 
+                   status === 'eliminado' || 
+                   status === 'completed' || 
+                   status === 'finalizado' || 
+                   status === 'done');
+        });
+        
+        console.log("Filtered active projects:", projectsData);
         
         const sprintPromises = Array.isArray(projectsData) ? projectsData.map(project => 
           fetch(`/sprints/proyecto/${project.projectId}`)
