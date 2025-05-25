@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -158,6 +159,32 @@ public class UsuarioProyectoController {
         } catch (Exception e) {
             System.err.println("Error obteniendo proyectos para usuario " + userId + ": " + e.getMessage());
             e.printStackTrace();
+            return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+    
+    /**
+     * OBTENER ROL DE UN USUARIO EN UN PROYECTO
+     * 
+     * Devuelve la relación específica entre un usuario y un proyecto
+     * Endpoint: GET /usuarios-proyectos/usuario/{userId}/proyecto/{projectId}
+     */
+    @GetMapping(value = "/usuarios-proyectos/usuario/{userId}/proyecto/{projectId}")
+    public ResponseEntity<?> getUserProjectRelationship(@PathVariable int userId, @PathVariable int projectId) {
+        try {
+            Optional<UsuarioProyecto> relationship = usuarioProyectoService.findByUsuarioIdAndProyectoId(userId, projectId);
+            if (relationship.isPresent()) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("userId", userId);
+                response.put("projectId", projectId);
+                response.put("role", relationship.get().getRole());
+                response.put("assignmentDate", relationship.get().getAssignmentDate());
+                
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
             return new ResponseEntity<>(e.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

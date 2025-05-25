@@ -1,7 +1,7 @@
 import React from 'react';
 import { Mail, Phone, MessagesSquare } from 'lucide-react';
 
-function UserInformation({ userData }) {
+function UserInformation({ userData, projectRole }) {
   if (!userData) {
     return <div className="flex items-center justify-center h-full text-gray-500 italic">Loading user information...</div>;
   }
@@ -32,7 +32,9 @@ function UserInformation({ userData }) {
           </div>
           <div>
             <h3 className="text-base md:text-lg font-medium text-gray-800">{userData.firstName} {userData.lastName}</h3>
-            <p className="text-xs md:text-sm text-gray-500 mt-0.5">{userData.rol || 'Team Member'}</p>
+            <p className="text-xs md:text-sm text-gray-500 mt-0.5">
+              {projectRole || userData.rol || 'Team Member'}
+            </p>
             <div className="flex items-center mt-1">
               <div className={`w-2 h-2 md:w-2.5 md:h-2.5 rounded-full ${userData.status?.toLowerCase() === 'active' ? 'bg-green-500' : 'bg-gray-500'} mr-1.5`}></div>
               <span className="text-xs text-gray-600">{userData.status || 'Unknown status'}</span>
