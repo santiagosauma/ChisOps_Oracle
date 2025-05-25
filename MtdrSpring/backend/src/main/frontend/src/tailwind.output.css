@@ -1169,6 +1169,10 @@ video {
   width: 1px;
 }
 
+.w-screen {
+  width: 100vw;
+}
+
 .min-w-\[150px\] {
   min-width: 150px;
 }
@@ -2982,6 +2986,12 @@ body {
 
   .lg\:block {
     display: block;
+  }
+
+  .lg\:flex {
+    display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
   }
 
   .lg\:h-1\/3 {
