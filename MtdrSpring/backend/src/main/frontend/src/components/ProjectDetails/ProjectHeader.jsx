@@ -51,7 +51,7 @@ function ProjectHeader({ projectName, sprint, sprints, onSprintChange, onBack, o
         </button>
         <h1 className="text-2xl md:text-3xl font-bold text-white m-0">{projectName}</h1>
       </div>
-      <div className="flex gap-2.5">
+      <div className="flex flex-wrap gap-2 lg:gap-2.5">
         <button 
           className="h-10 bg-red-500 hover:bg-red-600 text-white border-none rounded-lg px-4 flex items-center justify-center gap-1.5 text-sm font-medium transition-colors"
           onClick={onAddSprint}
