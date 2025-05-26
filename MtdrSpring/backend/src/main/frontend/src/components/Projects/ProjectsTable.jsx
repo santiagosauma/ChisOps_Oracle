@@ -333,7 +333,6 @@ function ProjectsTable({ onSelectProject }) {
     };
   });
 
-
   const openAddProjectPopup = () => {
     const today = new Date().toISOString().split('T')[0];
     
@@ -622,320 +621,381 @@ function ProjectsTable({ onSelectProject }) {
         onDelete={handleDeleteProject}
       />
 
-      <div className="bg-white rounded-lg shadow-md border border-gray-200 flex-1 flex flex-col overflow-hidden">
-        <div className="flex justify-between items-center p-4 border-b border-gray-200">
-          <div className="flex items-center">
-            <svg className="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          </div>
-          
-          <div className="flex items-center space-x-3">
-            <div className="relative">
-              <input 
-                type="text" 
-                placeholder="Search by name..." 
-                value={searchTerm}
-                onChange={handleSearch}
-                className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-64 text-sm"
-              />
-              <svg className="w-4 h-4 text-gray-500 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+    <div className="bg-white rounded-lg shadow-md border border-gray-200 flex-1 flex flex-col overflow-hidden">
+
+    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-3 sm:p-4 border-b border-gray-200 gap-3 sm:gap-0">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 text-gray-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
               </svg>
             </div>
             
-            <button 
-              className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                filterActive 
-                  ? 'bg-blue-100 text-blue-700 border border-blue-300' 
-                  : 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200'
-              }`}
-              onClick={toggleFilter}
-            >
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-              </svg>
-              Filter
-            </button>
-            
-            <button 
-              className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
-              onClick={openAddProjectPopup}
-            >
-              <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-              </svg>
-              New Project
-            </button>
-          </div>
-        </div>
-        
-        {filterActive && (
-          <div className="flex flex-wrap items-center gap-4 p-4 bg-gray-50 border-b border-gray-200">
-            <div className="flex items-center">
-              <label className="block text-sm font-medium text-gray-700 mr-2">Status:</label>
-              <select 
-                value={filterOptions.status} 
-                onChange={(e) => handleFilterChange('status', e.target.value)}
-                className="block w-40 pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
-              >
-                {statusOptions.map(status => (
-                  <option key={status} value={status}>{status}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex items-center">
-              <label className="block text-sm font-medium text-gray-700 mr-2">State:</label>
-              <select 
-                value={filterOptions.activeState} 
-                onChange={(e) => handleFilterChange('activeState', e.target.value)}
-                className="block w-40 pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
-              >
-                {activeStateOptions.map(option => (
-                  <option key={option} value={option}>{option}</option>
-                ))}
-              </select>
-            </div>
-
-            <div className="flex items-center">
-              <label className="block text-sm font-medium text-gray-700 mr-2">Date:</label>
-              <input 
-                type="date" 
-                value={filterOptions.date}
-                onChange={(e) => handleFilterChange('date', e.target.value)}
-                className="block w-40 pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
-              />
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3 w-full sm:w-auto">
+              <div className="relative">
+                <input 
+                  type="text" 
+                  placeholder="Search by name..." 
+                  value={searchTerm}
+                  onChange={handleSearch}
+                  className="pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 w-full sm:w-64 text-sm"
+                />
+                <svg className="w-4 h-4 text-gray-500 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </div>
+              
+              <div className="flex space-x-2">
+                <button 
+                  className={`flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                    filterActive 
+                      ? 'bg-blue-100 text-blue-700 border border-blue-300' 
+                      : 'bg-gray-100 text-gray-700 border border-gray-300 hover:bg-gray-200'
+                  }`}
+                  onClick={toggleFilter}
+                >
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+                  </svg>
+                  <span className="hidden sm:inline">Filter</span>
+                </button>
+                
+                <button 
+                  className="flex items-center px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors"
+                  onClick={openAddProjectPopup}
+                >
+                  <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  <span className="hidden sm:inline">New Project</span>
+                  <span className="sm:hidden">New</span>
+                </button>
+              </div>
             </div>
           </div>
-        )}
+      
         
-        <div className="flex-1 overflow-auto p-4">
+{filterActive && (
+  <div className="p-3 sm:p-4 bg-gray-50 border-b border-gray-200">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div className="flex flex-col">
+        <label className="block text-sm font-medium text-gray-700 mb-1">Status:</label>
+        <select 
+          value={filterOptions.status} 
+          onChange={(e) => handleFilterChange('status', e.target.value)}
+          className="block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
+        >
+          {statusOptions.map(status => (
+            <option key={status} value={status}>{status}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="flex flex-col">
+        <label className="block text-sm font-medium text-gray-700 mb-1">State:</label>
+        <select 
+          value={filterOptions.activeState} 
+          onChange={(e) => handleFilterChange('activeState', e.target.value)}
+          className="block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
+        >
+          {activeStateOptions.map(option => (
+            <option key={option} value={option}>{option}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="flex flex-col">
+        <label className="block text-sm font-medium text-gray-700 mb-1">Date:</label>
+        <input 
+          type="date" 
+          value={filterOptions.date}
+          onChange={(e) => handleFilterChange('date', e.target.value)}
+          className="block w-full pl-3 pr-10 py-2 text-sm border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 rounded-md"
+        />
+      </div>
+    </div>
+  </div>
+)}
+        
+
+<div className="flex-1 overflow-hidden p-4">
           {loading ? (
-            <div className="flex justify-center items-center h-full">
-              <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-              <span className="ml-2 text-gray-600">Loading projects...</span>
+    <div className="flex justify-center items-center h-64">
+       <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 rounded-full bg-gray-400 animate-pulse"></div>
+                <div className="w-2 h-2 rounded-full bg-gray-400 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-2 h-2 rounded-full bg-gray-400 animate-pulse" style={{ animationDelay: '0.4s' }}></div>
+                <span className="text-sm text-gray-500 ml-2">Loading projects...</span>
+              </div>
             </div>
           ) : error ? (
-            <div className="flex justify-center items-center h-full text-red-500">
-              <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              Error loading projects: {error}
-            </div>
-          ) : projects.length === 0 ? (
-            <div className="flex flex-col justify-center items-center h-full text-gray-500">
-              <svg className="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              No projects found matching your search criteria.
-            </div>
+          <div className="flex justify-center items-center h-64 text-red-500">
+            <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="..." />
+            </svg>
+            Error loading projects: {error}
+          </div>
+        ) : projects.length === 0 ? (
+          <div className="flex flex-col justify-center items-center h-64 text-gray-500">
+            <svg className="w-12 h-12 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="..." />
+            </svg>
+            No projects found matching your search criteria.
+          </div>
+        ) : (
+          <>
+          
+   
+        <div className="hidden md:block overflow-x-auto border border-gray-200 rounded-lg h-full">
+            <table className=" divide-y divide-gray-200" >
+<thead className="bg-gray-50 sticky top-0 z-10">
+  <tr>
+    <th 
+      scope="col" 
+      className="w-16 px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+      onClick={() => handleSort('projectId')}
+    >
+      <div className="flex items-center">
+        ID
+        <span className="ml-1">
+          {sortField === 'projectId' ? (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={
+                sortDirection === 'asc' 
+                  ? "M19 9l-7 7-7-7" 
+                  : "M5 15l7-7 7 7"
+              } />
+            </svg>
           ) : (
-            <div className="overflow-x-auto rounded-lg border border-gray-200">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th 
-                      scope="col" 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                      onClick={() => handleSort('projectId')}
-                    >
-                      <div className="flex items-center">
-                        ID
-                        <span className="ml-1">
-                          {sortField === 'projectId' ? (
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={
-                                sortDirection === 'asc' 
-                                  ? "M19 9l-7 7-7-7" 
-                                  : "M5 15l7-7 7 7"
-                              } />
-                            </svg>
-                          ) : (
-                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                            </svg>
-                          )}
-                        </span>
-                      </div>
-                    </th>
-                    
-                    <th 
-                      scope="col" 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                      onClick={() => handleSort('name')}
-                    >
-                      <div className="flex items-center">
-                        Name
-                        <span className="ml-1">
-                          {sortField === 'name' ? (
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={
-                                sortDirection === 'asc' 
-                                  ? "M19 9l-7 7-7-7" 
-                                  : "M5 15l7-7 7 7"
-                              } />
-                            </svg>
-                          ) : (
-                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                            </svg>
-                          )}
-                        </span>
-                      </div>
-                    </th>
-                    
-                    <th 
-                      scope="col" 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                      onClick={() => handleSort('startDate')}
-                    >
-                      <div className="flex items-center">
-                        Start Date
-                        <span className="ml-1">
-                        </span>
-                      </div>
-                    </th>
-                    
-                    <th 
-                      scope="col" 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                      onClick={() => handleSort('endDate')}
-                    >
-                      <div className="flex items-center">
-                        Finish Date
-                        <span className="ml-1">
-                        </span>
-                      </div>
-                    </th>
-                    
-                    <th 
-                      scope="col" 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                      onClick={() => handleSort('status')}
-                    >
-                      <div className="flex items-center">
-                        Status
-                        <span className="ml-1">
-                        </span>
-                      </div>
-                    </th>
-                    
-                    <th 
-                      scope="col" 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                      onClick={() => handleSort('users')}
-                    >
-                      <div className="flex items-center">
-                        Num. of Users
-                        <span className="ml-1">
-                        </span>
-                      </div>
-                    </th>
-                    
-                    <th 
-                      scope="col" 
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
-                      onClick={() => handleSort('progress')}
-                    >
-                      <div className="flex items-center">
-                        Progress
-                        <span className="ml-1">
-                        </span>
-                      </div>
-                    </th>
-                    
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {filteredProjects.map((project, index) => {
-                    const progress = project.progress || 0;
-                    const userCount = 4;
-                    
-                    return (
-                      <tr 
-                        key={project.projectId} 
-                        className={index % 2 === 0 ? 'bg-white hover:bg-blue-50' : 'bg-gray-50 hover:bg-blue-50'}
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                          {project.projectId}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <button
-                            onClick={() => handleProjectClick(project.projectId)}
-                            className="group flex items-center text-gray-700 font-medium focus:outline-none"
-                          >
-                            <span className="group-hover:text-indigo-600 transition-colors duration-200">
-                              {project.name}
-                            </span>
-                            <svg 
-                              className="w-4 h-4 ml-1 text-gray-400 group-hover:text-indigo-500 transition-colors duration-200" 
-                              fill="none" 
-                              stroke="currentColor" 
-                              viewBox="0 0 24 24"
-                            >
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                            </svg>
-                          </button>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {project.startDate ? new Date(project.startDate).toLocaleDateString() : 'N/A'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {project.endDate ? new Date(project.endDate).toLocaleDateString() : 'N/A'}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                            project.status === 'Completed' ? 'bg-green-100 text-green-800' :
-                            project.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
-                            project.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
-                            project.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-gray-100 text-gray-800'
-                          }`}>
-                            {project.status || 'Unknown'}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {userCount}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="w-full bg-gray-200 rounded-full h-2.5 mb-1">
-                            <div 
-                              className={`h-2.5 rounded-full ${
-                                project.status === 'Cancelled' ? 'bg-gray-400' :
-                                progress >= 80 ? 'bg-green-500' :
-                                progress >= 40 ? 'bg-blue-500' :
-                                'bg-yellow-500'
-                              }`}
-                              style={{ width: `${progress}%` }}
-                            ></div>
-                          </div>
-                          <div className="text-xs text-gray-500">
-                            {progress}%
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                          <button 
-                            className="text-blue-600 hover:text-blue-900 flex items-center"
-                            onClick={() => openEditProjectPopup(project)}
-                          >
-                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                            </svg>
-                            Edit
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
+            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+            </svg>
+          )}
+        </span>
+      </div>
+    </th>
+    
+    <th 
+      scope="col" 
+      className="w-1/4 px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+      onClick={() => handleSort('name')}
+    >
+      <div className="flex items-center">
+        Name
+        <span className="ml-1">
+          {sortField === 'name' ? (
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={
+                sortDirection === 'asc' 
+                  ? "M19 9l-7 7-7-7" 
+                  : "M5 15l7-7 7 7"
+              } />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+            </svg>
+          )}
+        </span>
+      </div>
+    </th>
+    
+    <th 
+      scope="col" 
+      className="w-1/6 px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+      onClick={() => handleSort('startDate')}
+    >
+      <div className="flex items-center">
+        Start Date
+      </div>
+    </th>
+    
+    <th 
+      scope="col" 
+      className="w-1/6 px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+      onClick={() => handleSort('endDate')}
+    >
+      <div className="flex items-center">
+        Finish Date
+      </div>
+    </th>
+    
+    <th 
+      scope="col" 
+      className="w-1/8 px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+      onClick={() => handleSort('status')}
+    >
+      <div className="flex items-center">
+        Status
+      </div>
+    </th>
+    
+    <th 
+      scope="col" 
+      className="w-20 px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+      onClick={() => handleSort('users')}
+    >
+      <div className="flex items-center">
+        Num. of Users
+      </div>
+    </th>
+    
+    <th 
+      scope="col" 
+      className="w-1/6 px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-100 transition-colors"
+      onClick={() => handleSort('progress')}
+    >
+      <div className="flex items-center">
+        Progress
+      </div>
+    </th>
+    
+    <th scope="col" className="w-20 px-3 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+      Actions
+    </th>
+  </tr>
+</thead>
+<tbody className="bg-white divide-y divide-gray-200">
+  {filteredProjects.map((project, index) => {
+    const progress = project.progress || 0;
+    const userCount = 4;
+    
+    return (
+      <tr 
+        key={project.projectId} 
+        className={index % 2 === 0 ? 'bg-white hover:bg-blue-50' : 'bg-gray-50 hover:bg-blue-50'}
+      >
+        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+          {project.projectId}
+        </td>
+        <td className="px-3 sm:px-4 py-4 whitespace-nowrap text-sm font-medium">
+          <button
+            onClick={() => handleProjectClick(project.projectId)}
+            className="group flex items-center text-gray-700 font-medium focus:outline-none"
+          >
+            <span className="group-hover:text-indigo-600 transition-colors duration-200">
+              {project.name}
+            </span>
+            <svg 
+              className="w-4 h-4 ml-1 text-gray-400 group-hover:text-indigo-500 transition-colors duration-200" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </button>
+        </td>
+        <td className="px-3 sm:px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+          {project.startDate ? new Date(project.startDate).toLocaleDateString() : 'N/A'}
+        </td>
+        <td className="px-3 sm:px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+          {project.endDate ? new Date(project.endDate).toLocaleDateString() : 'N/A'}
+        </td>
+        <td className="px-3 sm:px-4 py-4 whitespace-nowrap">
+          <span className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+            project.status === 'Completed' ? 'bg-green-100 text-green-800' :
+            project.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+            project.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
+            project.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+            'bg-gray-100 text-gray-800'
+          }`}>
+            {project.status || 'Unknown'}
+          </span>
+        </td>
+        <td className="px-3 sm:px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+          {userCount}
+        </td>
+        <td className="px-3 sm:px-4 py-4 whitespace-nowrap">
+          <div className="w-full bg-gray-200 rounded-full h-2.5 mb-1">
+            <div 
+              className={`h-2.5 rounded-full ${
+                project.status === 'Cancelled' ? 'bg-gray-400' :
+                progress >= 80 ? 'bg-green-500' :
+                progress >= 40 ? 'bg-blue-500' :
+                'bg-yellow-500'
+              }`}
+              style={{ width: `${progress}%` }}
+            ></div>
+          </div>
+          <div className="text-xs text-gray-500">
+            {progress}%
+          </div>
+        </td>
+        <td className="px-3 sm:px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
+          <button 
+            className="text-blue-600 hover:text-blue-900 flex items-center"
+            onClick={() => openEditProjectPopup(project)}
+          >
+            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+            </svg>
+            <span className="hidden sm:inline">Edit</span>
+          </button>
+        </td>
+      </tr>
+    );
+  })}
+</tbody>
               </table>
+            
+        </div>
+        <div className="md:hidden space-y-4 h-full overflow-auto">
+        {filteredProjects.map((project) => (
+          <div key={project.projectId} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
+            <div className="flex justify-between items-start mb-3">
+              <div className="flex-1">
+                <button onClick={() => handleProjectClick(project.projectId)} className="text-lg font-semibold text-gray-900 hover:text-indigo-600 text-left">
+                  {project.name}
+                </button>
+                <p className="text-sm text-gray-500">ID: {project.projectId}</p>
+              </div>
+              <button onClick={() => openEditProjectPopup(project)} className="text-blue-600 hover:text-blue-900 p-1">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                </svg>
+              </button>
             </div>
+            
+            <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
+              <div>
+                <span className="text-gray-500">Start:</span>
+                <p className="font-medium">{project.startDate ? new Date(project.startDate).toLocaleDateString() : 'N/A'}</p>
+              </div>
+              <div>
+                <span className="text-gray-500">End:</span>
+                <p className="font-medium">{project.endDate ? new Date(project.endDate).toLocaleDateString() : 'N/A'}</p>
+              </div>
+            </div>
+            
+            <div className="flex justify-between items-center mb-3">
+              <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
+                project.status === 'Completed' ? 'bg-green-100 text-green-800' :
+                project.status === 'In Progress' ? 'bg-blue-100 text-blue-800' :
+                project.status === 'Cancelled' ? 'bg-red-100 text-red-800' :
+                project.status === 'Pending' ? 'bg-yellow-100 text-yellow-800' :
+                'bg-gray-100 text-gray-800'
+              }`}>
+                {project.status || 'Unknown'}
+              </span>
+              <span className="text-sm text-gray-500">Users: 4</span>
+            </div>
+            
+            <div className="w-full bg-gray-200 rounded-full h-2.5 mb-1">
+              <div className={`h-2.5 rounded-full ${
+                project.status === 'Cancelled' ? 'bg-gray-400' :
+                project.progress >= 80 ? 'bg-green-500' :
+                project.progress >= 40 ? 'bg-blue-500' : 'bg-yellow-500'
+              }`} style={{ width: `${project.progress}%` }}></div>
+            </div>
+            <div className="text-xs text-gray-500">{project.progress}% complete</div>
+          </div>
+        ))}
+      </div>
+    </>
           )}
         </div>
+
+
       </div>
     </div>
     
