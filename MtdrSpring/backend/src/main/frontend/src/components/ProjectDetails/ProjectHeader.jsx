@@ -57,7 +57,7 @@ function ProjectHeader({ projectName, sprint, sprints, onSprintChange, onBack, o
           onClick={onAddSprint}
         >
           <Plus size={16} />
-          Add Sprint
+          Error 404
         </button>
         
         {sprint !== "all" && currentSprintObject && (
