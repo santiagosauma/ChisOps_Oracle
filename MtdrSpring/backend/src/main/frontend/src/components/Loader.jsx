@@ -2,7 +2,7 @@ import React from "react";
 import "../styles/Loader.css";
 
 const Loader = () => {
-
+// Hola
     return(
 <div class="cube-loader">
   <div class="cube cube1"></div>
