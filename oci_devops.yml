@@ -21,7 +21,8 @@ steps:
 
   - type: Command
     name: "Docker Login"
-    command:  cd ${OCI_PRIMARY_SOURCE_DIR}/ChisOps_Oracle/MtdrSpring;
+    command:  echo $(pwd)
+              cd MtdrSpring;
               oci os object get --bucket-name reacttodo-knwqz --name deployment_config.tgz --file deployment_config.tgz;
               tar -xzvf deployment_config.tgz;
               source env.sh;
@@ -29,7 +30,8 @@ steps:
 
   - type: Command
     name: "Build"
-    command:  cd ${OCI_PRIMARY_SOURCE_DIR}/ChisOps_Oracle/MtdrSpring;
+    command:  echo $(pwd)
+              cd MtdrSpring;
               source env.sh;
               (cd backend;source build.sh)
 
