@@ -21,7 +21,7 @@ steps:
 
   - type: Command
     name: "Docker Login"
-    command:  cd MtdrSpring;
+    command:  cd idk;
               oci os object get --bucket-name reacttodo-knwqz --name deployment_config.tgz --file deployment_config.tgz;
               tar -xzvf deployment_config.tgz;
               source env.sh;
@@ -29,7 +29,7 @@ steps:
 
   - type: Command
     name: "Build"
-    command:  cd MtdrSpring;
+    command:  cd idk;
               source env.sh;
               (cd backend;source build.sh)
 
