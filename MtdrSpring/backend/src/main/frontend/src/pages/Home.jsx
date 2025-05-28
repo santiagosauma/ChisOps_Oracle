@@ -11,14 +11,12 @@ function Home() {
   return (
     <div className="w-full min-h-screen flex flex-col bg-gray-50 lg:h-screen lg:overflow-hidden">
       <header className="bg-[#423E3A] h-[65px] min-h-[65px] pl-5 flex items-center shadow-md mb-1 md:mb-2 flex-shrink-0">
-        <h1 className="text-2xl md:text-3xl font-bold text-white">Home</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-white">Error!!!</h1>
       </header>
 
       <div className="flex-1 p-2 md:p-4 pb-2 lg:overflow-hidden">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 lg:gap-6 h-full lg:max-h-full">
-          {/* Columna Izquierda */}
           <div className="flex flex-col space-y-3 md:space-y-4 h-full lg:h-auto lg:max-h-full">
-            {/* Active Projects */}
             <div className="bg-white rounded-lg md:rounded-xl shadow-lg border border-gray-200 flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl min-h-[220px] lg:flex-[2]">
               <h2 className="text-sm md:text-base font-semibold m-0 p-2 md:p-3.5 border-b border-gray-200 text-gray-800 capitalize bg-gradient-to-r from-gray-50 to-white flex items-center flex-shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5 mr-2 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
@@ -31,7 +29,6 @@ function Home() {
               </div>
             </div>
 
-            {/* General Overview */}
             <div className="bg-white rounded-lg md:rounded-xl shadow-lg border border-gray-200 flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl min-h-[140px] lg:flex-[1]">
               <h2 className="text-sm md:text-base font-semibold m-0 p-2 md:p-3.5 border-b border-gray-200 text-gray-800 capitalize bg-gradient-to-r from-gray-50 to-white flex items-center flex-shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5 mr-2 text-green-600" viewBox="0 0 20 20" fill="currentColor">
@@ -45,7 +42,6 @@ function Home() {
               </div>
             </div>
 
-            {/* Completed Tasks by Developer */}
             <div className="bg-white rounded-lg md:rounded-xl shadow-lg border border-gray-200 flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl min-h-[200px] lg:flex-[2]">
               <h2 className="text-sm md:text-base font-semibold m-0 p-2 md:p-3.5 border-b border-gray-200 text-gray-800 capitalize bg-gradient-to-r from-gray-50 to-white flex items-center flex-shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5 mr-2 text-purple-600" viewBox="0 0 20 20" fill="currentColor">
@@ -59,10 +55,8 @@ function Home() {
             </div>
           </div>
 
-          {/* Columna Derecha */}
           <div className="flex flex-col space-y-3 md:space-y-4 h-full lg:h-auto lg:max-h-full">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 lg:flex-[2]">
-              {/* Tasks By Priority */}
               <div className="bg-white rounded-lg md:rounded-xl shadow-lg border border-gray-200 flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl min-h-[180px] sm:min-h-[220px]">
                 <h2 className="text-sm md:text-base font-semibold m-0 p-2 md:p-3.5 border-b border-gray-200 text-gray-800 capitalize bg-gradient-to-r from-gray-50 to-white flex items-center flex-shrink-0">
                   <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5 mr-2 text-yellow-600" viewBox="0 0 20 20" fill="currentColor">
@@ -77,7 +71,6 @@ function Home() {
               </div>
 
               <div className="flex flex-col space-y-3 md:space-y-4">
-                {/* Overdue Tasks */}
                 <div className="bg-white rounded-lg md:rounded-xl shadow-lg border border-red-300 flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl min-h-[100px] sm:min-h-[105px] flex-1">
                   <h2 className="text-sm md:text-base font-semibold m-0 p-2 md:p-3.5 border-b border-red-300 text-red-600 capitalize bg-gradient-to-r from-red-50 to-white flex items-center flex-shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5 mr-2 text-red-600" viewBox="0 0 20 20" fill="currentColor">
@@ -90,7 +83,6 @@ function Home() {
                   </div>
                 </div>
 
-                {/* Pending Tasks */}
                 <div className="bg-white rounded-lg md:rounded-xl shadow-lg border border-gray-200 flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl min-h-[100px] sm:min-h-[105px] flex-1">
                   <h2 className="text-sm md:text-base font-semibold m-0 p-2 md:p-3.5 border-b border-gray-200 text-gray-800 capitalize bg-gradient-to-r from-gray-50 to-white flex items-center flex-shrink-0">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5 mr-2 text-orange-600" viewBox="0 0 20 20" fill="currentColor">
@@ -105,7 +97,6 @@ function Home() {
               </div>
             </div>
 
-            {/* Tasks In Progress */}
             <div className="bg-white rounded-lg md:rounded-xl shadow-lg border border-gray-200 flex flex-col overflow-hidden transition-all duration-300 hover:shadow-xl min-h-[200px] lg:flex-[3]">
               <h2 className="text-sm md:text-base font-semibold m-0 p-2 md:p-3.5 border-b border-gray-200 text-gray-800 capitalize bg-gradient-to-r from-gray-50 to-white flex items-center flex-shrink-0">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 md:h-5 md:w-5 mr-2 text-blue-600" viewBox="0 0 20 20" fill="currentColor">
