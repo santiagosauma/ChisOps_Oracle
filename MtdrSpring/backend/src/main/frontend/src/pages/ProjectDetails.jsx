@@ -22,7 +22,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
   const [performanceViewMode, setPerformanceViewMode] = useState('barChart');
   const [sprintPerformanceData, setSprintPerformanceData] = useState([]);
   const [completedTasksData, setCompletedTasksData] = useState([]);
-
   const [showAddTaskPopup, setShowAddTaskPopup] = useState(false);
   const [addTaskForm, setAddTaskForm] = useState({
     title: '',
@@ -36,7 +35,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
     message: '',
     type: 'success'
   });
-
   const [showEditTaskPopup, setShowEditTaskPopup] = useState(false);
   const [editTaskForm, setEditTaskForm] = useState({
     id: '',
@@ -47,14 +45,12 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
     userId: ''
   });
   const [currentTask, setCurrentTask] = useState(null);
-
   const [showAddSprintPopup, setShowAddSprintPopup] = useState(false);
   const [addSprintForm, setAddSprintForm] = useState({
     name: '',
     startDate: '',
     endDate: ''
   });
-
   const [showEditSprintPopup, setShowEditSprintPopup] = useState(false);
   const [editSprintForm, setEditSprintForm] = useState({
     id: '',
@@ -64,7 +60,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
     status: ''
   });
   const [currentSprint, setCurrentSprint] = useState(null);
-
   const generatePerformanceData = (tasks, users, sprintId) => {
     if (!users || !tasks) return [];
 
@@ -94,7 +89,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       };
     });
   };
-
   const generateCompletedTasksData = (tasks, users, sprintId) => {
     if (!users || !tasks) return [];
     
@@ -123,14 +117,12 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       };
     }).filter(user => user.completedTasks > 0);
   };
-
   const generateSprintPerformanceData = () => {
     if (!projectData?.sprints || !projectData?.users) {
       return [];
     }
     return [];
   };
-
   useEffect(() => {
     if (!propProjectId) return;
 
@@ -217,7 +209,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
 
     loadProjectData();
   }, [propProjectId]);
-
   useEffect(() => {
     if (projectData?.sprints && projectData?.users) {
       const fetchSprintPerformanceData = async () => {
@@ -290,7 +281,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       fetchSprintPerformanceData();
     }
   }, [projectData?.sprints, projectData?.users]);
-
   const calculateTasksInfo = (tasks) => {
     if (!tasks || !Array.isArray(tasks)) return { overdue: 0, progress: '0%', completed: 0, pending: 0, total: 0 };
 
@@ -337,7 +327,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       total
     };
   };
-
   const formatTasks = (tasks) => {
     if (!tasks || !Array.isArray(tasks)) return [];
 
@@ -366,7 +355,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       };
     });
   };
-
   const handleSprintChange = async (sprintId) => {
     setLoading(true);
 
@@ -433,11 +421,9 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       setLoading(false);
     }
   };
-
   const togglePerformanceViewMode = (mode) => {
     setPerformanceViewMode(mode);
   };
-
   const openAddTaskPopup = () => {
     setAddTaskForm({
       title: '',
@@ -448,11 +434,9 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
     });
     setShowAddTaskPopup(true);
   };
-
   const closeAddTaskPopup = () => {
     setShowAddTaskPopup(false);
   };
-
   const handleAddFormChange = (e) => {
     const { name, value } = e.target;
     setAddTaskForm(prev => ({
@@ -460,7 +444,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       [name]: value
     }));
   };
-
   const handleAddTask = async () => {
     if (!addTaskForm.title || !addTaskForm.priority || !addTaskForm.dueDate) {
       setToast({
@@ -542,7 +525,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       }, 4000);
     }
   };
-
   const openAddSprintPopup = () => {
     setAddSprintForm({
       name: '',
@@ -551,11 +533,9 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
     });
     setShowAddSprintPopup(true);
   };
-
   const closeAddSprintPopup = () => {
     setShowAddSprintPopup(false);
   };
-
   const handleAddSprintChange = (e) => {
     const { name, value } = e.target;
     setAddSprintForm(prev => ({
@@ -563,7 +543,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       [name]: value
     }));
   };
-
   const handleAddSprint = async () => {
     if (!addSprintForm.name || !addSprintForm.startDate || !addSprintForm.endDate) {
       setToast({
@@ -645,7 +624,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       }, 4000);
     }
   };
-
   const openEditSprintPopup = (sprint) => {
     let startDate = '';
     let endDate = '';
@@ -693,12 +671,10 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
     });
     setShowEditSprintPopup(true);
   };
-
   const closeEditSprintPopup = () => {
     setShowEditSprintPopup(false);
     setCurrentSprint(null);
   };
-
   const handleEditSprintChange = (e) => {
     const { name, value } = e.target;
     setEditSprintForm(prev => ({
@@ -706,7 +682,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       [name]: value
     }));
   };
-
   const handleUpdateSprint = async () => {
     if (!editSprintForm.name || !editSprintForm.startDate || !editSprintForm.endDate || !editSprintForm.status) {
       setToast({
@@ -785,7 +760,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       }, 4000);
     }
   };
-
   const handleDeleteSprint = async () => {
     if (!currentSprint || !editSprintForm.id) return;
 
@@ -841,7 +815,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       }, 4000);
     }
   };
-
   const openEditTaskPopup = (task) => {
     let dueDate = '';
     if (task.dueDate) {
@@ -882,12 +855,10 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
     });
     setShowEditTaskPopup(true);
   };
-
   const closeEditTaskPopup = () => {
     setShowEditTaskPopup(false);
     setCurrentTask(null);
   };
-
   const handleEditFormChange = (e) => {
     const { name, value } = e.target;
     setEditTaskForm(prev => ({
@@ -895,7 +866,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       [name]: value
     }));
   };
-
   const handleUpdateTask = async () => {
     if (!editTaskForm.title || !editTaskForm.priority || !editTaskForm.dueDate || !editTaskForm.status) {
       setToast({
@@ -968,7 +938,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       }, 4000);
     }
   };
-
   const handleDeleteTask = async () => {
     if (!currentTask || !editTaskForm.id) return;
 
@@ -1013,9 +982,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       }, 4000);
     }
   };
-
   const performanceViewType = selectedSprint === 'all' ? 'allSprints' : 'singleSprint';
-
   if (loading && !projectData) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -1023,15 +990,12 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       </div>
     );
   }
-
   if (error) {
     return <div className="p-5 text-center text-red-700">Error: {error}</div>;
   }
-
   if (!projectData) {
     return <div className="p-5 text-center text-red-700">No project data available</div>;
   }
-
   return (
     <div className="flex flex-col h-screen w-full overflow-hidden bg-gray-50">
       {toast.show && (
@@ -1098,10 +1062,10 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         onAddSprint={openAddSprintPopup}
         onEditSprint={openEditSprintPopup}
       />
-      <div className="flex-1 p-2.5 overflow-hidden relative">
+      <div className="flex-1 p-1 sm:p-2.5 overflow-hidden relative">
         {loading && <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10 text-gray-800 font-medium">Loading data...</div>}
-        <div className="w-full h-full flex overflow-auto">
-          <div className="w-2/5 flex flex-col gap-4 py-2.5 px-1.5 pl-2.5 min-h-full">
+        <div className="w-full h-full flex flex-col lg:flex-row overflow-auto">
+          <div className="w-full lg:w-2/5 flex flex-col gap-4 py-2.5 px-1.5 lg:pl-2.5 min-h-full">
             <div className="flex-1 flex flex-col gap-4">
               <div className="bg-white rounded-lg md:rounded-xl shadow-lg border border-gray-200 p-4 h-[320px] min-h-[320px] overflow-y-auto flex flex-col transition-all duration-300 hover:shadow-xl">
                 <ProjectDescription
@@ -1129,7 +1093,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
             </div>
           </div>
 
-          <div className="w-3/5 flex flex-col gap-4 py-2.5 px-1.5 overflow-visible min-h-full">
+          <div className="w-full lg:w-3/5 flex flex-col gap-4 py-2.5 px-1.5 overflow-visible min-h-full">
             <div className="flex-1 bg-white rounded-lg md:rounded-xl shadow-lg border border-gray-200 p-4 min-h-[650px] overflow-y-auto flex flex-col transition-all duration-300 hover:shadow-xl">
               <ProjectTasks
                 tasks={projectData.formattedTasks}

@@ -113,9 +113,9 @@ const ProjectTasks = ({ tasks, onAddTask, onEditTask }) => {
         </button>
       </div>
       
-      <div className="bg-gray-50 p-3 mb-4 rounded-lg border border-gray-200 space-y-3">
-        <div className="flex flex-wrap gap-2">
-          <div className="relative flex-1 min-w-[200px]">
+      <div className="bg-gray-50 p-2 lg:p-3 mb-4 rounded-lg border border-gray-200 space-y-2 lg:space-y-3">
+        <div className="flex flex-col sm:flex-row flex-wrap gap-2">
+          <div className="relative flex-1 min-w-full sm:min-w-[200px]">
             <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
               <Search size={16} className="text-gray-400" />
             </div>
@@ -129,7 +129,7 @@ const ProjectTasks = ({ tasks, onAddTask, onEditTask }) => {
           </div>
           
           <select
-            className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2"
+            className="bg-white border border-gray-300 text-gray-700 text-xs sm:text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 min-w-[120px]"
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
           >
@@ -140,7 +140,7 @@ const ProjectTasks = ({ tasks, onAddTask, onEditTask }) => {
           </select>
           
           <select
-            className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2"
+           className="bg-white border border-gray-300 text-gray-700 text-xs sm:text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 min-w-[120px]"
             value={priorityFilter}
             onChange={(e) => setPriorityFilter(e.target.value)}
           >
@@ -151,7 +151,7 @@ const ProjectTasks = ({ tasks, onAddTask, onEditTask }) => {
           </select>
           
           <select
-            className="bg-white border border-gray-300 text-gray-700 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2"
+            className="bg-white border border-gray-300 text-gray-700 text-xs sm:text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block p-2 min-w-[120px]"
             value={userFilter}
             onChange={(e) => setUserFilter(e.target.value)}
           >
@@ -178,23 +178,23 @@ const ProjectTasks = ({ tasks, onAddTask, onEditTask }) => {
         )}
       </div>
       
-      <div className="flex-1 overflow-auto border border-gray-200 rounded-lg">
-        <table className="w-full border-collapse text-sm">
+      <div className="flex-1 overflow-x-auto overflow-y-auto border border-gray-200 rounded-lg">
+        <table className="w-full border-collapse text-xs sm:text-sm min-w-[800px]">
           <thead>
             <tr className="bg-gray-50 sticky top-0 z-10">
-              <th className="text-left py-3 px-4 font-medium text-gray-600 border-b border-gray-200">Task</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-600 border-b border-gray-200">Status</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-600 border-b border-gray-200">Priority</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-600 border-b border-gray-200">Due Date</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-600 border-b border-gray-200">User Assigned</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-600 border-b border-gray-200">Est. Hours</th>
-              <th className="text-left py-3 px-4 font-medium text-gray-600 border-b border-gray-200">Real Hours</th>
+              <th className="text-left py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 border-b border-gray-200">Task</th>
+              <th className="text-left py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 border-b border-gray-200">Status</th>
+              <th className="text-left py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 border-b border-gray-200">Priority</th>
+              <th className="text-left py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 border-b border-gray-200">Due Date</th>
+              <th className="text-left py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 border-b border-gray-200">User Assigned</th>
+              <th className="text-left py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 border-b border-gray-200">Est. Hours</th>
+              <th className="text-left py-2 sm:py-3 px-2 sm:px-4 font-medium text-gray-600 border-b border-gray-200">Real Hours</th>
             </tr>
           </thead>
           <tbody>
             {filteredTasks && filteredTasks.length > 0 ? filteredTasks.map(task => (
               <tr key={task.id} className="hover:bg-gray-50 border-b border-gray-200 last:border-b-0">
-                <td className="py-3 px-4">
+                <td className="py-2 sm:py-3 px-2 sm:px-4">
                   <span 
                     className="text-emerald-700 hover:text-emerald-900 hover:underline font-medium cursor-pointer"
                     onClick={() => onEditTask(task)}
@@ -202,12 +202,12 @@ const ProjectTasks = ({ tasks, onAddTask, onEditTask }) => {
                     {task.name}
                   </span>
                 </td>
-                <td className="py-3 px-4">
+                <td className="py-2 sm:py-3 px-2 sm:px-4">
                   <span className={`inline-block px-2.5 py-1 text-xs font-medium rounded-full ${getStatusClass(task.status)}`}>
                     {task.status || 'Pending'}
                   </span>
                 </td>
-                <td className="py-3 px-4">
+                <td className="py-2 sm:py-3 px-2 sm:px-4">
                   <span className={`inline-block px-2.5 py-1 text-xs font-medium rounded-full ${getPriorityClass(task.priority)}`}>
                     {task.priority || 'Medium'}
                   </span>

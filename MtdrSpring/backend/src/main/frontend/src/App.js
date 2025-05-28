@@ -77,20 +77,20 @@ function App() {
 
    const handleSelectProject = (projectId) => {
     setSelectedProjectId(projectId);
-    setSelectedUserId(null); // Reset user selection when changing projects
+    setSelectedUserId(null); 
     
   };
 
   const handleBackToProjects = () => {
     setSelectedProjectId(null);
-    setSelectedUserId(null); // Reset user selection when going back to projects
+    setSelectedUserId(null); 
 
   };
 
   const handleSelectUser = (userId, projectId) => {
     setSelectedUserId(userId);
     setSelectedProjectId(projectId);
-    setPage('UserDetails'); // Change to UserDetails page
+    setPage('UserDetails'); 
   };
 
   // Handler to go back from user details to project details
@@ -115,11 +115,21 @@ function App() {
     }
   }
 
+  const handleSidebarNav = (targetPage) => {
+    if (targetPage === 'Home' || targetPage === 'UserHome') {
+      setSelectedProjectId(null);
+      setSelectedUserId(null);
+    }
+    setPage(targetPage);
+  };
+
+
+
   return (
     <div style={{ display: 'flex' }}>
       <Sidebar 
         currentPage={page} 
-        onNav={setPage} 
+        onNav={handleSidebarNav} 
         userRole={userRole}
         onLogout={handleLogout}
       />
