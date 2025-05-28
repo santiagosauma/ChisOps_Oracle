@@ -21,7 +21,7 @@ function ProjectPerformance({
   users = []
 }) {
   const chartTitle = viewType === 'allSprints'
-    ? "Hours per Developer (All Sprints)"
+    ? "Hours per Sprint (Total)"
     : "Hours per Developer (Selected Sprint)";
     
   const completedTasksTitle = viewType === 'allSprints'
@@ -33,71 +33,155 @@ function ProjectPerformance({
     '#10b981', '#8b5cf6', '#ec4899', '#3b82f6',
   ];
 
-  const renderDeveloperBarChart = () => (
-    <>
-      <h3 className="text-center text-lg font-semibold text-gray-700 mb-2">{chartTitle}</h3>
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart
-          data={chartData}
-          margin={{ top: 30, right: 30, left: 20, bottom: 20 }}
-          barGap={12}
-          barCategoryGap="30%"
-        >
-          <CartesianGrid strokeDasharray="3 3" vertical={false} />
-          <XAxis
-            dataKey="name"
-            axisLine
-            tickLine
-            tick={{ fontSize: 13, fill: '#64748b', fontWeight: 500 }}
-            height={60}
-            interval={0}
-            angle={-20}
-            textAnchor="end"
-          />
-          <YAxis
-            tick={{ fontSize: 13, fill: '#64748b' }}
-            label={{
-              value: 'Hours',
-              angle: -90,
-              position: 'insideLeft',
-              style: { textAnchor: 'middle', fill: '#64748b', fontWeight: 500 }
-            }}
-          />
-          <Tooltip
-            contentStyle={{ background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb' }}
-            formatter={(value, name) => [`${value} hours`, name === 'actual' ? 'Actual' : 'Estimated']}
-          />
-          <Legend 
-            verticalAlign="top"
-            align="right"
-            iconType="circle"
-            wrapperStyle={{ 
-              fontSize: '12px',
-              paddingBottom: '10px'
-            }} 
-          />
-          {/* 
-            Horas estimadas en All Sprints y en cada sprint
-          
-          <Bar
-            dataKey="estimated"
-            name="Estimated Hours"
-            fill="#64748b" 
-            radius={[6, 6, 0, 0]}
-            barSize={100}
-          />
-          */}
-          <Bar
-            dataKey="actual"
-            name="Actual Hours"
-            fill="#4f46e5"
-            radius={[6, 6, 0, 0]}
-            barSize={100}
-          />
-        </BarChart>
-      </ResponsiveContainer>
-    </>
-  );
+  const renderDeveloperBarChart = () => {
+    if (viewType === 'allSprints') {
+      return renderSprintTotalsChart();
+    }
+    
+    return (
+      <>
+        <h3 className="text-center text-lg font-semibold text-gray-700 mb-2">{chartTitle}</h3>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={chartData}
+            margin={{ top: 30, right: 30, left: 20, bottom: 20 }}
+            barGap={12}
+            barCategoryGap="30%"
+          >
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis
+              dataKey="name"
+              axisLine
+              tickLine
+              tick={{ fontSize: 13, fill: '#64748b', fontWeight: 500 }}
+              height={60}
+              interval={0}
+              angle={-20}
+              textAnchor="end"
+            />
+            <YAxis
+              tick={{ fontSize: 13, fill: '#64748b' }}
+              label={{
+                value: 'Hours',
+                angle: -90,
+                position: 'insideLeft',
+                style: { textAnchor: 'middle', fill: '#64748b', fontWeight: 500 }
+              }}
+            />
+            <Tooltip
+              contentStyle={{ background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb' }}
+              formatter={(value, name) => [`${value} hours`, name === 'actual' ? 'Actual' : 'Estimated']}
+            />
+            <Legend 
+              verticalAlign="top"
+              align="right"
+              iconType="circle"
+              wrapperStyle={{ 
+                fontSize: '12px',
+                paddingBottom: '10px'
+              }} 
+            />
+            <Bar
+              dataKey="actual"
+              name="Actual Hours"
+              fill="#4f46e5"
+              radius={[6, 6, 0, 0]}
+              barSize={100}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </>
+    );
+  };
+
+  const renderSprintTotalsChart = () => {
+    if (!sprintChartData || sprintChartData.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center text-gray-400 py-8">
+          <p className="text-base font-medium">No sprint data available.</p>
+          <p className="text-xs mt-2 text-gray-400">
+            Make sure tasks are assigned to sprints with actual hours.
+          </p>
+        </div>
+      );
+    }
+
+    const processedSprintData = sprintChartData.map(sprint => {
+      if (sprint.totalHours !== undefined) {
+        return sprint;
+      }
+      
+      let totalHours = 0;
+      Object.keys(sprint).forEach(key => {
+        if (key.includes('_actual') && typeof sprint[key] === 'number') {
+          totalHours += sprint[key];
+        }
+      });
+      
+      return {
+        ...sprint,
+        totalHours: totalHours
+      };
+    });
+
+    console.log("Processed sprint data for totals chart:", processedSprintData);
+
+    return (
+      <>
+        <h3 className="text-center text-lg font-semibold text-gray-700 mb-2">{chartTitle}</h3>
+        <ResponsiveContainer width="100%" height="100%">
+          <BarChart
+            data={processedSprintData}
+            margin={{ top: 30, right: 30, left: 20, bottom: 20 }}
+            barGap={12}
+            barCategoryGap="30%"
+          >
+            <CartesianGrid strokeDasharray="3 3" vertical={false} />
+            <XAxis
+              dataKey="name"
+              axisLine
+              tickLine
+              tick={{ fontSize: 13, fill: '#64748b', fontWeight: 500 }}
+              height={60}
+              interval={0}
+              angle={-20}
+              textAnchor="end"
+            />
+            <YAxis
+              tick={{ fontSize: 13, fill: '#64748b' }}
+              label={{
+                value: 'Total Hours',
+                angle: -90,
+                position: 'insideLeft',
+                style: { textAnchor: 'middle', fill: '#64748b', fontWeight: 500 }
+              }}
+            />
+            <Tooltip
+              contentStyle={{ background: '#fff', borderRadius: 8, border: '1px solid #e5e7eb' }}
+              formatter={(value) => [`${value} hours`]}
+              labelFormatter={label => `Sprint: ${label}`}
+            />
+            <Legend 
+              verticalAlign="top"
+              align="right"
+              iconType="circle"
+              wrapperStyle={{ 
+                fontSize: '12px',
+                paddingBottom: '10px'
+              }} 
+            />
+            <Bar
+              dataKey="totalHours"
+              name="Total Hours"
+              fill="#10b981"
+              radius={[6, 6, 0, 0]}
+              barSize={100}
+            />
+          </BarChart>
+        </ResponsiveContainer>
+      </>
+    );
+  };
 
   const renderCompletedTasksChart = () => {
     if (!completedTasksData || completedTasksData.length === 0) {
@@ -261,7 +345,7 @@ function ProjectPerformance({
           }`}
           onClick={() => onChangeViewMode('barChart')}
         >
-          Hours by Developer
+          {viewType === 'allSprints' ? 'Hours by Sprint' : 'Hours by Developer'}
         </button>
         {viewType === 'allSprints' && (
           <button
@@ -272,7 +356,7 @@ function ProjectPerformance({
             }`}
             onClick={() => onChangeViewMode('sprintBarChart')}
           >
-            Hours by Sprint
+            Hours by Sprint & Developer
           </button>
         )}
         <button
