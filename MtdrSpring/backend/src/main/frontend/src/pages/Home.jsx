@@ -11,7 +11,7 @@ function Home() {
   return (
     <div className="w-full min-h-screen flex flex-col bg-gray-50 lg:h-screen lg:overflow-hidden">
       <header className="bg-[#423E3A] h-[65px] min-h-[65px] pl-5 flex items-center shadow-md mb-1 md:mb-2 flex-shrink-0">
-        <h1 className="text-2xl md:text-3xl font-bold text-white">Error!!!</h1>
+        <h1 className="text-2xl md:text-3xl font-bold text-white">Home</h1>
       </header>
 
       <div className="flex-1 p-2 md:p-4 pb-2 lg:overflow-hidden">
