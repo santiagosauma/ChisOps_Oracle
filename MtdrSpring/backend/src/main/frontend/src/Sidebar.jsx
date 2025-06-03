@@ -43,7 +43,7 @@ function Sidebar({ currentPage, onNav, userRole, onLogout }) {
 
   return (
     <div
-      className={`fixed top-0 left-0 h-screen bg-[#312D2A] flex flex-col overflow-x-hidden overflow-y-auto z-10 transition-all duration-300 ease-in-out ${
+      className={`fixed top-0 left-0 h-screen bg-[#312D2A] flex flex-col overflow-x-hidden overflow-y-auto z-20 transition-all duration-300 ease-in-out ${
         expand ? 'w-[220px]' : 'w-[60px]'
       } shadow-lg shadow-black/20`}
       onMouseEnter={() => setExpand(true)}

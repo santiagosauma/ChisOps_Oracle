@@ -122,11 +122,10 @@ return (
       
       {!isLoading && projects.length > 0 && (
         <div className="flex-1 overflow-auto">
-          {/* Vista de tabla para pantallas grandes */}
           <div className="hidden md:block h-full">
             <div className="overflow-auto h-full">
               <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-100 sticky top-0 z-10">
+                <thead className="bg-gray-100 sticky top-0 z-0">
                   <tr>
                     <th className="px-4 lg:px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                       Project
