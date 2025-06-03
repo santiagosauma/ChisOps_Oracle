@@ -815,7 +815,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       }, 4000);
     }
   };
-  const openEditTaskPopup = (task) => {
+  const openEditTaskPopup = async (task) => {
     let dueDate = '';
     if (task.dueDate) {
       try {
@@ -844,16 +844,50 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       }
     }
 
-    setCurrentTask(task);
-    setEditTaskForm({
-      id: task.id,
-      title: task.name,
-      priority: task.priority || 'Medium',
-      dueDate: dueDate,
-      status: task.status || 'Incomplete',
-      userId: task.userId || '',
-      actualHours: task.realHours || task.actualHours || ''
-    });
+    // Obtener datos completos de la tarea desde el backend
+    try {
+      const response = await fetch(`/tareas/${task.id}`);
+      if (response.ok) {
+        const fullTask = await response.json();
+        
+        setCurrentTask(task);
+        setEditTaskForm({
+          id: task.id,
+          title: task.name,
+          priority: task.priority || 'Medium',
+          dueDate: dueDate,
+          status: task.status || 'Incomplete',
+          userId: task.userId || '',
+          actualHours: fullTask.actualHours || ''
+        });
+      } else {
+        // Fallback a los datos existentes si no se puede obtener del backend
+        setCurrentTask(task);
+        setEditTaskForm({
+          id: task.id,
+          title: task.name,
+          priority: task.priority || 'Medium',
+          dueDate: dueDate,
+          status: task.status || 'Incomplete',
+          userId: task.userId || '',
+          actualHours: task.realHours || task.actualHours || ''
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching task details:', error);
+      // Fallback a los datos existentes
+      setCurrentTask(task);
+      setEditTaskForm({
+        id: task.id,
+        title: task.name,
+        priority: task.priority || 'Medium',
+        dueDate: dueDate,
+        status: task.status || 'Incomplete',
+        userId: task.userId || '',
+        actualHours: task.realHours || task.actualHours || ''
+      });
+    }
+    
     setShowEditTaskPopup(true);
   };
   const closeEditTaskPopup = () => {
@@ -872,6 +906,19 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       setToast({
         show: true,
         message: 'Please fill in all required fields',
+        type: 'error'
+      });
+      setTimeout(() => {
+        setToast(prev => ({ ...prev, show: false }));
+      }, 3000);
+      return;
+    }
+
+    // Validar actualHours si el status es "Done"
+    if (editTaskForm.status === "Done" && (!editTaskForm.actualHours || editTaskForm.actualHours <= 0)) {
+      setToast({
+        show: true,
+        message: 'Please enter actual hours when marking task as Done',
         type: 'error'
       });
       setTimeout(() => {
@@ -919,9 +966,10 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         type: 'success'
       });
 
-      handleSprintChange(selectedSprint);
-
       closeEditTaskPopup();
+
+      // Forzar recarga inmediata y completa de datos
+      await refreshProjectData();
 
       setTimeout(() => {
         setToast(prev => ({ ...prev, show: false }));
@@ -940,6 +988,70 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       }, 4000);
     }
   };
+
+  // Nueva función para refrescar todos los datos
+  const refreshProjectData = async () => {
+    setLoading(true);
+    
+    try {
+      // Recargar datos del sprint actual y actualizar todo el estado
+      let tasksToShow = [];
+      
+      if (selectedSprint === 'all') {
+        // Recargar todas las tareas de todos los sprints
+        if (projectData?.sprints?.length > 0) {
+          const allTasksPromises = projectData.sprints.map(sprint =>
+            fetch(`/tareas/sprint/${sprint.sprintId}`)
+              .then(res => res.ok ? res.json() : [])
+          );
+
+          const tasksArrays = await Promise.all(allTasksPromises);
+          tasksToShow = tasksArrays.flat();
+          setAllSprintTasks(tasksToShow);
+        }
+      } else {
+        // Recargar tareas del sprint específico
+        const sprintResponse = await fetch(`/tareas/sprint/${selectedSprint}`);
+        if (sprintResponse.ok) {
+          tasksToShow = await sprintResponse.json();
+          tasksToShow = tasksToShow.map(task => ({
+            ...task,
+            sprintId: selectedSprint
+          }));
+        }
+      }
+
+      // Actualizar el estado con los nuevos datos
+      const formattedTasks = formatTasks(tasksToShow);
+      
+      setProjectData(prev => ({
+        ...prev,
+        tasksInfo: calculateTasksInfo(tasksToShow),
+        formattedTasks: formattedTasks
+      }));
+
+      // Actualizar datos de performance
+      const updatedPerformanceData = generatePerformanceData(
+        formattedTasks,
+        projectData.users,
+        selectedSprint
+      );
+      setPerformanceData(updatedPerformanceData);
+      
+      const updatedCompletedTasksData = generateCompletedTasksData(
+        formattedTasks,
+        projectData.users,
+        selectedSprint
+      );
+      setCompletedTasksData(updatedCompletedTasksData);
+
+    } catch (error) {
+      console.error('Error refreshing project data:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDeleteTask = async () => {
     if (!currentTask || !editTaskForm.id) return;
 
@@ -963,7 +1075,9 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         type: 'success'
       });
 
-      handleSprintChange(selectedSprint);
+      window.dispatchEvent(new CustomEvent('taskDeleted'));
+
+      await refreshProjectData();
 
       closeEditTaskPopup();
 
@@ -984,7 +1098,19 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       }, 4000);
     }
   };
+
+  const handleAddTaskWithEvent = async () => {
+    await handleAddTask();
+    window.dispatchEvent(new CustomEvent('taskCreated'));
+  };
+
+  const handleUpdateTaskWithEvent = async () => {
+    await handleUpdateTask();
+    window.dispatchEvent(new CustomEvent('taskUpdated'));
+  };
+
   const performanceViewType = selectedSprint === 'all' ? 'allSprints' : 'singleSprint';
+
   if (loading && !projectData) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -992,12 +1118,15 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       </div>
     );
   }
+
   if (error) {
     return <div className="p-5 text-center text-red-700">Error: {error}</div>;
   }
+
   if (!projectData) {
     return <div className="p-5 text-center text-red-700">No project data available</div>;
   }
+
   return (
     <div className="flex flex-col h-screen w-full overflow-hidden bg-gray-50">
       {toast.show && (
@@ -1064,6 +1193,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         onAddSprint={openAddSprintPopup}
         onEditSprint={openEditSprintPopup}
       />
+      
       <div className="flex-1 p-1 sm:p-2.5 overflow-hidden relative">
         {loading && <div className="absolute inset-0 bg-white/70 flex items-center justify-center z-10 text-gray-800 font-medium">Loading data...</div>}
         <div className="w-full h-full flex flex-col lg:flex-row overflow-auto">

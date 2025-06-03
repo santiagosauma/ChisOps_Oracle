@@ -5,6 +5,26 @@ function ActiveProjects() {
   const [error, setError] = useState()
   const [projects, setProjects] = useState([])
   const [diagnosticInfo, setDiagnosticInfo] = useState(null)
+  const [refreshKey, setRefreshKey] = useState(0)
+  const refreshData = () => {
+    setRefreshKey(prev => prev + 1);
+  };
+
+  useEffect(() => {
+    const handleTaskUpdate = () => {
+      refreshData();
+    };
+
+    window.addEventListener('taskUpdated', handleTaskUpdate);
+    window.addEventListener('taskCreated', handleTaskUpdate);
+    window.addEventListener('taskDeleted', handleTaskUpdate);
+
+    return () => {
+      window.removeEventListener('taskUpdated', handleTaskUpdate);
+      window.removeEventListener('taskCreated', handleTaskUpdate);
+      window.removeEventListener('taskDeleted', handleTaskUpdate);
+    };
+  }, []);
 
   useEffect(() => {
     setLoading(true)
@@ -48,7 +68,14 @@ function ActiveProjects() {
                     return { ...project, progress: 0 };
                   }
                   
-                  const completedTasks = allTasks.filter(task => task.status === 'Done').length;
+                  const completedTasks = allTasks.filter(task => 
+                    task.status === 'Done' || 
+                    task.status === 'Completed' || 
+                    task.status === 'Finalizada' ||
+                    task.status === 'done' ||
+                    task.status === 'completed' ||
+                    task.status === 'finalizada'
+                  ).length;
                   const progress = Math.round((completedTasks / allTasks.length) * 100);
                   
                   return { ...project, progress, taskCount: allTasks.length, completedCount: completedTasks };
@@ -67,20 +94,7 @@ function ActiveProjects() {
         setError(typeof err === 'string' ? new Error(err) : err);
         setLoading(false);
       });
-
-    fetch('/proyectos')
-      .then(res => res.ok ? res.json() : Promise.reject('Failed to fetch projects'))
-      .then(projectsData => {
-        const activeProjects = projectsData.filter(p => 
-          p.status === 'En progreso' || p.status === 'Activo' ||
-          p.status === 'In Progress' || p.status === 'Active'
-        );
-        
-      })
-      .catch(err => {
-        console.error("Error in fallback fetch:", err);
-      });
-  }, []);
+  }, [refreshKey]);
 
 return (
     <div className="w-full h-full flex flex-col">
@@ -175,14 +189,12 @@ return (
             </div>
           </div>
 
-          {/* Vista de tarjetas para pantallas pequeñas y medianas */}
           <div className="md:hidden h-full overflow-auto p-3 space-y-3">
             {projects.map((project, index) => (
               <div 
                 key={project.projectId} 
                 className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm"
               >
-                {/* Header de la tarjeta */}
                 <div className="flex flex-col space-y-3">
                   <div className="flex justify-between items-start">
                     <h3 className="font-medium text-gray-800 text-sm flex-1 pr-2 leading-tight">
@@ -193,7 +205,6 @@ return (
                     </span>
                   </div>
 
-                  {/* Progress en móvil */}
                   <div className="space-y-2">
                     <div className="flex justify-between items-center">
                       <span className="text-xs text-gray-600 font-medium">Progress</span>
@@ -213,7 +224,6 @@ return (
                     </div>
                   </div>
 
-                  {/* Info adicional si está disponible */}
                   {(project.taskCount || project.completedCount) && (
                     <div className="flex justify-between text-xs text-gray-500 pt-1 border-t border-gray-100">
                       <span>Tasks: {project.taskCount || 0}</span>
