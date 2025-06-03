@@ -851,7 +851,8 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       priority: task.priority || 'Medium',
       dueDate: dueDate,
       status: task.status || 'Incomplete',
-      userId: task.userId || ''
+      userId: task.userId || '',
+      actualHours: task.realHours || task.actualHours || ''
     });
     setShowEditTaskPopup(true);
   };
@@ -894,6 +895,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         priority: editTaskForm.priority,
         status: editTaskForm.status,
         endDate: editTaskForm.dueDate,
+        actualHours: editTaskForm.actualHours ? parseFloat(editTaskForm.actualHours) : null,
         usuario: editTaskForm.userId ? { userId: editTaskForm.userId } : originalTask.usuario
       };
 
