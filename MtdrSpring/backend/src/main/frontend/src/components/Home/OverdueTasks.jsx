@@ -20,7 +20,19 @@ function OverdueTasks() {
         
         const overdueTasks = data.filter(task => {
           const endDate = new Date(task.endDate);
-          return endDate < now && task.status !== 'Done';
+
+          const completedStatuses = [
+            'done', 'Done', 'DONE',
+            'completed', 'Completed', 'COMPLETED',
+            'finalizada', 'Finalizada', 'FINALIZADA',
+            'completado', 'Completado', 'COMPLETADO',
+            'finish', 'Finish', 'FINISH',
+            'finished', 'Finished', 'FINISHED'
+          ];
+          
+          const isCompleted = completedStatuses.includes(task.status);
+          
+          return endDate < now && !isCompleted;
         });
         
         let maxDaysOverdue = 0;
