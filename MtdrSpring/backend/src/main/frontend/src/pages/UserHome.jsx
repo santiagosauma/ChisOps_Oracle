@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import TasksTable from '../components/TasksTable';
 import KanbanBoard from '../components/KanbanBoard';
 import { Pencil, ChevronDown, Filter, X, AlertTriangle, Clock, CheckCircle } from 'lucide-react';
@@ -51,7 +51,6 @@ export default function UserHome() {
   });
   
   const [dropdownPosition, setDropdownPosition] = useState({});
-
   const [viewMode, setViewMode] = useState('table');
 
   useEffect(() => {
@@ -80,140 +79,146 @@ export default function UserHome() {
     }
   }, []);
 
+  const fetchProjectsData = useCallback(async (userId) => {
+    try {
+      let projectsResponse;
+      try {
+        projectsResponse = await fetch(`/usuarios/${userId}/proyectos`);
+        if (!projectsResponse.ok) {
+          projectsResponse = await fetch(`/proyectos/usuario/${userId}`);
+        }
+      } catch (error) {
+        projectsResponse = await fetch(`/proyectos/usuario/${userId}`);
+      }
+      
+      if (!projectsResponse.ok) throw new Error('Error loading user projects');
+      
+      const responseText = await projectsResponse.text();
+      let projectsData = responseText ? JSON.parse(responseText) : [];
+      
+      if (!Array.isArray(projectsData)) {
+        projectsData = projectsData && typeof projectsData === 'object' ? 
+          (projectsData.projectId ? [projectsData] : []) : [];
+      }
+      
+      return projectsData.filter(project => {
+        if (project.deleted === 1) return false;
+        if (!project.status) return true;
+        const status = project.status.toLowerCase();
+        return !(status === 'deleted' || status === 'eliminado' || 
+                status === 'completed' || status === 'finalizado' || status === 'done');
+      });
+    } catch (error) {
+      throw new Error('Failed to fetch projects');
+    }
+  }, []);
+
+  const fetchAllSprintsData = useCallback(async (projects) => {
+    if (!Array.isArray(projects) || projects.length === 0) {
+      return { sprintsMap: {}, selectedSprintMap: {}, firstActiveSprint: null };
+    }
+
+    const sprintPromises = projects.map(async (project) => {
+      try {
+        const response = await fetch(`/sprints/proyecto/${project.projectId}`);
+        const sprints = response.ok ? await response.json() : [];
+        return { 
+          projectId: project.projectId, 
+          sprints: Array.isArray(sprints) ? sprints : [] 
+        };
+      } catch (error) {
+        return { projectId: project.projectId, sprints: [] };
+      }
+    });
+    
+    const sprintsResults = await Promise.all(sprintPromises);
+    
+    const sprintsMap = {};
+    const selectedSprintMap = {};
+    let firstActiveSprint = null;
+    const currentDate = new Date();
+    
+    sprintsResults.forEach(({ projectId, sprints }) => {
+      sprintsMap[projectId] = sprints;
+      
+      if (sprints.length > 0) {
+        const activeSprint = sprints.find(sprint => {
+          const startDate = new Date(sprint.startDate);
+          const endDate = new Date(sprint.endDate);
+          return currentDate >= startDate && currentDate <= endDate;
+        }) || sprints[0];
+        
+        selectedSprintMap[projectId] = activeSprint;
+        
+        if (!firstActiveSprint) {
+          firstActiveSprint = { ...activeSprint, projectId };
+        }
+      }
+    });
+
+    return { sprintsMap, selectedSprintMap, firstActiveSprint };
+  }, []);
+
+  const calculateProjectProgress = useCallback(async (projects, sprintsMap) => {
+    const progressPromises = projects.map(async (project) => {
+      if (!sprintsMap[project.projectId]?.length) {
+        return { ...project, progress: 0, taskCount: 0, completedCount: 0 };
+      }
+
+      try {
+        const sprintIds = sprintsMap[project.projectId].map(sprint => sprint.sprintId);
+        const tasksPromises = sprintIds.map(sprintId => 
+          fetch(`/tareas/sprint/${sprintId}`)
+            .then(res => res.ok ? res.json() : [])
+            .catch(() => [])
+        );
+        
+        const sprintTasksArray = await Promise.all(tasksPromises);
+        const allTasks = sprintTasksArray.flat();
+        
+        if (allTasks.length > 0) {
+          const completedTasks = allTasks.filter(task => 
+            ['Done', 'Completado', 'Finalizado'].includes(task.status)
+          ).length;
+          
+          return {
+            ...project,
+            progress: Math.round((completedTasks / allTasks.length) * 100),
+            taskCount: allTasks.length,
+            completedCount: completedTasks
+          };
+        }
+      } catch (error) {
+      }
+      
+      return { ...project, progress: 0, taskCount: 0, completedCount: 0 };
+    });
+
+    return Promise.all(progressPromises);
+  }, []);
+
   useEffect(() => {
     if (!userId) return;
     
     const fetchAllData = async () => {
       setLoading({ projects: true, tasks: true });
+      setError({ projects: null, tasks: null });
       
       try {
-        let projectsResponse;
-        try {
-          projectsResponse = await fetch(`/usuarios/${userId}/proyectos`);
-          if (!projectsResponse.ok) {
-            console.log("First endpoint failed, trying second endpoint...");
-            projectsResponse = await fetch(`/proyectos/usuario/${userId}`);
-          }
-        } catch (error) {
-          console.log("First endpoint error:", error);
-          projectsResponse = await fetch(`/proyectos/usuario/${userId}`);
-        }
+        const projectsData = await fetchProjectsData(userId);
         
-        if (!projectsResponse.ok) throw new Error('Error loading user projects');
-        let projectsData;
+        const { sprintsMap, selectedSprintMap, firstActiveSprint } = await fetchAllSprintsData(projectsData);
         
-        try {
-          const responseText = await projectsResponse.text();
-          console.log("Projects API response:", responseText);
-          
-          projectsData = responseText ? JSON.parse(responseText) : [];
-          
-          if (!Array.isArray(projectsData)) {
-            console.warn("Projects data is not an array, converting:", projectsData);
-            projectsData = projectsData && typeof projectsData === 'object' ? 
-              (projectsData.projectId ? [projectsData] : []) : [];
-          }
-          
-          console.log("Parsed projects before filtering:", projectsData);
-        } catch (parseError) {
-          console.error("Error parsing projects:", parseError);
-          projectsData = [];
-        }
+        const [projectsWithProgress] = await Promise.all([
+          calculateProjectProgress(projectsData, sprintsMap),
+          firstActiveSprint ? 
+            fetchUserTasksForSprint(firstActiveSprint.sprintId) : 
+            fetchTasksForUser()
+        ]);
         
-        projectsData = projectsData.filter(project => {
-          if (project.deleted === 1) return false;
-          
-          if (!project.status) return true;
-          
-          const status = project.status.toLowerCase();
-          
-          return !(status === 'deleted' || 
-                   status === 'eliminado' || 
-                   status === 'completed' || 
-                   status === 'finalizado' || 
-                   status === 'done');
-        });
-        
-        console.log("Filtered active projects:", projectsData);
-        
-        const sprintPromises = Array.isArray(projectsData) ? projectsData.map(project => 
-          fetch(`/sprints/proyecto/${project.projectId}`)
-            .then(res => res.ok ? res.json() : [])
-            .then(sprints => {
-              if (!Array.isArray(sprints)) {
-                return { projectId: project.projectId, sprints: [] };
-              }
-              return { projectId: project.projectId, sprints };
-            })
-            .catch(error => {
-              return { projectId: project.projectId, sprints: [] };
-            })
-        ) : [];
-        
-        const sprintsResults = await Promise.all(sprintPromises);
-        
-        const sprintsMap = {};
-        const selectedSprintMap = {};
-        let firstActiveSprint = null;
-        
-        sprintsResults.forEach(({ projectId, sprints }) => {
-          sprintsMap[projectId] = sprints;
-          
-          if (sprints.length > 0) {
-            const currentDate = new Date();
-            
-            const activeSprint = sprints.find(sprint => {
-              const startDate = new Date(sprint.startDate);
-              const endDate = new Date(sprint.endDate);
-              return currentDate >= startDate && currentDate <= endDate;
-            }) || sprints[0];
-            
-            selectedSprintMap[projectId] = activeSprint;
-            
-            if (!firstActiveSprint) {
-              firstActiveSprint = { ...activeSprint, projectId };
-            }
-          }
-        });
-        
-        await Promise.all(projectsData.map(async project => {
-          if (sprintsMap[project.projectId]?.length > 0) {
-            const sprintIds = sprintsMap[project.projectId].map(sprint => sprint.sprintId);
-            const tasksPromises = sprintIds.map(sprintId => 
-              fetch(`/tareas/sprint/${sprintId}`)
-                .then(res => res.ok ? res.json() : [])
-            );
-            
-            const sprintTasksArray = await Promise.all(tasksPromises);
-            const allTasks = sprintTasksArray.flat();
-            
-            if (allTasks.length > 0) {
-              const completedTasks = allTasks.filter(task => 
-                task.status === 'Done' || task.status === 'Completado' || task.status === 'Finalizado'
-              ).length;
-              
-              const progress = Math.round((completedTasks / allTasks.length) * 100);
-              project.progress = progress;
-              project.taskCount = allTasks.length;
-              project.completedCount = completedTasks;
-            } else {
-              project.progress = 0;
-              project.taskCount = 0;
-              project.completedCount = 0;
-            }
-          }
-          return project;
-        }));
-        
-        setProjects(projectsData);
+        setProjects(projectsWithProgress);
         setProjectSprints(sprintsMap);
         setSelectedSprintByProject(selectedSprintMap);
-        
-        if (firstActiveSprint) {
-          await fetchUserTasksForSprint(firstActiveSprint.sprintId);
-        } else {
-          await fetchTasksForUser();
-        }
         
       } catch (err) {
         setError({
@@ -221,17 +226,14 @@ export default function UserHome() {
           tasks: err.message
         });
       } finally {
-        setLoading({
-          projects: false,
-          tasks: false
-        });
+        setLoading({ projects: false, tasks: false });
       }
     };
     
     fetchAllData();
-  }, [userId]);
+  }, [userId, fetchProjectsData, fetchAllSprintsData, calculateProjectProgress]);
 
-  const calculateTaskStatistics = (tasks) => {
+  const taskStatistics = useMemo(() => {
     const overdue = tasks.filter(task => 
       (new Date(task.finishDate) < new Date() && 
        !['Done', 'Completado', 'Finalizado'].includes(task.status))
@@ -246,9 +248,16 @@ export default function UserHome() {
     ).length;
     
     return { overdue, pending, completed };
-  };
+  }, [tasks]);
 
-  const mapTaskStatus = (status) => {
+  useEffect(() => {
+    const { overdue, pending, completed } = taskStatistics;
+    setOverdueTasks(overdue);
+    setPendingTasks(pending);
+    setCompletedTasks(completed);
+  }, [taskStatistics]);
+
+  const mapTaskStatus = useCallback((status) => {
     if (!status) return 'Incomplete';
     
     if (status === 'Incomplete' || status === 'In Progress' || status === 'Done') {
@@ -264,9 +273,9 @@ export default function UserHome() {
     } else {
       return 'Incomplete';
     }
-  };
+  }, []);
 
-  const fetchUserTasksForSprint = async (sprintId) => {
+  const fetchUserTasksForSprint = useCallback(async (sprintId) => {
     if (!userId) return;
     
     setLoading(prev => ({ ...prev, tasks: true }));
@@ -295,25 +304,15 @@ export default function UserHome() {
       }));
       
       setTasks(processedTasks);
-      
-      const { overdue, pending, completed } = calculateTaskStatistics(processedTasks);
-      
-      setOverdueTasks(overdue);
-      setPendingTasks(pending);
-      setCompletedTasks(completed);
     } catch (err) {
       setError(prev => ({ ...prev, tasks: err.message }));
-      
       setTasks([]);
-      setOverdueTasks(0);
-      setPendingTasks(0);
-      setCompletedTasks(0);
     } finally {
       setLoading(prev => ({ ...prev, tasks: false }));
     }
-  };
+  }, [userId, mapTaskStatus]);
 
-  const fetchTasksForUser = async () => {
+  const fetchTasksForUser = useCallback(async () => {
     if (!userId) return;
     
     setLoading(prev => ({ ...prev, tasks: true }));
@@ -342,25 +341,15 @@ export default function UserHome() {
       }));
       
       setTasks(processedTasks);
-      
-      const { overdue, pending, completed } = calculateTaskStatistics(processedTasks);
-      
-      setOverdueTasks(overdue);
-      setPendingTasks(pending);
-      setCompletedTasks(completed);
     } catch (err) {
       setError(prev => ({ ...prev, tasks: err.message }));
-      
       setTasks([]);
-      setOverdueTasks(0);
-      setPendingTasks(0);
-      setCompletedTasks(0);
     } finally {
       setLoading(prev => ({ ...prev, tasks: false }));
     }
-  };
+  }, [userId, mapTaskStatus]);
 
-  const handleSprintChange = (projectId, sprint) => {
+  const handleSprintChange = useCallback((projectId, sprint) => {
     setSelectedSprintByProject(prev => ({
       ...prev,
       [projectId]: sprint
@@ -373,9 +362,9 @@ export default function UserHome() {
     } else {
       fetchUserTasksForSprint(sprint.sprintId);
     }
-  };
+  }, [fetchTasksForUser, fetchUserTasksForSprint]);
 
-  const toggleSprintDropdown = (projectId, event) => {
+  const toggleSprintDropdown = useCallback((projectId, event) => {
     if (event) {
       event.stopPropagation();
       const rect = event.currentTarget.getBoundingClientRect();
@@ -394,7 +383,7 @@ export default function UserHome() {
       newState[projectId] = !prev[projectId];
       return newState;
     });
-  };
+  }, []);
 
   useEffect(() => {
     const handleClickOutside = () => {
@@ -407,7 +396,7 @@ export default function UserHome() {
     };
   }, []);
 
-  const applyFilter = (filterType, value) => {
+  const applyFilter = useCallback((filterType, value) => {
     setFilters(prev => {
       if (prev[filterType] === value) {
         return { ...prev, [filterType]: '' };
@@ -418,59 +407,62 @@ export default function UserHome() {
     if (filterType !== 'searchTerm') {
       setShowFilters(false);
     }
-  };
+  }, []);
 
-  const removeFilter = (filterType) => {
+  const removeFilter = useCallback((filterType) => {
     setFilters(prev => ({ 
       ...prev, 
       [filterType]: '' 
     }));
-  };
+  }, []);
 
-  const clearAllFilters = () => {
+  const clearAllFilters = useCallback(() => {
     setFilters({
       status: '',
       priority: '',
       searchTerm: ''
     });
-  };
+  }, []);
 
-  const toggleShowFilters = () => {
+  const toggleShowFilters = useCallback(() => {
     setShowFilters(!showFilters);
-  };
+  }, [showFilters]);
 
-  useEffect(() => {
+  const memoizedActiveFilters = useMemo(() => {
     const newActiveFilters = [];
     if (filters.status) newActiveFilters.push({ type: 'status', value: filters.status });
     if (filters.priority) newActiveFilters.push({ type: 'priority', value: filters.priority });
     if (filters.searchTerm) newActiveFilters.push({ type: 'search', value: filters.searchTerm });
-    
-    setActiveFilters(newActiveFilters);
+    return newActiveFilters;
   }, [filters]);
 
-  const openUpdatePopup = (task) => {
+  useEffect(() => {
+    setActiveFilters(memoizedActiveFilters);
+  }, [memoizedActiveFilters]);
+
+  const openUpdatePopup = useCallback((task) => {
     setCurrentTask(task);
     setUpdateTaskForm({
       status: task.status || 'Incomplete',
       hoursTaken: task.hoursTaken || 0
     });
     setShowUpdatePopup(true);
-  };
+  }, []);
 
-  const closeUpdatePopup = () => {
+  const closeUpdatePopup = useCallback(() => {
     setShowUpdatePopup(false);
     setCurrentTask(null);
-  };
+  }, []);
 
-  const handleUpdateFormChange = (e) => {
+  const handleUpdateFormChange = useCallback((e) => {
     const { name, value } = e.target;
     setUpdateTaskForm(prev => ({
       ...prev,
       [name]: value
     }));
-  };
+  }, []);
 
-  const handleUpdateTask = async () => {
+  const handleUpdateTask = useCallback(async () => {
     if (!currentTask) return;
     
     try {
@@ -519,7 +511,6 @@ export default function UserHome() {
       
       closeUpdatePopup();
     } catch (err) {
-      
       setToast({
         show: true,
         message: `Failed to update the task: ${err.message}`,
@@ -530,9 +521,9 @@ export default function UserHome() {
         setToast(prev => ({ ...prev, show: false }));
       }, 4000);
     }
-  };
+  }, [currentTask, updateTaskForm, currentSelectedSprint, fetchUserTasksForSprint, fetchTasksForUser, closeUpdatePopup]);
 
-  const handleTaskStatusChange = async (updatedTask) => {
+  const handleTaskStatusChange = useCallback(async (updatedTask) => {
     if (!updatedTask) return;
     
     try {
@@ -578,7 +569,6 @@ export default function UserHome() {
         setToast(prev => ({ ...prev, show: false }));
       }, 3000);
     } catch (err) {
-      
       setToast({
         show: true,
         message: `Failed to update the task: ${err.message}`,
@@ -589,16 +579,16 @@ export default function UserHome() {
         setToast(prev => ({ ...prev, show: false }));
       }, 4000);
     }
-  };
+  }, [currentSelectedSprint, fetchUserTasksForSprint, fetchTasksForUser]);
 
-  const ensureArray = (possibleArray) => {
+  const ensureArray = useCallback((possibleArray) => {
     if (!possibleArray) return [];
     return Array.isArray(possibleArray) ? possibleArray : [];
-  };
+  }, []);
 
-  const toggleViewMode = (mode) => {
+  const toggleViewMode = useCallback((mode) => {
     setViewMode(mode);
-  };
+  }, []);
 
   return (
     <div className="flex h-screen bg-white">
@@ -629,6 +619,7 @@ export default function UserHome() {
                 </select>
               </div>
               
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Hours Taken</label>
                 {updateTaskForm.status === 'Done' ? (
