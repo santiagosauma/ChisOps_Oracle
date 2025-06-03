@@ -158,7 +158,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
             projectSprints = await sprintsResponse.json();
           }
         } catch (err) {
-          // Silent fail for sprint fetching
         }
 
         setSelectedSprint('all');
@@ -175,7 +174,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
             allTasks = tasksArrays.flat();
             setAllSprintTasks(allTasks);
           } catch (err) {
-            // Silent fail for task fetching
           }
         }
 
@@ -844,7 +842,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       }
     }
 
-    // Obtener datos completos de la tarea desde el backend
     try {
       const response = await fetch(`/tareas/${task.id}`);
       if (response.ok) {
@@ -861,7 +858,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
           actualHours: fullTask.actualHours || ''
         });
       } else {
-        // Fallback a los datos existentes si no se puede obtener del backend
         setCurrentTask(task);
         setEditTaskForm({
           id: task.id,
@@ -875,7 +871,7 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       }
     } catch (error) {
       console.error('Error fetching task details:', error);
-      // Fallback a los datos existentes
+
       setCurrentTask(task);
       setEditTaskForm({
         id: task.id,
@@ -914,7 +910,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
       return;
     }
 
-    // Validar actualHours si el status es "Done"
     if (editTaskForm.status === "Done" && (!editTaskForm.actualHours || editTaskForm.actualHours <= 0)) {
       setToast({
         show: true,
@@ -968,7 +963,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
 
       closeEditTaskPopup();
 
-      // Forzar recarga inmediata y completa de datos
       await refreshProjectData();
 
       setTimeout(() => {
@@ -989,16 +983,13 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
     }
   };
 
-  // Nueva función para refrescar todos los datos
   const refreshProjectData = async () => {
     setLoading(true);
     
     try {
-      // Recargar datos del sprint actual y actualizar todo el estado
       let tasksToShow = [];
       
       if (selectedSprint === 'all') {
-        // Recargar todas las tareas de todos los sprints
         if (projectData?.sprints?.length > 0) {
           const allTasksPromises = projectData.sprints.map(sprint =>
             fetch(`/tareas/sprint/${sprint.sprintId}`)
@@ -1010,7 +1001,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
           setAllSprintTasks(tasksToShow);
         }
       } else {
-        // Recargar tareas del sprint específico
         const sprintResponse = await fetch(`/tareas/sprint/${selectedSprint}`);
         if (sprintResponse.ok) {
           tasksToShow = await sprintResponse.json();
@@ -1021,7 +1011,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         }
       }
 
-      // Actualizar el estado con los nuevos datos
       const formattedTasks = formatTasks(tasksToShow);
       
       setProjectData(prev => ({
@@ -1030,7 +1019,6 @@ function ProjectDetails({ projectId: propProjectId, onBack, onSelectUser }) {
         formattedTasks: formattedTasks
       }));
 
-      // Actualizar datos de performance
       const updatedPerformanceData = generatePerformanceData(
         formattedTasks,
         projectData.users,
