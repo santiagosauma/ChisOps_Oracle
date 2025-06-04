@@ -21,19 +21,45 @@ steps:
 
   - type: Command
     name: "Docker Login"
-    command:  echo $(pwd)
+    command:  echo $(pwd);
               cd MtdrSpring;
-              oci os object get --bucket-name reacttodo-knwqz --name deployment_config.tgz --file deployment_config.tgz;
+              oci os object get --bucket-name reacttodo-not1n --name deployment_config.tgz --file deployment_config.tgz;
               tar -xzvf deployment_config.tgz;
               source env.sh;
-              cat at.cfg | docker login -u "axchjuikbezc/a00836418@tec.mx" --password-stdin mx-queretaro-1.ocir.io
+              cat at.cfg | docker login -u "axptckh0xsfj/a00835822@tec.mx" --password-stdin mx-queretaro-1.ocir.io
 
   - type: Command
     name: "Build"
-    command:  echo $(pwd)
+    command:  echo $(pwd);
               cd MtdrSpring;
               source env.sh;
               (cd backend;source build.sh)
 
+  - type: Command
+    name: "Install K8s"
+    command: mkdir -p $HOME/.kube;
+      cd $HOME;
+      ls -la;
+      mkdir k8s;
+      ls -la;
+      cd k8s;
+      wget https://dl.k8s.io/v1.31.2/bin/linux/amd64/kubectl;
+      ls -la;
+      chmod +x kubectl;
+      export PATH=$PATH:$HOME/k8s;
+      kubectl version --client;
+      cd ..;
+      cd .kube;
+     oci ce cluster create-kubeconfig --cluster-id ocid1.cluster.oc1.mx-queretaro-1.aaaaaaaaz64cjaur2xy2atfciry7sunctjm4gzawata6med6ccvc2tb6w6oa --file $HOME/.kube/config --region mx-queretaro-1 --token-version 2.0.0  --kube-endpoint PUBLIC_ENDPOINT;
+      export KUBECONFIG=$HOME/.kube/config;
 
-
+  - type: Command
+    name: "Undeploy"
+    command: export PATH=$PATH:$HOME/k8s;kubectl version;
+      export KUBECONFIG=$HOME/.kube/config;
+      cd MtdrSpring;
+      source env.sh;
+      cd backend;
+      ls -l;
+      kubectl config view;
+      source undeploy.sh;
