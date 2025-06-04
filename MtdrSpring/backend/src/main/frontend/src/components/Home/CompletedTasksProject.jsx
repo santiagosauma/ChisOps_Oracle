@@ -11,22 +11,72 @@ function CompletedTasksProject() {
 
   const fetchCompletedTasksData = async () => {
     try {
-      const usersResponse = await fetch('/users');
+      const usersResponse = await fetch('/usuarios');
+      if (!usersResponse.ok) {
+        throw new Error(`Error fetching users: ${usersResponse.status}`);
+      }
       const users = await usersResponse.json();
+      
+      if (!Array.isArray(users)) {
+        console.error('Users response is not an array:', users);
+        setData([]);
+        setLoading(false);
+        return;
+      }
+
+      if (users.length === 0) {
+        console.log('No users found in the system');
+        setData([]);
+        setLoading(false);
+        return;
+      }
       
       const colors = ['#C74634', '#D35F51', '#E27D71', '#BB423E', '#A13A30', '#873026', '#5E2F28'];
       
       const userTasksPromises = users.map(async (user, index) => {
-        const tasksResponse = await fetch(`/tareas/usuario/${user.id}`);
-        const tasks = await tasksResponse.json();
-        
-        const completedTasks = tasks.filter(task => task.status === 'Completed').length;
-        
-        return {
-          name: user.name || `User ${user.id}`,
-          value: completedTasks,
-          color: colors[index % colors.length]
-        };
+        try {
+          const tasksResponse = await fetch(`/tareas/usuario/${user.userId}`);
+          if (!tasksResponse.ok) {
+            console.warn(`Error fetching tasks for user ${user.userId}: ${tasksResponse.status}`);
+            return {
+              name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || `User ${user.userId}`,
+              value: 0,
+              color: colors[index % colors.length]
+            };
+          }
+          
+          const tasks = await tasksResponse.json();
+          
+          if (!Array.isArray(tasks)) {
+            console.error(`Tasks response for user ${user.userId} is not an array:`, tasks);
+            return {
+              name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || `User ${user.userId}`,
+              value: 0,
+              color: colors[index % colors.length]
+            };
+          }
+          
+          const completedTasks = tasks.filter(task => {
+            const status = task.status?.toLowerCase() || '';
+            return status === 'completed' || 
+                   status === 'done' || 
+                   status === 'finalizada' || 
+                   status === 'completado';
+          }).length;
+          
+          return {
+            name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || `User ${user.userId}`,
+            value: completedTasks,
+            color: colors[index % colors.length]
+          };
+        } catch (error) {
+          console.error(`Error fetching tasks for user ${user.userId}:`, error);
+          return {
+            name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || `User ${user.userId}`,
+            value: 0,
+            color: colors[index % colors.length]
+          };
+        }
       });
       
       const userTasksData = await Promise.all(userTasksPromises);
@@ -36,16 +86,18 @@ function CompletedTasksProject() {
         .sort((a, b) => b.value - a.value)
         .slice(0, 6);
       
+      console.log('Completed tasks data:', filteredData);
       setData(filteredData);
       setLoading(false);
     } catch (error) {
+      console.error('Error fetching completed tasks data:', error);
       setLoading(false);
-      setData([
-        { name: 'Hector', value: 9, color: '#C74634' },
-        { name: 'Isaac', value: 8, color: '#D35F51' },
-        { name: 'Santiago', value: 11, color: '#E27D71' },
-        { name: 'Charlie', value: 12, color: '#BB423E' }
-      ]);
+      
+      setData([{
+        name: 'Error loading data',
+        value: 0,
+        color: '#999999'
+      }]);
     }
   };
 

@@ -219,7 +219,6 @@ function UserDetails({ userId, projectId, onBack }) {
       setSelectedSprint("all");
       calculatePerformanceMetrics(data.sprints || []);
       
-      // Add code to fetch the user's role in this project
       try {
         const roleResponse = await fetch(`/usuarios-proyectos/usuario/${userId}/proyecto/${projectId}`);
         if (roleResponse.ok) {
@@ -246,7 +245,6 @@ function UserDetails({ userId, projectId, onBack }) {
 
   useEffect(() => {
     if (userId && selectedProject) {
-      // Fetch the user's role in the selected project
       const fetchUserProjectRole = async () => {
         try {
           const response = await fetch(`/usuarios-proyectos/usuario/${userId}/proyecto/${selectedProject}`);
@@ -276,7 +274,6 @@ function UserDetails({ userId, projectId, onBack }) {
       setDeletingUser(true);
       setDeleteError(null);
       
-      // 1. Mark the user as deleted
       const userResponse = await fetch(`/usuarios/${userId}`, {
         method: 'DELETE'
       });
@@ -285,7 +282,6 @@ function UserDetails({ userId, projectId, onBack }) {
         throw new Error(`Failed to delete user: ${userResponse.statusText}`);
       }
       
-      // 2. Get all projects the user is assigned to
       const projectsResponse = await fetch(`/usuarios/${userId}/proyectos`);
       let userProjects = [];
       
@@ -296,7 +292,6 @@ function UserDetails({ userId, projectId, onBack }) {
         }
       }
       
-      // 3. Remove the user from all projects
       const removePromises = userProjects.map(project => 
         fetch(`/usuarios-proyectos/eliminar?userId=${userId}&projectId=${project.projectId}`, {
           method: 'DELETE'
@@ -305,17 +300,14 @@ function UserDetails({ userId, projectId, onBack }) {
       
       await Promise.all(removePromises);
       
-      // Show success message
       setToast({
         show: true,
         message: 'User successfully deleted',
         type: 'success'
       });
       
-      // Close the confirmation dialog
       setShowDeleteConfirm(false);
       
-      // Wait a moment before redirecting
       setTimeout(() => {
         if (onBack) onBack();
       }, 1500);
@@ -328,7 +320,6 @@ function UserDetails({ userId, projectId, onBack }) {
     }
   };
 
-  // Toast auto-hide
   useEffect(() => {
     if (toast.show) {
       const timer = setTimeout(() => {
