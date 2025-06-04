@@ -91,7 +91,7 @@ public class TaskBotControllerTest {
 
         verify(controller, atLeastOnce())
             .execute(argThat((SendMessage sm) -> sm.getText().equals("❌ Usuario no registrado. Contacta al administrador.")));
-    }
+    } 
 
     @Test
     public void testLoginSuccessful() throws Exception {
