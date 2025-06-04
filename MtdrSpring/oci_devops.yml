@@ -35,7 +35,7 @@ steps:
               source env.sh;
               (cd backend;source build.sh)
 
-    - type: Command
+  - type: Command
     name: "Install JMeter"
     command: |
       curl -sL https://downloads.apache.org//jmeter/binaries/apache-jmeter-5.6.3.tgz | tar -xz
