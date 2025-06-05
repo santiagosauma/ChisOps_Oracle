@@ -36,32 +36,6 @@ steps:
               (cd backend;source build.sh)
 
   - type: Command
-    name: "Install JMeter"
-    command: |
-      curl -sL https://downloads.apache.org//jmeter/binaries/apache-jmeter-5.6.3.tgz | tar -xz
-      export JMETER_HOME=$(pwd)/apache-jmeter-5.6.3
-      export PATH=$JMETER_HOME/bin:$PATH
-
-  - type: Command
-    name: "Run JMeter Tests"
-    command: |
-      mkdir -p jmeter-results
-      jmeter -n \
-        -t MtdrSpring/backend/src/test/Jmeter/chisops-jmeterTest.jmx \
-        -l jmeter-results/results.jtl \
-        -e \
-        -o jmeter-results/dashboard
-
-  - type: Command
-    name: "Print JMeter Results"
-    command: |
-      echo "Resultados de JMeter:"
-      cat jmeter-results/results.jtl
-      echo "Dashboard generado por JMeter:"
-      cat jmeter-results/dashboard/index.html
-
-
-  - type: Command
     name: "Install K8s"
     command: mkdir -p $HOME/.kube;
       cd $HOME;
