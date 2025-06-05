@@ -1,0 +1,28 @@
+version: 0.1 
+component: build
+timeoutInSeconds: 600
+shell: bash
+
+steps:
+  - stage: "Run JMeter Tests"
+    steps:
+      - type: Command
+        name: "Install JMeter"
+        command: |
+          curl -sL https://downloads.apache.org//jmeter/binaries/apache-jmeter-5.6.3.tgz | tar -xz
+          export JMETER_HOME=$(pwd)/apache-jmeter-5.6.3
+          export PATH=$JMETER_HOME/bin:$PATH
+
+      - type: Command
+        name: "Run JMeter Tests"
+        command: |
+          mkdir -p jmeter-results
+          jmeter -n \
+            -t MtdrSpring/backend/src/test/Jmeter/chisops-jmeterTest.jmx \
+            -l jmeter-results/results.jtl
+
+      - type: Command
+        name: "Print JMeter Results"
+        command: |
+          echo "Resultados de JMeter:"
+          cat jmeter-results/results.jtl
