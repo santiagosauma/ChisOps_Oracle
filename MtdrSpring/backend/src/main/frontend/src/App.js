@@ -11,7 +11,7 @@ import UserDetails from './pages/UserDetails';
 
 
 function App() {
-   // Existing state
+   // Test
    const [page, setPage] = useState(null);
    const [isLoggedIn, setIsLoggedIn] = useState(false);
    const [authMode, setAuthMode] = useState('login');
