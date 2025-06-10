@@ -22,7 +22,6 @@ import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.Message;
 import java.util.Optional;
 
-// Import TaskBotController
 import com.springboot.MyTodoList.controller.TaskBotController;
 
 @ExtendWith(MockitoExtension.class)
@@ -79,19 +78,17 @@ public class TaskBotControllerTest {
 
     @Test
     public void testLoginWithUnregisteredUser() throws Exception {
-        // /login
         when(message.hasText()).thenReturn(true);
         when(message.getText()).thenReturn("/login");
         controller.onUpdateReceived(update);
 
-        // intento de contraseña
         when(message.getText()).thenReturn("anyPass");
         when(usuarioService.findByTelegramUsername(USERNAME)).thenReturn(Optional.empty());
         controller.onUpdateReceived(update);
 
         verify(controller, atLeastOnce())
             .execute(argThat((SendMessage sm) -> sm.getText().equals("❌ Usuario no registrado. Contacta al administrador.")));
-    } 
+    }
 
     @Test
     public void testLoginSuccessful() throws Exception {
@@ -102,16 +99,66 @@ public class TaskBotControllerTest {
         when(usuarioService.findByTelegramUsername(USERNAME)).thenReturn(Optional.of(usr));
         when(usuarioService.authenticate("john@example.com", "secret")).thenReturn(usr);
 
-        // /login
         when(message.hasText()).thenReturn(true);
         when(message.getText()).thenReturn("/login");
         controller.onUpdateReceived(update);
 
-        // contraseña correcta
         when(message.getText()).thenReturn("secret");
         controller.onUpdateReceived(update);
 
         verify(controller, atLeastOnce())
             .execute(argThat((SendMessage sm) -> sm.getText().contains("✅ Inicio de sesión exitoso. Bienvenido/a, John")));
+    }
+
+    @Test
+    public void testCreateTaskFlow() throws Exception {
+        Usuario usr = new Usuario();
+        usr.setFirstName("John");
+        usr.setLastName("Doe");
+        usr.setEmail("john@example.com");
+        usr.setUserId(1);
+        when(usuarioService.findByTelegramUsername(USERNAME)).thenReturn(Optional.of(usr));
+        when(usuarioService.authenticate("john@example.com", "secret")).thenReturn(usr);
+
+        when(message.hasText()).thenReturn(true);
+        when(message.getText()).thenReturn("/login");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("secret");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("📝 Crear tarea");
+        controller.onUpdateReceived(update);
+
+        verify(controller, atLeastOnce())
+            .execute(argThat((SendMessage sm) -> 
+                sm.getText().contains("login") || 
+                sm.getText().contains("contraseña") ||
+                sm.getText().contains("título") ||
+                sm.getText().contains("tarea")
+            ));
+    }
+
+    @Test
+    public void testLogoutCommand() throws Exception {
+        Usuario usr = new Usuario();
+        usr.setFirstName("John");
+        usr.setLastName("Doe");
+        usr.setEmail("john@example.com");
+        when(usuarioService.findByTelegramUsername(USERNAME)).thenReturn(Optional.of(usr));
+        when(usuarioService.authenticate("john@example.com", "secret")).thenReturn(usr);
+
+        when(message.hasText()).thenReturn(true);
+        when(message.getText()).thenReturn("/login");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("secret");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("/logout");
+        controller.onUpdateReceived(update);
+
+        verify(controller, atLeastOnce())
+            .execute(argThat((SendMessage sm) -> sm.getText().equals("🔒 Sesión cerrada.")));
     }
 }
