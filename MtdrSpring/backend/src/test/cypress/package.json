@@ -1,0 +1,20 @@
+{
+  "name": "mytodolist-cypress-api-tests",
+  "version": "1.0.0",
+  "description": "API E2E tests for MyTodoList Spring Boot backend",
+  "private": true,
+  "scripts": {
+    "cy:open": "cypress open",
+    "cy:run": "cypress run",
+    "cy:run:api": "cypress run --spec 'e2e/api/**/*.cy.js'",
+    "test": "cypress run",
+    "test:api": "cypress run --spec 'e2e/api/**/*.cy.js'",
+    "test:headed": "cypress run --headed"
+  },
+  "devDependencies": {
+    "cypress": "^13.0.0"
+  },
+  "keywords": ["cypress", "api-testing", "spring-boot", "backend", "rest-api"],
+  "author": "ChisOps Team",
+  "license": "MIT"
+}

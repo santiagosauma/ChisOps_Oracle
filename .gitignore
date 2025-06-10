@@ -52,3 +52,5 @@ MtdrSpring/backend/src/main/frontend/node_modules/.bin/autoprefixer.ps1
 MtdrSpring/backend/src/main/frontend/node_modules
 MtdrSpring/backend/target/node/node_modules
 MtdrSpring/backend/src/main/frontend/build
+
+MtdrSpring/backend/src/test/cypress/node_modules
