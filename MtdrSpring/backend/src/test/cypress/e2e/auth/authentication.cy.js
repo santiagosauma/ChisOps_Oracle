@@ -31,7 +31,6 @@ describe('Authentication Flow Tests', () => {
     cy.loginViaUI();
     cy.verifyAuthenticated();
     
-    // Verificar que se muestra el nombre del usuario
     cy.get('[data-cy="user-name"]').should('contain', Cypress.env('testUser').firstName);
   });
 

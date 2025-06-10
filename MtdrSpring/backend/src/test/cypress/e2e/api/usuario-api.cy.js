@@ -44,7 +44,6 @@ describe('Pruebas de API de Usuario', () => {
       url: `${Cypress.env('apiUrl')}/usuarios/login`,
       body: {
         email: Cypress.env('testUser').email
-        // Falta la contraseña
       },
       failOnStatusCode: false
     }).then((response) => {
@@ -110,7 +109,6 @@ describe('Pruebas de API de Usuario', () => {
       expect(response.body).to.be.an('array');
       expect(response.body.length).to.be.greaterThan(0);
       
-      // Verificar estructura del primer usuario
       const user = response.body[0];
       expect(user).to.have.property('userId');
       expect(user).to.have.property('firstName');

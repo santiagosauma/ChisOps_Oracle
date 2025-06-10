@@ -33,7 +33,6 @@ describe('Pruebas de API de Tarea', () => {
       expect(response.status).to.eq(200);
       expect(response.body).to.be.an('array');
       
-      // Verificar que todas las tareas pertenecen al usuario
       response.body.forEach(task => {
         expect(task).to.have.property('usuario');
         expect(task.usuario.userId).to.eq(Cypress.env('testUser').userId);
@@ -49,17 +48,12 @@ describe('Pruebas de API de Tarea', () => {
       expect(response.status).to.eq(200);
       expect(response.body).to.be.an('array');
       
-      // Verificar que efectivamente se obtuvieron tareas del sprint correcto
-      // El endpoint getTareasBySprint() filtra por sprintId, así que si retorna tareas,
-      // todas deberían pertenecer al sprint solicitado
       if (response.body.length > 0) {
-        // Simplemente verificar que obtuvimos tareas y que tienen estructura válida
         response.body.forEach(task => {
           expect(task).to.have.property('taskId');
           expect(task).to.have.property('title');
           expect(task).to.have.property('status');
           
-          // El filtro en el backend garantiza que todas pertenecen al sprint correcto
           cy.log(`Task ${task.taskId} was returned by sprint ${Cypress.env('testSprint').sprintId} endpoint`);
         });
       }
@@ -75,7 +69,6 @@ describe('Pruebas de API de Tarea', () => {
       expect(response.status).to.eq(200);
       expect(response.body).to.be.an('array');
       
-      // Verificar que todas las tareas tienen el status correcto
       response.body.forEach(task => {
         expect(task.status).to.eq(testStatus);
       });
@@ -91,7 +84,6 @@ describe('Pruebas de API de Tarea', () => {
       expect(response.status).to.eq(200);
       expect(response.body).to.be.an('array');
       
-      // Verificar que todas las tareas tienen la prioridad correcta
       response.body.forEach(task => {
         expect(task.priority).to.eq(testPriority);
       });
@@ -107,7 +99,6 @@ describe('Pruebas de API de Tarea', () => {
       expect(response.status).to.eq(200);
       expect(response.body).to.be.an('array');
       
-      // Verificar que todas las tareas tienen el tipo correcto
       response.body.forEach(task => {
         expect(task.type).to.eq(testType);
       });
@@ -123,7 +114,6 @@ describe('Pruebas de API de Tarea', () => {
       expect(response.status).to.eq(200);
       expect(response.body).to.be.an('array');
       
-      // Verificar que los resultados contienen el término de búsqueda
       response.body.forEach(task => {
         const containsInTitle = task.title && task.title.toLowerCase().includes(searchTerm.toLowerCase());
         const containsInDescription = task.description && task.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -143,14 +133,12 @@ describe('Pruebas de API de Tarea', () => {
       expect(response.body).to.have.property('sprints');
       expect(response.body.sprints).to.be.an('array');
       
-      // Verificar estructura de sprints
       response.body.sprints.forEach(sprint => {
         expect(sprint).to.have.property('sprintId');
         expect(sprint).to.have.property('sprintName');
         expect(sprint).to.have.property('tasks');
         expect(sprint.tasks).to.be.an('array');
         
-        // Verificar estructura de tareas
         sprint.tasks.forEach(task => {
           expect(task).to.have.property('taskId');
           expect(task).to.have.property('title');
@@ -172,7 +160,7 @@ describe('Pruebas de API de Tarea', () => {
       estimatedHours: 6.0,
       actualHours: 0.0,
       startDate: new Date().toISOString(),
-      endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // +7 días
+      endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       deleted: 0,
       usuario: {
         userId: Cypress.env('testUser').userId
@@ -190,7 +178,6 @@ describe('Pruebas de API de Tarea', () => {
       expect(response.status).to.eq(200);
       expect(response.headers).to.have.property('location');
       
-      // Verificar que se puede obtener la tarea creada
       const taskId = response.headers.location;
       cy.request({
         method: 'GET',
@@ -205,7 +192,6 @@ describe('Pruebas de API de Tarea', () => {
   });
 
   it('debería actualizar una tarea existente', () => {
-    // Primero crear una tarea
     const newTask = {
       title: 'Task to Update',
       description: 'Original description',
@@ -229,7 +215,6 @@ describe('Pruebas de API de Tarea', () => {
     cy.request('POST', `${Cypress.env('apiUrl')}/tareas`, newTask).then((createResponse) => {
       const taskId = createResponse.headers.location;
       
-      // Obtener la tarea creada para tener el objeto completo
       cy.request('GET', `${Cypress.env('apiUrl')}/tareas/${taskId}`).then((getResponse) => {
         const updatedTask = {
           ...getResponse.body,
@@ -237,8 +222,7 @@ describe('Pruebas de API de Tarea', () => {
           priority: 'High',
           actualHours: 2.5
         };
-        
-        // Actualizar la tarea
+
         cy.request({
           method: 'PUT',
           url: `${Cypress.env('apiUrl')}/tareas/${taskId}`,
@@ -254,7 +238,6 @@ describe('Pruebas de API de Tarea', () => {
   });
 
   it('debería eliminar una tarea', () => {
-    // Primero crear una tarea
     const newTask = {
       title: 'Task to Delete',
       description: 'This task will be deleted',
@@ -277,26 +260,20 @@ describe('Pruebas de API de Tarea', () => {
 
     cy.request('POST', `${Cypress.env('apiUrl')}/tareas`, newTask).then((createResponse) => {
       const taskId = createResponse.headers.location;
-      
-      // Eliminar la tarea
+
       cy.request({
         method: 'DELETE',
         url: `${Cypress.env('apiUrl')}/tareas/${taskId}`
       }).then((deleteResponse) => {
-        // Solo verificar que el status sea 200 - esto indica eliminación exitosa
         expect(deleteResponse.status).to.eq(200);
         
-        // Verificar que la tarea fue eliminada intentando obtenerla
         cy.request({
           method: 'GET',
           url: `${Cypress.env('apiUrl')}/tareas/${taskId}`,
           failOnStatusCode: false
         }).then((getResponse) => {
-          // Después de eliminar, esperamos que no se pueda obtener la tarea (404)
-          // o que esté marcada como eliminada si es soft delete
           expect([404, 200]).to.include(getResponse.status);
           
-          // Si retorna 200, verificar que esté marcada como eliminada
           if (getResponse.status === 200 && getResponse.body && typeof getResponse.body === 'object') {
             expect(getResponse.body).to.have.property('deleted');
             expect(getResponse.body.deleted).to.eq(1);

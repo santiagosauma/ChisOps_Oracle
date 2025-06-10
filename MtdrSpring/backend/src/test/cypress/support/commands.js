@@ -1,8 +1,3 @@
-// ========================================
-// COMANDOS PERSONALIZADOS PARA API TESTING
-// ========================================
-
-// Comando para autenticación via API con credenciales REALES
 Cypress.Commands.add('loginViaAPI', (email = Cypress.env('testUser').email, password = Cypress.env('testUser').password) => {
   return cy.request({
     method: 'POST',
@@ -21,7 +16,6 @@ Cypress.Commands.add('loginViaAPI', (email = Cypress.env('testUser').email, pass
   });
 });
 
-// Comando para crear tarea vía API
 Cypress.Commands.add('createTaskViaAPI', (taskData = {}) => {
   const defaultTask = {
     title: Cypress.env('testTask').title,
@@ -54,7 +48,6 @@ Cypress.Commands.add('createTaskViaAPI', (taskData = {}) => {
   });
 });
 
-// Comando para obtener tareas de usuario vía API
 Cypress.Commands.add('getUserTasksViaAPI', (userId = Cypress.env('testUser').userId) => {
   return cy.request({
     method: 'GET',
@@ -62,7 +55,6 @@ Cypress.Commands.add('getUserTasksViaAPI', (userId = Cypress.env('testUser').use
   });
 });
 
-// Comando para actualizar tarea vía API
 Cypress.Commands.add('updateTaskViaAPI', (taskId, updateData) => {
   return cy.request({
     method: 'PUT',
@@ -74,7 +66,6 @@ Cypress.Commands.add('updateTaskViaAPI', (taskId, updateData) => {
   });
 });
 
-// Comando para obtener sprints vía API
 Cypress.Commands.add('getSprintsViaAPI', () => {
   return cy.request({
     method: 'GET',
@@ -82,7 +73,6 @@ Cypress.Commands.add('getSprintsViaAPI', () => {
   });
 });
 
-// Comando para obtener proyectos vía API
 Cypress.Commands.add('getProjectsViaAPI', () => {
   return cy.request({
     method: 'GET',
@@ -90,17 +80,14 @@ Cypress.Commands.add('getProjectsViaAPI', () => {
   });
 });
 
-// Comando para limpiar datos de prueba
 Cypress.Commands.add('cleanTestData', () => {
   cy.task('clearTestData');
 });
 
-// Comando para sembrar datos de prueba
 Cypress.Commands.add('seedTestData', () => {
   cy.task('seedTestData');
 });
 
-// Comando para crear proyecto vía API
 Cypress.Commands.add('createProjectViaAPI', (projectData = {}) => {
   const defaultProject = {
     name: 'Cypress Test Project',
@@ -119,7 +106,6 @@ Cypress.Commands.add('createProjectViaAPI', (projectData = {}) => {
   });
 });
 
-// Comando para crear sprint vía API
 Cypress.Commands.add('createSprintViaAPI', (sprintData = {}) => {
   const defaultSprint = {
     name: 'Cypress Test Sprint',
@@ -140,7 +126,6 @@ Cypress.Commands.add('createSprintViaAPI', (sprintData = {}) => {
   });
 });
 
-// Comando para validar estructura de respuesta API
 Cypress.Commands.add('validateApiResponse', (response, expectedKeys) => {
   expect(response.status).to.be.within(200, 299);
   expectedKeys.forEach(key => {

@@ -12,7 +12,6 @@ describe('Authentication Tests', () => {
     cy.get('[data-cy="password-input"]').type(Cypress.env('testUser').password)
     cy.get('[data-cy="login-button"]').click()
     
-    // Verificar redirección al dashboard
     cy.url().should('include', '/dashboard')
     cy.get('[data-cy="welcome-message"]').should('contain', Cypress.env('testUser').firstName)
   })

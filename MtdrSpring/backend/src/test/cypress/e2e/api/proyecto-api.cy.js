@@ -64,7 +64,6 @@ describe('Pruebas de API de Proyecto', () => {
       expect(response.status).to.eq(200);
       expect(response.body).to.be.an('array');
       
-      // Verificar que todos los proyectos tienen el status correcto
       response.body.forEach(project => {
         expect(project.status).to.eq(testStatus);
       });
@@ -79,7 +78,6 @@ describe('Pruebas de API de Proyecto', () => {
       expect(response.status).to.eq(200);
       expect(response.body).to.be.an('array');
       
-      // Verificar que todos son proyectos activos
       response.body.forEach(project => {
         expect(['En progreso', 'In Progress', 'Activo', 'Active']).to.include(project.status);
       });
@@ -95,7 +93,6 @@ describe('Pruebas de API de Proyecto', () => {
       expect(response.status).to.eq(200);
       expect(response.body).to.be.an('array');
       
-      // Verificar que los resultados contienen el término de búsqueda
       response.body.forEach(project => {
         const containsInName = project.name && project.name.toLowerCase().includes(searchTerm.toLowerCase());
         const containsInDescription = project.description && project.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -112,7 +109,6 @@ describe('Pruebas de API de Proyecto', () => {
       expect(response.status).to.eq(200);
       expect(response.body).to.be.an('array');
       
-      // Cada proyecto debe tener la estructura correcta
       response.body.forEach(project => {
         expect(project).to.have.property('projectId');
         expect(project).to.have.property('name');
@@ -129,7 +125,6 @@ describe('Pruebas de API de Proyecto', () => {
       expect(response.status).to.eq(200);
       expect(response.body).to.be.an('array');
       
-      // Verificar estructura simplificada
       response.body.forEach(project => {
         expect(project).to.have.property('projectId');
         expect(project).to.have.property('name');
@@ -137,7 +132,6 @@ describe('Pruebas de API de Proyecto', () => {
         expect(project).to.have.property('endDate');
         expect(project).to.have.property('status');
         
-        // No debe tener campos adicionales como description completa
         expect(project).to.not.have.property('usuarios');
         expect(project).to.not.have.property('sprints');
       });
@@ -152,7 +146,6 @@ describe('Pruebas de API de Proyecto', () => {
       expect(response.status).to.eq(200);
       expect(response.body).to.be.an('array');
       
-      // Verificar estructura de usuarios
       response.body.forEach(user => {
         expect(user).to.have.property('userId');
         expect(user).to.have.property('firstName');
