@@ -373,4 +373,131 @@ public class TaskBotControllerTest {
                 sm.getText().contains("Mostrando")
             ));
     }
+
+    @Test
+    public void testStoryPointsValidation() throws Exception {
+        Usuario usr = new Usuario();
+        usr.setFirstName("Carlos");
+        usr.setLastName("Vazquez");
+        usr.setEmail("carlos@example.com");
+        usr.setUserId(1);
+        when(usuarioService.findByTelegramUsername(USERNAME)).thenReturn(Optional.of(usr));
+        when(usuarioService.authenticate("carlos@example.com", "secret")).thenReturn(usr);
+
+        when(message.hasText()).thenReturn(true);
+        when(message.getText()).thenReturn("/login");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("secret");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("📝 Crear tarea");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("Test Task");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("Test Description");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("Medium");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("Task");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("15");
+        controller.onUpdateReceived(update);
+
+        verify(controller, atLeastOnce())
+            .execute(argThat((SendMessage sm) -> 
+                sm.getText().contains("Por favor, ingresa un número válido entre 1 y 13")
+            ));
+    }
+
+    @Test
+    public void testTaskNavigationButtons() throws Exception {
+        Usuario usr = new Usuario();
+        usr.setFirstName("Carlos");
+        usr.setLastName("Vazquez");
+        usr.setEmail("carlos@example.com");
+        usr.setUserId(1);
+        when(usuarioService.findByTelegramUsername(USERNAME)).thenReturn(Optional.of(usr));
+        when(usuarioService.authenticate("carlos@example.com", "secret")).thenReturn(usr);
+        when(tareaService.getTareasByUsuario(1)).thenReturn(new ArrayList<>());
+
+        when(message.hasText()).thenReturn(true);
+        when(message.getText()).thenReturn("/login");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("secret");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("⬅️ Anterior");
+        controller.onUpdateReceived(update);
+
+        verify(controller, atLeastOnce())
+            .execute(argThat((SendMessage sm) -> 
+                sm.getText().contains("Ya estás en la primera página") ||
+                sm.getText().contains("página")
+            ));
+    }
+
+    @Test
+    public void testInvalidUserSession() throws Exception {
+        when(message.hasText()).thenReturn(true);
+        when(message.getText()).thenReturn("📝 Crear tarea");
+
+        controller.onUpdateReceived(update);
+
+        verify(controller, atLeastOnce())
+            .execute(argThat((SendMessage sm) -> 
+                sm.getText().contains("Por favor, inicia sesión primero") ||
+                sm.getText().contains("login")
+            ));
+    }
+
+    @Test
+    public void testEstimatedHoursValidation() throws Exception {
+        Usuario usr = new Usuario();
+        usr.setFirstName("Carlos");
+        usr.setLastName("Vazquez");
+        usr.setEmail("carlos@example.com");
+        usr.setUserId(1);
+        when(usuarioService.findByTelegramUsername(USERNAME)).thenReturn(Optional.of(usr));
+        when(usuarioService.authenticate("carlos@example.com", "secret")).thenReturn(usr);
+
+        when(message.hasText()).thenReturn(true);
+        when(message.getText()).thenReturn("/login");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("secret");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("📝 Crear tarea");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("Test Task");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("Test Description");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("Medium");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("Task");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("5");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("-5");
+        controller.onUpdateReceived(update);
+
+        verify(controller, atLeastOnce())
+            .execute(argThat((SendMessage sm) -> 
+                sm.getText().contains("Por favor, ingresa un número válido mayor que 0")
+            ));
+    }
 }
