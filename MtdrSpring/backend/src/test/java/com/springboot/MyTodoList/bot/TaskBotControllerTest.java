@@ -315,4 +315,62 @@ public class TaskBotControllerTest {
                 sm.getText().contains("Descripción")
             ));
     }
+
+    @Test
+    public void testFinishTaskCommand() throws Exception {
+        Usuario usr = new Usuario();
+        usr.setFirstName("Carlos");
+        usr.setLastName("Vazquez");
+        usr.setEmail("carlos@example.com");
+        usr.setUserId(1);
+        when(usuarioService.findByTelegramUsername(USERNAME)).thenReturn(Optional.of(usr));
+        when(usuarioService.authenticate("carlos@example.com", "secret")).thenReturn(usr);
+        when(tareaService.getTareasByUsuario(1)).thenReturn(new ArrayList<>());
+
+        when(message.hasText()).thenReturn(true);
+        when(message.getText()).thenReturn("/login");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("secret");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("✅ Finalizar tarea");
+        controller.onUpdateReceived(update);
+
+        verify(controller, atLeastOnce())
+            .execute(argThat((SendMessage sm) -> 
+                sm.getText().contains("No tienes tareas asignadas") || 
+                sm.getText().contains("Selecciona la tarea") ||
+                sm.getText().contains("finalizar")
+            ));
+    }
+
+    @Test
+    public void testMediumPriorityFilter() throws Exception {
+        Usuario usr = new Usuario();
+        usr.setFirstName("Carlos");
+        usr.setLastName("Vazquez");
+        usr.setEmail("carlos@example.com");
+        usr.setUserId(1);
+        when(usuarioService.findByTelegramUsername(USERNAME)).thenReturn(Optional.of(usr));
+        when(usuarioService.authenticate("carlos@example.com", "secret")).thenReturn(usr);
+        when(tareaService.getTareasByUsuario(1)).thenReturn(new ArrayList<>());
+
+        when(message.hasText()).thenReturn(true);
+        when(message.getText()).thenReturn("/login");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("secret");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("🟡 Media prioridad");
+        controller.onUpdateReceived(update);
+
+        verify(controller, atLeastOnce())
+            .execute(argThat((SendMessage sm) -> 
+                sm.getText().contains("prioridad media") || 
+                sm.getText().contains("No se encontraron") ||
+                sm.getText().contains("Mostrando")
+            ));
+    }
 }
