@@ -257,4 +257,62 @@ public class TaskBotControllerTest {
                 sm.getText().contains("No se encontraron")
             ));
     }
+
+    @Test
+    public void testUserKpisCommand() throws Exception {
+        Usuario usr = new Usuario();
+        usr.setFirstName("Carlos");
+        usr.setLastName("Vazquez");
+        usr.setEmail("carlos@example.com");
+        usr.setUserId(1);
+        when(usuarioService.findByTelegramUsername(USERNAME)).thenReturn(Optional.of(usr));
+        when(usuarioService.authenticate("carlos@example.com", "secret")).thenReturn(usr);
+        when(tareaService.getTareasByUsuario(1)).thenReturn(new ArrayList<>());
+
+        when(message.hasText()).thenReturn(true);
+        when(message.getText()).thenReturn("/login");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("secret");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("📈 Mis KPIs");
+        controller.onUpdateReceived(update);
+
+        verify(controller, atLeastOnce())
+            .execute(argThat((SendMessage sm) -> 
+                sm.getText().contains("KPIs") || 
+                sm.getText().contains("desempeño") ||
+                sm.getText().contains("No tienes tareas registradas")
+            ));
+    }
+
+    @Test
+    public void testCreateTaskByVoicePrompt() throws Exception {
+        Usuario usr = new Usuario();
+        usr.setFirstName("Carlos");
+        usr.setLastName("Vazquez");
+        usr.setEmail("carlos@example.com");
+        usr.setUserId(1);
+        when(usuarioService.findByTelegramUsername(USERNAME)).thenReturn(Optional.of(usr));
+        when(usuarioService.authenticate("carlos@example.com", "secret")).thenReturn(usr);
+
+        when(message.hasText()).thenReturn(true);
+        when(message.getText()).thenReturn("/login");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("secret");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("🎤 Crear tarea por voz");
+        controller.onUpdateReceived(update);
+
+        verify(controller, atLeastOnce())
+            .execute(argThat((SendMessage sm) -> 
+                sm.getText().contains("Creación de tarea por voz") || 
+                sm.getText().contains("graba una nota de voz") ||
+                sm.getText().contains("Título") ||
+                sm.getText().contains("Descripción")
+            ));
+    }
 }
