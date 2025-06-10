@@ -1,5 +1,6 @@
 package com.springboot.MyTodoList.bot;
 
+import java.util.ArrayList;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -199,5 +200,61 @@ public class TaskBotControllerTest {
         verify(controller).onUpdateReceived(update);
         
         verify(controller, never()).execute(any(SendMessage.class));
+    }
+
+    @Test
+    public void testListTasksCommand() throws Exception {
+        Usuario usr = new Usuario();
+        usr.setFirstName("Carlos");
+        usr.setLastName("Vazquez");
+        usr.setEmail("carlos@example.com");
+        usr.setUserId(1);
+        when(usuarioService.findByTelegramUsername(USERNAME)).thenReturn(Optional.of(usr));
+        when(usuarioService.authenticate("carlos@example.com", "secret")).thenReturn(usr);
+        when(tareaService.getTareasByUsuario(1)).thenReturn(new ArrayList<>());
+
+        when(message.hasText()).thenReturn(true);
+        when(message.getText()).thenReturn("/login");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("secret");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("📋 Listar Tareas");
+        controller.onUpdateReceived(update);
+
+        verify(controller, atLeastOnce())
+            .execute(argThat((SendMessage sm) -> 
+                sm.getText().contains("tareas") || 
+                sm.getText().contains("No tienes tareas")
+            ));
+    }
+
+    @Test
+    public void testHighPriorityFilter() throws Exception {
+        Usuario usr = new Usuario();
+        usr.setFirstName("Carlos");
+        usr.setLastName("Vazquez");
+        usr.setEmail("carlos@example.com");
+        usr.setUserId(1);
+        when(usuarioService.findByTelegramUsername(USERNAME)).thenReturn(Optional.of(usr));
+        when(usuarioService.authenticate("carlos@example.com", "secret")).thenReturn(usr);
+        when(tareaService.getTareasByUsuario(1)).thenReturn(new ArrayList<>());
+
+        when(message.hasText()).thenReturn(true);
+        when(message.getText()).thenReturn("/login");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("secret");
+        controller.onUpdateReceived(update);
+
+        when(message.getText()).thenReturn("🔴 Alta prioridad");
+        controller.onUpdateReceived(update);
+
+        verify(controller, atLeastOnce())
+            .execute(argThat((SendMessage sm) -> 
+                sm.getText().contains("alta prioridad") || 
+                sm.getText().contains("No se encontraron")
+            ));
     }
 }
